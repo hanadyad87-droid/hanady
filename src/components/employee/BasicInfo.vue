@@ -1,8 +1,7 @@
 <template>
   <div class="basic-info" dir="rtl">
-    <h3 class="title">البيانات الأساسية</h3>
+    <h3 class="title">البيانات الأساسية </h3>
 
-    <!-- Grid -->
     <div class="form-grid">
       <div class="form-group">
         <label>رقم الموظف</label>
@@ -63,6 +62,8 @@
         <label>المسمى الوظيفي</label>
         <select v-model="localEmployee.JobTitleId">
           <option value="">اختر</option>
+          <option value="1">موظف</option>
+          <option value="2">مشرف</option>
         </select>
       </div>
 
@@ -70,6 +71,8 @@
         <label>حالة التوظيف</label>
         <select v-model="localEmployee.EmploymentStatusId">
           <option value="">اختر</option>
+          <option value="1">مثبت</option>
+          <option value="2">متعاقد</option>
         </select>
       </div>
 
@@ -77,6 +80,8 @@
         <label>الإدارة</label>
         <select v-model="localEmployee.DepartmentId">
           <option value="">اختر</option>
+          <option value="1">إدارة الموارد البشرية</option>
+          <option value="2">إدارة تقنية المعلومات</option>
         </select>
       </div>
 
@@ -84,6 +89,8 @@
         <label>موقع العمل</label>
         <select v-model="localEmployee.WorkLocationId">
           <option value="">اختر</option>
+          <option value="1">طرابلس</option>
+          <option value="2">بنغازي</option>
         </select>
       </div>
 
@@ -91,53 +98,64 @@
         <label>الدرجة الوظيفية</label>
         <select v-model="localEmployee.JobGradeId">
           <option value="">اختر</option>
+          <option value="1">الأولى</option>
+          <option value="2">الثانية</option>
         </select>
       </div>
     </div>
 
     <button class="btn" @click="save">
-      حفظ البيانات الاساسية
+      حفظ البيانات الأساسية والإدارية
     </button>
   </div>
 </template>
 
 <script>
+import api from "../../services/api";
+
 export default {
   name: "BasicInfo",
-
   props: {
     employee: {
       type: Object,
       required: true
     }
   },
-
   emits: ["update-employee"],
-
   data() {
     return {
+      // نسخة محلية لتعديل البيانات بدون تغيير الـ prop مباشرة
       localEmployee: { ...this.employee }
-    }
+    };
   },
-
   watch: {
+    // لو تغير prop من الأب، نحدث النسخة المحلية
     employee: {
       deep: true,
       handler(newVal) {
-        this.localEmployee = { ...newVal }
+        this.localEmployee = { ...newVal };
       }
     }
   },
-
   methods: {
-    save() {
-      // نبعث البيانات للأب
-      this.$emit("update-employee", { ...this.localEmployee })
-      alert("تم حفظ البيانات الأساسية ✅")
+    async save() {
+      try {
+        // نرسل البيانات للـ API
+        const res = await api.post("/Employee/create", this.localEmployee);
+        alert("تم حفظ البيانات الأساسية  ✅");
+        console.log("Response:", res.data);
+
+        // نخبر الأب بالبيانات الجديدة
+        this.$emit("update-employee", { ...this.localEmployee });
+      } catch (err) {
+        console.error(err);
+        alert("حدث خطأ أثناء الحفظ!");
+      }
     }
   }
-}
+};
 </script>
+
 
 <style scoped>
 .basic-info {

@@ -6,19 +6,19 @@
       <input
         type="number"
         placeholder="المرتب الأساسي"
-        v-model="form.salary"
+        v-model.number="form.Salary"
       />
 
-      <select v-model="form.bankId">
-        <option value="">اختر المصرف</option>
-        <option value="1">مصرف الجمهورية</option>
-        <option value="2">مصرف الصحاري</option>
+      <select v-model.number="form.BankId">
+        <option :value="null">اختر المصرف</option>
+        <option :value="1">مصرف الجمهورية</option>
+        <option :value="2">مصرف الصحاري</option>
       </select>
 
-      <select v-model="form.bankBranchId">
-        <option value="">الفرع</option>
-        <option value="1">فرع طرابلس</option>
-        <option value="2">فرع بنغازي</option>
+      <select v-model.number="form.BankBranchId">
+        <option :value="null">اختر الفرع</option>
+        <option :value="1">فرع طرابلس</option>
+        <option :value="2">فرع بنغازي</option>
       </select>
     </div>
 
@@ -29,25 +29,48 @@
 </template>
 
 <script>
+import api from "../../services/api";
+
 export default {
   name: "FinancialInfo",
+
+  props: {
+    employeeId: {
+      type: Number,
+      required: true
+    }
+  },
+
   data() {
     return {
       form: {
-        salary: "",
-        bankId: "",
-        bankBranchId: ""
+        EmployeeId: this.employeeId,
+        Salary: null,
+        BankId: null,
+        BankBranchId: null
+      }
+    };
+  },
+
+  methods: {
+    async save() {
+      try {
+        const res = await api.post(
+          "/EmployeeFinancialDatas/create",
+          this.form
+        );
+
+        alert("تم حفظ البيانات المالية ✅");
+        console.log("Saved:", res.data);
+      } catch (err) {
+        console.error(err);
+        alert("حدث خطأ أثناء حفظ البيانات المالية ❌");
       }
     }
-  },
-  methods: {
-    save() {
-      console.log("Financial Info:", this.form)
-      alert("تم حفظ البيانات المالية")
-    }
   }
-}
+};
 </script>
+
 <style>
 .section-title {
   font-size: 1.1rem;

@@ -12,6 +12,7 @@
 </template>
 
 <script>
+  import api from "../services/api"; 
 export default {
   name: 'LoginPage',
   data() {
@@ -21,14 +22,25 @@ export default {
     }
   },
   methods: {
-     login() {
-    let role = 'Employee'; // افتراضًا موظف عادي
-    if (this.username === 'admin') role = 'SuperAdmin';
+        async login() {
+      try {
+        const res = await api.post("/User/login", {
+          username: this.username,
+          password: this.password
+        });
+        // نخزن التوكن و الدور
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("role", res.data.role);
 
-    localStorage.setItem('userRole', role)
-    this.$router.push('/dashboard')
+        alert("تم تسجيل الدخول!");
+        this.$router.push("/dashboard"); // بعد تسجيل الدخول
+      } catch (err) {
+        alert("خطأ في اسم المستخدم أو كلمة المرور");
+        console.error(err);
+      }
+    }
   }
-  }
+  
 }
 </script>
 

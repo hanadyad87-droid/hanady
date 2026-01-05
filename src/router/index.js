@@ -18,13 +18,42 @@ const routes = [
     path: '/leaves',
     name: 'LeavesPage',
     component: LeavesPage,
-    meta: { role: ['Employee', 'SuperAdmin'] } // كل واحد ممكن يشوف
+    meta: { role: ['Employee', 'SuperAdmin'] }
   },
+  {
+  path: "/requests/update-info",
+  component: () => import("../views/requests/UpdateInfo.vue")
+},
+{
+  path: "/requests/transfer",
+  component: () => import("../views/requests/Transfer.vue")
+},
+{
+  path: "/requests/permission",
+  component: () => import("../views/requests/Permission.vue")
+},
+{
+  path: "/requests/training",
+  component: () => import("../views/requests/Training.vue")
+},
+{
+  path: "/requests/marriage",
+  component: () => import("../views/requests/Marriage.vue")
+},
+{
+  path: "/requests/internet",
+  component: () => import("../views/requests/Internet.vue")
+},
+{
+  path: "/requests/maintenance",
+  component: () => import("../views/requests/Maintenance.vue")
+},
+
   {
     path: '/employee',
     name: 'EmployeePage',
-    component: () => import('../views/AddEmployee.vue'), // حاليا AddEmployee، لاحقًا ممكن صفحة قائمة الموظفين
-    meta: { role: ['SuperAdmin'] } // بس الادمن يشوف
+    component: () => import('../views/AddEmployee.vue'),
+    meta: { role: ['SuperAdmin'] }
   },
   {
     path: '/employee/add',
@@ -39,14 +68,21 @@ const router = createRouter({
   routes
 })
 
-// حماية الصفحات حسب الدور
+// 🔐 Route Guard
 router.beforeEach((to, from, next) => {
-  const user = JSON.parse(localStorage.getItem('user'))
+  const token = localStorage.getItem('token')
+  const role = localStorage.getItem('role')
 
+  // لو الصفحة محمية بدور
   if (to.meta.role) {
-    if (!user || !to.meta.role.includes(user.role)) {
+    if (!token) {
+      alert('الرجاء تسجيل الدخول')
+      return next('/')
+    }
+
+    if (!to.meta.role.includes(role)) {
       alert('غير مسموح بالدخول')
-      return next('/') // ارجع للصفحة الرئيسية
+      return next('/dashboard')
     }
   }
 

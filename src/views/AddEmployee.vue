@@ -41,13 +41,11 @@
           @update-employee="updateEmployee"
         />
       </div>
-      <div class="submit-wrapper">
+      
       <!-- الزر هنا -->
-<button class="btn btn-primary" @click="saveToBackend">
-  حفظ البيانات
-</button>
+
 </div>
-    </div>
+    
   </div>
 </template>
 
@@ -105,20 +103,21 @@ methods: {
   updateEmployee(data) {
     this.employee = { ...this.employee, ...data };
   },
-  async saveToBackend() {
-    try {
-      const response = await api.post("/employee", this.employee);
-      alert("تم حفظ الموظف بنجاح!");
-      console.log(response.data);
-    } catch (error) {
-      console.error(error);
-      alert("حدث خطأ أثناء حفظ البيانات");
+   async saveToBackend() {
+      try {
+        const res = await api.post("/Employee/create", this.employee);
+        alert("تم إضافة الموظف بنجاح!");
+        console.log(res.data);
+      } catch (err) {
+        console.error(err);
+        alert("حدث خطأ أثناء الحفظ");
+      }
     }
   }
 }
 
 
-}
+
 </script> 
 
 <style scoped>

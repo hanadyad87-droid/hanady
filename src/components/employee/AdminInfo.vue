@@ -3,33 +3,33 @@
     <h3 class="section-title">البيانات الإدارية</h3>
 
     <div class="form-grid">
-      <input placeholder="رقم الموظف" v-model="form.employeeNumber" />
+      <input placeholder="رقم الموظف" v-model="form.EmployeeNumber" />
 
-      <select v-model="form.departmentId">
-        <option value="">اختر الإدارة</option>
-        <option value="1">إدارة الموارد البشرية</option>
-        <option value="2">إدارة تقنية المعلومات</option>
+      <select v-model="form.DepartmentId">
+        <option :value="null">اختر الإدارة</option>
+        <option :value="1">إدارة الموارد البشرية</option>
+        <option :value="2">إدارة تقنية المعلومات</option>
       </select>
 
-      <select v-model="form.jobTitleId">
-        <option value="">المسمى الوظيفي</option>
-        <option value="1">موظف</option>
-        <option value="2">مشرف</option>
+      <select v-model="form.JobTitleId">
+        <option :value="null">المسمى الوظيفي</option>
+        <option :value="1">موظف</option>
+        <option :value="2">مشرف</option>
       </select>
 
-      <select v-model="form.jobGradeId">
-        <option value="">الدرجة الوظيفية</option>
-        <option value="1">الأولى</option>
-        <option value="2">الثانية</option>
+      <select v-model="form.JobGradeId">
+        <option :value="null">الدرجة الوظيفية</option>
+        <option :value="1">الأولى</option>
+        <option :value="2">الثانية</option>
       </select>
 
-      <select v-model="form.employmentStatusId">
-        <option value="">حالة التوظيف</option>
-        <option value="1">مثبت</option>
-        <option value="2">متعاقد</option>
+      <select v-model="form.EmploymentStatusId">
+        <option :value="null">حالة التوظيف</option>
+        <option :value="1">مثبت</option>
+        <option :value="2">متعاقد</option>
       </select>
 
-      <input type="date" v-model="form.hireDate" />
+      <input type="date" v-model="form.HireDate" />
     </div>
 
     <button class="btn btn-primary" @click="save">
@@ -41,22 +41,26 @@
 <script>
 export default {
   name: "AdminInfo",
+  props: {
+    employee: Object // نستخدم بيانات parent إذا حبيت
+  },
   data() {
     return {
       form: {
-        employeeNumber: "",
-        departmentId: "",
-        jobTitleId: "",
-        jobGradeId: "",
-        employmentStatusId: "",
-        hireDate: ""
+        EmployeeNumber: "",
+        DepartmentId: null,
+        JobTitleId: null,
+        JobGradeId: null,
+        EmploymentStatusId: null,
+        HireDate: ""
       }
     }
   },
   methods: {
     save() {
-      console.log("Admin Info:", this.form)
-      alert("تم حفظ البيانات الإدارية")
+      // نرسل البيانات للـ parent
+      this.$emit("update-employee", { ...this.form });
+      alert("تم حفظ البيانات الإدارية");
     }
   }
 }
