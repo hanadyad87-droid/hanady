@@ -1,49 +1,97 @@
 <template>
-  <div>
-    <h3 class="section-title">البيانات الإدارية</h3>
+  <div dir="rtl" class="w-full">
 
-    <div class="form-grid">
-      <input placeholder="رقم الموظف" v-model="form.EmployeeNumber" />
+    <!-- العنوان -->
+    <h3 class="text-xl font-bold mb-4 text-right text-blue-800">
+      البيانات الإدارية
+    </h3>
 
-      <select v-model="form.DepartmentId">
-        <option :value="null">اختر الإدارة</option>
-        <option :value="1">إدارة الموارد البشرية</option>
-        <option :value="2">إدارة تقنية المعلومات</option>
-      </select>
+    <!-- الفورم -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-      <select v-model="form.JobTitleId">
-        <option :value="null">المسمى الوظيفي</option>
-        <option :value="1">موظف</option>
-        <option :value="2">مشرف</option>
-      </select>
+      <div class="flex flex-col">
+        <label class="text-sm text-gray-600 mb-1">رقم الموظف</label>
+        <input
+          type="text"
+          v-model="form.EmployeeNumber"
+          class="input"
+          placeholder="رقم الموظف"
+        />
+      </div>
 
-      <select v-model="form.JobGradeId">
-        <option :value="null">الدرجة الوظيفية</option>
-        <option :value="1">الأولى</option>
-        <option :value="2">الثانية</option>
-      </select>
+      <div class="flex flex-col">
+        <label class="text-sm text-gray-600 mb-1">الإدارة</label>
+        <select v-model="form.DepartmentId" class="input text-left pr-2">
+          <option :value="null">اختر الإدارة</option>
+          <option :value="1">إدارة الموارد البشرية</option>
+          <option :value="2">إدارة تقنية المعلومات</option>
+        </select>
+      </div>
 
-      <select v-model="form.EmploymentStatusId">
-        <option :value="null">حالة التوظيف</option>
-        <option :value="1">مثبت</option>
-        <option :value="2">متعاقد</option>
-      </select>
+      <div class="flex flex-col">
+        <label class="text-sm text-gray-600 mb-1">المسمى الوظيفي</label>
+        <select v-model="form.JobTitleId" class="input text-left pr-2">
+          <option :value="null">اختر</option>
+          <option :value="1">موظف</option>
+          <option :value="2">مشرف</option>
+        </select>
+      </div>
 
-      <input type="date" v-model="form.HireDate" />
+      <div class="flex flex-col">
+        <label class="text-sm text-gray-600 mb-1">الدرجة الوظيفية</label>
+        <select v-model="form.JobGradeId" class="input text-left pr-2">
+          <option :value="null">اختر</option>
+          <option :value="1">الأولى</option>
+          <option :value="2">الثانية</option>
+        </select>
+      </div>
+
+      <div class="flex flex-col">
+        <label class="text-sm text-gray-600 mb-1">حالة التوظيف</label>
+        <select v-model="form.EmploymentStatusId" class="input text-left pr-2">
+          <option :value="null">اختر</option>
+          <option :value="1">مثبت</option>
+          <option :value="2">متعاقد</option>
+        </select>
+      </div>
+
+      <div class="flex flex-col">
+        <label class="text-sm text-gray-600 mb-1">تاريخ التعيين</label>
+        <input
+          type="date"
+          v-model="form.HireDate"
+          class="input"
+        />
+      </div>
+
     </div>
 
-    <button class="btn btn-primary" @click="save">
-      حفظ البيانات الإدارية
-    </button>
+    <!-- زر الحفظ -->
+    <div class="flex justify-center mt-8">
+      <button
+        @click="save"
+        class="bg-blue-800 hover:bg-blue-900 text-white px-8 py-2 rounded-lg transition w-full max-w-xs"
+      >
+        حفظ البيانات الإدارية
+      </button>
+    </div>
+
+    <!-- Toast -->
+    <Toast v-if="toastMessage" :message="toastMessage" :type="toastType" />
+
   </div>
 </template>
 
 <script>
+import Toast from '../Toast.vue';
+
 export default {
   name: "AdminInfo",
   props: {
-    employee: Object // نستخدم بيانات parent إذا حبيت
+    employee: Object
   },
+  emits: ["update-employee"],
+  components: { Toast },
   data() {
     return {
       form: {
@@ -53,46 +101,29 @@ export default {
         JobGradeId: null,
         EmploymentStatusId: null,
         HireDate: ""
-      }
-    }
+      },
+      toastMessage: "",
+      toastType: "success"
+    };
   },
   methods: {
     save() {
-      // نرسل البيانات للـ parent
       this.$emit("update-employee", { ...this.form });
-      alert("تم حفظ البيانات الإدارية");
+
+      this.toastMessage = "تم حفظ البيانات الإدارية ✅";
+      this.toastType = "success";
+
+      // إعادة تعيين الرسالة بعد 3 ثواني
+      setTimeout(() => {
+        this.toastMessage = "";
+      }, 3000);
     }
   }
 }
 </script>
-<style>
-.section-title {
-  font-size: 1.1rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
-}
 
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1rem;
+<style scoped>
+.input {
+  @apply p-2 border rounded-lg;
 }
-
-input, select {
-  padding: 0.5rem;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-}
-.btn {
-  margin: 2rem auto 0;
-  display: block;
-  padding: 0.7rem 1.8rem;
-  border-radius: 10px;
-  border: none;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
 </style>

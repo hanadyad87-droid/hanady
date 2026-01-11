@@ -1,111 +1,101 @@
 <template>
-  <div class="login-container">
-      <img src="../assets/image.png" class="bg-img" />
-    <div class="login-box">
-      <h2>تسجيل الدخول</h2>
-      <p>أدخل بياناتك</p>
-      <input type="text" placeholder="اسم المستخدم" v-model="username" />
-      <input type="password" placeholder="كلمة المرور" v-model="password" />
-      <button @click="login">دخول</button>
+  <div class="relative min-h-screen flex items-center justify-center bg-background">
+
+    <!-- الخلفية -->
+    <img
+      src="../assets/image.png"
+      class="absolute inset-0 w-full h-full object-cover opacity-20"
+    />
+
+    <!-- Card -->
+    <div class="relative z-10 w-full max-w-sm bg-white rounded-xl shadow-lg p-6">
+
+      <h2 class="text-2xl font-bold text-center mb-2">
+        تسجيل الدخول
+      </h2>
+
+      <p class="text-center text-gray-500 mb-6">
+        أدخل بياناتك
+      </p>
+
+      <div class="space-y-4">
+        <input
+          v-model="username"
+          type="text"
+          placeholder="اسم المستخدم"
+          class="w-full px-4 py-2 border rounded-lg text-right focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+
+        <input
+          v-model="password"
+          type="password"
+          placeholder="كلمة المرور"
+          class="w-full px-4 py-2 border rounded-lg text-right focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+
+        <button
+          @click="login"
+          class="w-full bg-primary text-white py-2 rounded-lg hover:bg-blue-900 transition"
+        >
+          دخول
+        </button>
+      </div>
     </div>
+
+    <!-- Toast -->
+    <Toast v-if="toastMessage" :message="toastMessage" :type="toastType" />
+
   </div>
 </template>
 
 <script>
-  import api from "../services/api"; 
+import api from "../services/api";
+import Toast from "../components/Toast.vue";
+
 export default {
-  name: 'LoginPage',
+  name: "LoginPage",
+  components: { Toast },
   data() {
     return {
-      username: '',
-      password: ''
-    }
+      username: "",
+      password: "",
+      toastMessage: "",
+      toastType: "success"
+    };
   },
   methods: {
-        async login() {
+    async login() {
+      if (!this.username || !this.password) {
+        this.toastMessage = "الرجاء إدخال اسم المستخدم وكلمة المرور ❌";
+        this.toastType = "error";
+        setTimeout(() => (this.toastMessage = ""), 3000);
+        return;
+      }
+
       try {
         const res = await api.post("/User/login", {
           username: this.username,
           password: this.password
         });
-        // نخزن التوكن و الدور
+
         localStorage.setItem("token", res.data.token);
         localStorage.setItem("role", res.data.role);
 
-        alert("تم تسجيل الدخول!");
-        this.$router.push("/dashboard"); // بعد تسجيل الدخول
+        this.toastMessage = "تم تسجيل الدخول بنجاح ✅";
+        this.toastType = "success";
+
+        setTimeout(() => {
+          this.toastMessage = "";
+          this.$router.push("/dashboard");
+        }, 1500);
+
       } catch (err) {
-        alert("خطأ في اسم المستخدم أو كلمة المرور");
         console.error(err);
+        this.toastMessage = "خطأ في اسم المستخدم أو كلمة المرور ❌";
+        this.toastType = "error";
+        setTimeout(() => (this.toastMessage = ""), 3000);
       }
     }
   }
-  
-}
+};
 </script>
-
-<style scoped>
-.login-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background-color: #f5f5f5;
-}
-
-.login-box {
-  background-color: #fff4e5;
-  padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  text-align: center;
-  width: 300px;
-}
-
-.login-box h2 {
-  margin-bottom: 0.5rem;
-}
-
-.login-box p {
-  margin-bottom: 1rem;
-  color: #888;
-}
-
-.login-box input {
-  width: 100%;
-  padding: 0.5rem;
-  margin-bottom: 1rem;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-}
-
-.login-box button {
-  width: 100%;
-  padding: 0.5rem;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-.login-box button:hover {
-  background-color: #0056b3;
-}
-
-.bg-img {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* أو cover */
-  opacity: 0.2; /* لتخفيف وضوح الصورة */
-  z-index: 0;
-}
-
-.login-box {
-  position: relative;
-  z-index: 1; /* فوق الصورة */
-}
-
-</style>

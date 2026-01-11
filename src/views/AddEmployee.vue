@@ -1,25 +1,31 @@
-
 <template>
-  <div class="relative min-h-screen bg-gray-100">
-    <Sidebar />
+  <div class="flex min-h-screen bg-gray-100">
 
-    <div class="main-content">
-      
+    <!-- Sidebar ثابتة على اليمين -->
+    <Sidebar class="fixed top-0 right-0 h-screen w-24 md:w-64 z-50" />
 
-      <!-- التابات -->
-      <div class="tabs">
-        <button
-          v-for="tab in tabs"
-          :key="tab"
-          @click="activeTab = tab"
-          :class="['tab-btn', { active: activeTab === tab }]"
-        >
-          {{ tab }}
-        </button>
-      </div>
+    <!-- المحتوى الرئيسي -->
+    <div class="flex-1 p-6 min-h-screen mr-24 md:mr-64">
+<!-- التابات -->
+<div class="flex flex-row-reverse flex-nowrap gap-2 mb-4 overflow-x-auto justify-start">
+  <button
+    v-for="tab in tabs"
+    :key="tab"
+    @click="activeTab = tab"
+    :class="[
+      'flex-shrink-0 rounded-lg transition text-sm md:text-base px-3 md:px-4 py-2',
+      activeTab === tab
+        ? 'bg-blue-800 text-white'
+        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+    ]"
+  >
+    {{ tab }}
+  </button>
+</div>
 
-      <!-- المحتوى -->
-      <div class="card">
+      <!-- بطاقة المحتوى -->
+      <div class="bg-white
+ p-6 rounded-xl shadow mb-6 w-full max-w-4xl mx-auto">
         <BasicInfo
           v-if="activeTab === 'البيانات الأساسية'"
           :employee="employee"
@@ -41,11 +47,18 @@
           @update-employee="updateEmployee"
         />
       </div>
-      
-      <!-- الزر هنا -->
 
-</div>
-    
+      <!-- زر الحفظ -->
+      <div class="flex justify-center mb-6">
+        <button
+          @click="saveToBackend"
+          class="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-800 transition w-full max-w-xs"
+        >
+          حفظ الموظف 💾
+        </button>
+      </div>
+
+    </div>
   </div>
 </template>
 
@@ -77,17 +90,14 @@ export default {
         Gender: '',
         Nationality: '',
         HireDate: '',
-        // بيانات إدارية
         DepartmentId: null,
         JobTitleId: null,
         EmploymentStatusId: null,
         JobGradeId: null,
         WorkLocationId: null,
-        // بيانات مالية
         Salary: 0,
         BankId: null,
         BankBranchId: null,
-        // المؤهل العلمي
         Qualification: ''
       },
       tabs: [
@@ -99,11 +109,11 @@ export default {
       activeTab: "البيانات الأساسية"
     }
   },
-methods: {
-  updateEmployee(data) {
-    this.employee = { ...this.employee, ...data };
-  },
-   async saveToBackend() {
+  methods: {
+    updateEmployee(data) {
+      this.employee = { ...this.employee, ...data };
+    },
+    async saveToBackend() {
       try {
         const res = await api.post("/Employee/create", this.employee);
         alert("تم إضافة الموظف بنجاح!");
@@ -115,91 +125,6 @@ methods: {
     }
   }
 }
+</script>
 
 
-
-</script> 
-
-<style scoped>
-/* Sidebar */
-.sidebar {
-  position: fixed;
-  top: 0;
-  right: 0; /* يبقى على اليمين */
-  width: 6.5rem; 
-  height: 100vh;
-  background-color: #1e40af;
-  color: white;
-  padding: 1rem;
-  box-shadow: -2px 0 5px rgba(0,0,0,0.1);
-  overflow-y: auto;
-}
-
-/* محتوى الصفحة */
-.main-content {
-  margin-right: 7.5rem; /* يترك مساحة للـ Sidebar */
-  padding: 1.5rem;
-  direction: rtl; /* كل المحتوى من اليمين لليسار */
-  text-align: right;
-}
-
-.page-title {
-  font-size: 1.4rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
-}
-
-/* Tabs */
-.tabs {
-  display: flex;
-  flex-direction: row; /* تبدأ من اليمين */
-  justify-content: flex-start;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.tab-btn {
-  padding: 0.5rem 1rem;
-  border: none;
-  background: #e5e7eb;
-  border-radius: 8px;
-  cursor: pointer;
-  text-align: center;
-}
-
-.tab-btn.active {
-  background: #1e40af;
-  color: white;
-}
-
-/* بطاقة المحتوى */
-.card {
-  background: #fff4e5;
-  padding: 1.5rem;
-  border-radius: 10px;
-}
-.btn {
-  width: 100%;
-  padding: 0.6rem;
-  border-radius: 5px;
-  border: none;
-  cursor: pointer;
-    max-width: 200px; /* نفس عرض الحقول تقريباً */
-  align-self: center; /* يحافظ على الزر من اليسار، أو استعمل center إذا تحب */
-}
-.btn-primary {
-  background-color: #1890ff;
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: #096dd9;
-}
-.submit-wrapper {
-  display: flex;
-  flex-direction: column; /* عمودي: زر فوق الحالة */
-  align-items: center;    /* لتوسيط المحتوى أفقياً */
-  gap: 0.5rem;            /* مسافة بين الزر والحالة */
-}
-
-</style>

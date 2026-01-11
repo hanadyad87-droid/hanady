@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ستايل موحد لكل input و select */
+.input {
+  @apply border rounded-lg text-right;
+  width: 100%;
+  background-color: white;
+  border: 1px solid #d1d5db; /* gray-300 */
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.input:focus {
+  border-color: #2563eb; /* blue-600 */
+  box-shadow: 0 0 0 2px rgb(37 99 235 / 20%);
+}
+
+/* ========== SELECT ========== */
+select.input {
+  appearance: none; /* إزالة سهم المتصفح */
+  direction: ltr;   /* يخلي السهم يسار */
+  text-align: right; /* النص عربي */
+  padding-left: 2.5rem;  /* مساحة للسهم */
+  padding-right: 0.75rem;
+
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 20 20' fill='currentColor' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.08 1.04l-4.25 4.25a.75.75 0 01-1.06 0L5.25 8.27a.75.75 0 01-.02-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: left 0.75rem center; /* السهم عاليسار */
+  background-size: 1.2rem;
+}
+
+/* الخيارات داخل القائمة */
+select.input option {
+  direction: rtl;
+}

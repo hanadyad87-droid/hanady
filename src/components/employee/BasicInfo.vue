@@ -1,55 +1,59 @@
 <template>
-  <div class="basic-info" dir="rtl">
-    <h3 class="title">البيانات الأساسية </h3>
+  <div class="basic-info p-4" dir="rtl">
 
-    <div class="form-grid">
-      <div class="form-group">
-        <label>رقم الموظف</label>
-        <input type="text" v-model="localEmployee.EmployeeNumber" />
+    <h3 class="text-xl font-bold mb-4 text-right text-blue-800">
+      البيانات الأساسية
+    </h3>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+      <div class="flex flex-col">
+        <label class="text-sm text-gray-600 mb-1">رقم الموظف</label>
+        <input v-model="localEmployee.EmployeeNumber" class="input" />
       </div>
 
-      <div class="form-group">
-        <label>الاسم الكامل</label>
-        <input type="text" v-model="localEmployee.FullName" />
+      <div class="flex flex-col">
+        <label class="text-sm text-gray-600 mb-1">الاسم الكامل</label>
+        <input v-model="localEmployee.FullName" class="input" />
       </div>
 
-      <div class="form-group">
-        <label>اسم الأم</label>
-        <input type="text" v-model="localEmployee.MotherName" />
+      <div class="flex flex-col">
+        <label class="text-sm text-gray-600 mb-1">اسم الأم</label>
+        <input v-model="localEmployee.MotherName" class="input" />
       </div>
 
-      <div class="form-group">
-        <label>رقم الهوية</label>
-        <input type="text" v-model="localEmployee.NationalId" />
+      <div class="flex flex-col">
+        <label class="text-sm text-gray-600 mb-1">رقم الهوية</label>
+        <input v-model="localEmployee.NationalId" class="input" />
       </div>
 
-      <div class="form-group">
-        <label>تاريخ الميلاد</label>
-        <input type="date" v-model="localEmployee.BirthDate" />
+      <div class="flex flex-col">
+        <label class="text-sm text-gray-600 mb-1">تاريخ الميلاد</label>
+        <input type="date" v-model="localEmployee.BirthDate" class="input" />
       </div>
 
-      <div class="form-group">
-        <label>الجنس</label>
-        <select v-model="localEmployee.Gender">
+      <div class="flex flex-col">
+        <label class="text-sm text-gray-600 mb-1">الجنس</label>
+        <select v-model="localEmployee.Gender" class="input text-right pr-2">
           <option value="">اختر</option>
           <option value="ذكر">ذكر</option>
           <option value="أنثى">أنثى</option>
         </select>
       </div>
 
-      <div class="form-group">
-        <label>الجنسية</label>
-        <input type="text" v-model="localEmployee.Nationality" />
+      <div class="flex flex-col">
+        <label class="text-sm text-gray-600 mb-1">الجنسية</label>
+        <input v-model="localEmployee.Nationality" class="input" />
       </div>
 
-      <div class="form-group">
-        <label>تاريخ التعيين</label>
-        <input type="date" v-model="localEmployee.HireDate" />
+      <div class="flex flex-col">
+        <label class="text-sm text-gray-600 mb-1">تاريخ التعيين</label>
+        <input type="date" v-model="localEmployee.HireDate" class="input" />
       </div>
 
-      <div class="form-group">
-        <label>الحالة الاجتماعية</label>
-        <select v-model="localEmployee.MaritalStatusId">
+      <div class="flex flex-col">
+        <label class="text-sm text-gray-600 mb-1">الحالة الاجتماعية</label>
+        <select v-model="localEmployee.MaritalStatusId" class="input text-right pr-2">
           <option value="">اختر</option>
           <option value="1">أعزب</option>
           <option value="2">متزوج</option>
@@ -58,145 +62,121 @@
         </select>
       </div>
 
-      <div class="form-group">
-        <label>المسمى الوظيفي</label>
-        <select v-model="localEmployee.JobTitleId">
+      <div class="flex flex-col">
+        <label class="text-sm text-gray-600 mb-1">المسمى الوظيفي</label>
+        <select v-model="localEmployee.JobTitleId" class="input text-right pr-2">
           <option value="">اختر</option>
           <option value="1">موظف</option>
-          <option value="2">مشرف</option>
+          <option value="2">فني</option>
         </select>
       </div>
 
-      <div class="form-group">
-        <label>حالة التوظيف</label>
-        <select v-model="localEmployee.EmploymentStatusId">
+      <div class="flex flex-col">
+        <label class="text-sm text-gray-600 mb-1">حالة التوظيف</label>
+        <select v-model="localEmployee.EmploymentStatusId" class="input text-right pr-2">
           <option value="">اختر</option>
           <option value="1">مثبت</option>
           <option value="2">متعاقد</option>
         </select>
       </div>
 
-      <div class="form-group">
-        <label>الإدارة</label>
-        <select v-model="localEmployee.DepartmentId">
+      <div class="flex flex-col">
+        <label class="text-sm text-gray-600 mb-1">الإدارة</label>
+        <select v-model="localEmployee.DepartmentId" class="input text-right pr-2">
           <option value="">اختر</option>
-          <option value="1">إدارة الموارد البشرية</option>
-          <option value="2">إدارة تقنية المعلومات</option>
+          <option value="1">الموارد البشرية</option>
+          <option value="2">تقنية المعلومات</option>
         </select>
       </div>
 
-      <div class="form-group">
-        <label>موقع العمل</label>
-        <select v-model="localEmployee.WorkLocationId">
+      <div class="flex flex-col">
+        <label class="text-sm text-gray-600 mb-1">موقع العمل</label>
+        <select v-model="localEmployee.WorkLocationId" class="input text-right pr-2">
           <option value="">اختر</option>
           <option value="1">طرابلس</option>
           <option value="2">بنغازي</option>
         </select>
       </div>
 
-      <div class="form-group">
-        <label>الدرجة الوظيفية</label>
-        <select v-model="localEmployee.JobGradeId">
+      <div class="flex flex-col">
+        <label class="text-sm text-gray-600 mb-1">الدرجة الوظيفية</label>
+        <select v-model="localEmployee.JobGradeId" class="input text-right pr-2">
           <option value="">اختر</option>
           <option value="1">الأولى</option>
           <option value="2">الثانية</option>
         </select>
       </div>
+
     </div>
 
-    <button class="btn" @click="save">
-      حفظ البيانات الأساسية والإدارية
-    </button>
+    <!-- زر الحفظ -->
+    <div class="flex justify-center mt-8">
+      <button
+        @click="save"
+        class="bg-blue-800 hover:bg-blue-900 text-white px-8 py-2 rounded-lg transition w-full max-w-xs"
+      >
+        حفظ البيانات الأساسية
+      </button>
+    </div>
+
+    <!-- Toast (نفس المالية 100%) -->
+    <Toast v-if="toastMessage" :message="toastMessage" :type="toastType" />
+
   </div>
 </template>
 
 <script>
 import api from "../../services/api";
+import Toast from "../Toast.vue";
 
 export default {
   name: "BasicInfo",
   props: {
-    employee: {
-      type: Object,
-      required: true
-    }
+    employee: { type: Object, required: true }
   },
-  emits: ["update-employee"],
+  components: { Toast },
   data() {
     return {
-      // نسخة محلية لتعديل البيانات بدون تغيير الـ prop مباشرة
-      localEmployee: { ...this.employee }
+      localEmployee: { ...this.employee },
+      toastMessage: "",
+      toastType: "success"
     };
   },
   watch: {
-    // لو تغير prop من الأب، نحدث النسخة المحلية
     employee: {
       deep: true,
-      handler(newVal) {
-        this.localEmployee = { ...newVal };
+      handler(val) {
+        this.localEmployee = { ...val };
       }
     }
   },
   methods: {
     async save() {
-      try {
-        // نرسل البيانات للـ API
-        const res = await api.post("/Employee/create", this.localEmployee);
-        alert("تم حفظ البيانات الأساسية  ✅");
-        console.log("Response:", res.data);
+      if (!this.localEmployee.EmployeeNumber || !this.localEmployee.FullName) {
+        this.toastMessage = "الرجاء ملء الحقول المطلوبة ❌";
+        this.toastType = "error";
+        setTimeout(() => (this.toastMessage = ""), 3000);
+        return;
+      }
 
-        // نخبر الأب بالبيانات الجديدة
-        this.$emit("update-employee", { ...this.localEmployee });
+      try {
+        await api.post("/Employee/create", this.localEmployee);
+        this.toastMessage = "تم حفظ البيانات الأساسية ✅";
+        this.toastType = "success";
+        setTimeout(() => (this.toastMessage = ""), 3000);
       } catch (err) {
         console.error(err);
-        alert("حدث خطأ أثناء الحفظ!");
+        this.toastMessage = "حدث خطأ أثناء الحفظ ❌";
+        this.toastType = "error";
+        setTimeout(() => (this.toastMessage = ""), 3000);
       }
     }
   }
 };
 </script>
 
-
 <style scoped>
-.basic-info {
-  text-align: right;
-}
-
-.title {
-  font-weight: bold;
-  margin-bottom: 1rem;
-}
-
-/* عمودين */
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem 1.5rem;
-}
-
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-
-input,
-select {
-  padding: 0.45rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-}
-
-.btn {
-    margin: 2rem auto 0;
-  display: block;
-  background: #1e40af;
-  color: white;
-  padding: 0.7rem 1.8rem;
-  border-radius: 10px;
-  border: none;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: 0.3s;
+.input {
+  @apply p-2 border rounded-lg text-right;
 }
 </style>
