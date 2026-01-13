@@ -3,7 +3,9 @@ import LoginPage from '../views/LoginPage.vue'
 import Dashboard from '../views/Dashboard.vue'
 import LeavesPage from '../views/LeavesPage.vue'
 import RequestsPage from '../views/Requests.vue'
-
+import EmployeeQualification from "../views/EmployeeQualification.vue";
+import UpdateInfo from "../views/UpdateInfo.vue";
+import PermissionsPage from '../views/PermissionsPage.vue';
 const routes = [
   {
     path: '/',
@@ -15,12 +17,21 @@ const routes = [
     name: 'Dashboard',
     component: Dashboard
   },
+    {
+    path: "/update-info",
+    name: "UpdateInfo",
+    component: UpdateInfo
+  },
   {
     path: '/leaves',
     name: 'LeavesPage',
     component: LeavesPage,
     meta: { role: ['Employee', 'SuperAdmin'] }
   },
+  {
+  path: "/employee-qualification",
+  component: EmployeeQualification
+},
 
   // ✅ صفحة الطلبات الموحدة
   {
@@ -41,6 +52,12 @@ const routes = [
     name: 'AddEmployee',
     component: () => import('../views/AddEmployee.vue'),
     meta: { role: ['SuperAdmin'] }
+  },
+    {
+    path: '/permissions',
+    name: 'PermissionsPage',
+    component: PermissionsPage,
+    meta: { role: ['SuperAdmin', 'Admin'] } // <--- حدد من يسمح له بالدخول
   }
 ]
 

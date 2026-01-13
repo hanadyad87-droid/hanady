@@ -17,11 +17,8 @@
         <textarea v-model="issue" placeholder="وصف المشكلة" 
                   class="border rounded-lg p-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none w-full sm:w-3/4"></textarea>
 
-        <input v-model="location" type="text" placeholder="المكان / المكتب" 
-               class="border rounded-lg p-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-3/4" />
-
         <div class="flex justify-center mt-2">
-          <button @click="submitRequest" class="bg-blue-800 text-white rounded-xl py-2 px-6 hover:bg-blue-900 transition w-40 text-center">
+          <button @click="submitRequest"  class="bg-primary hover:bg-primaryDark text-white py-2 px-6 rounded-lg transition w-full max-w-xs">
             إرسال الطلب
           </button>
         </div>
@@ -38,7 +35,6 @@
               <th class="px-4 py-2 text-sm font-medium text-gray-700">التاريخ</th>
               <th class="px-4 py-2 text-sm font-medium text-gray-700">الجهاز / المعدات</th>
               <th class="px-4 py-2 text-sm font-medium text-gray-700">الوصف</th>
-              <th class="px-4 py-2 text-sm font-medium text-gray-700">المكان</th>
               <th class="px-4 py-2 text-sm font-medium text-gray-700">الحالة</th>
             </tr>
           </thead>
@@ -48,7 +44,6 @@
               <td class="px-4 py-2 text-sm text-gray-700">{{ req.date }}</td>
               <td class="px-4 py-2 text-sm text-gray-700">{{ req.device }}</td>
               <td class="px-4 py-2 text-sm text-gray-700">{{ req.issue }}</td>
-              <td class="px-4 py-2 text-sm text-gray-700">{{ req.location }}</td>
               <td class="px-4 py-2 text-sm" 
                   :class="{
                     'text-green-600': req.status==='مقبول',
@@ -80,10 +75,9 @@ export default {
     return {
       device: "",
       issue: "",
-      location: "",
       requests: [
-        { id: 1, date: "2026-01-05", device: "حاسوب", issue: "لا يعمل", location: "المكتب 101", status: "مقبول" },
-        { id: 2, date: "2026-01-06", device: "طابعة", issue: "تعطل الورق", location: "المكتب 102", status: "تحت المراجعة" }
+        { id: 1, date: "2026-01-05", device: "حاسوب", issue: "لا يعمل", status: "مقبول" },
+        { id: 2, date: "2026-01-06", device: "طابعة", issue: "تعطل الورق", status: "تحت المراجعة" }
       ],
       toastMessage: "",
       toastType: "success"
@@ -91,7 +85,7 @@ export default {
   },
   methods: {
     submitRequest() {
-      if (!this.device || !this.issue || !this.location) {
+      if (!this.device || !this.issue) {
         this.toastMessage = "الرجاء تعبئة جميع الحقول";
         this.toastType = "error";
         return;
@@ -102,7 +96,6 @@ export default {
         date: new Date().toISOString().split("T")[0],
         device: this.device,
         issue: this.issue,
-        location: this.location,
         status: "تحت المراجعة"
       };
 
@@ -110,7 +103,6 @@ export default {
 
       this.device = "";
       this.issue = "";
-      this.location = "";
 
       this.toastMessage = "تم إرسال طلب الصيانة ✅";
       this.toastType = "success";

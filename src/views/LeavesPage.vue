@@ -2,11 +2,13 @@
   <div class="flex min-h-screen bg-background">
 
     <!-- Sidebar ثابتة على اليمين -->
-    <Sidebar class="fixed top-0 right-0 h-screen w-24 md:w-64 bg-primary text-white p-4 z-50" />
+   <Sidebar class="fixed top-0 right-0 h-screen w-24 md:w-64 bg-primary text-white p-4 z-50" />
+
+
 
     <!-- المحتوى الرئيسي -->
     <div class="flex-1 p-6 min-h-screen" :class="{'mr-24 md:mr-64': true}">
-
+<Navbar />
       <!-- العنوان -->
       <div class="bg-white rounded-xl shadow-lg p-6 mb-6 max-w-4xl mx-auto">
         <h2 class="text-2xl font-bold text-right">الإجازات</h2>
@@ -16,11 +18,14 @@
       <!-- كارد تقديم طلب إجازة -->
       <div class="bg-white rounded-xl shadow-lg p-6 mb-6 max-w-4xl mx-auto">
         <form class="grid grid-cols-1 md:grid-cols-2 gap-4" @submit.prevent="submitLeave">
+
+          <!-- من تاريخ -->
           <div class="flex flex-col">
             <label class="mb-1 font-medium text-right text-sm">من تاريخ*</label>
             <input type="date" v-model="leaveForm.fromDate" @change="calculateDays" class="p-2 border rounded-lg text-right text-sm" />
           </div>
 
+          <!-- نوع الإجازة -->
           <div class="flex flex-col">
             <label class="mb-1 font-medium text-right text-sm">نوع الإجازة</label>
             <select v-model="leaveForm.typeId" class="p-2 border rounded-lg text-right text-sm">
@@ -31,26 +36,31 @@
             </select>
           </div>
 
+          <!-- إلى تاريخ -->
           <div class="flex flex-col">
             <label class="mb-1 font-medium text-right text-sm">إلى تاريخ*</label>
             <input type="date" v-model="leaveForm.toDate" @change="calculateDays" class="p-2 border rounded-lg text-right text-sm" />
           </div>
 
+          <!-- عدد الأيام -->
           <div class="flex flex-col">
             <label class="mb-1 font-medium text-right text-sm">عدد أيام الإجازة*</label>
             <input type="number" v-model="leaveForm.days" readonly class="p-2 border rounded-lg text-right text-sm bg-gray-100" />
           </div>
 
+          <!-- ملاحظات -->
           <div class="flex flex-col md:col-span-2">
             <label class="mb-1 font-medium text-right text-sm">ملاحظات (اختياري)</label>
             <textarea v-model="leaveForm.notes" placeholder="اكتب ملاحظاتك هنا..." class="p-2 border rounded-lg text-right bg-gray-50 text-sm min-h-[50px]"></textarea>
           </div>
 
+          <!-- زر الإرسال -->
           <div class="flex flex-col md:col-span-2 items-center gap-2">
-            <button type="submit" class="bg-primary text-white py-2 px-6 rounded-lg hover:bg-blue-900 transition text-sm">
+            <button type="submit"  class="bg-primary hover:bg-primaryDark text-white py-2 px-6 rounded-lg transition w-full max-w-xs">
               إرسال الطلب 📤
             </button>
           </div>
+
         </form>
       </div>
 
@@ -83,6 +93,7 @@
         </div>
       </div>
 
+      <!-- Toast -->
       <Toast v-if="toastMessage" :message="toastMessage" :type="toastType" />
 
     </div>
@@ -92,11 +103,12 @@
 <script>
 import Sidebar from "../components/Sidebar.vue";
 import Toast from "../components/Toast.vue";
-import api from "../services/api"; // مثل LoginPage
+import api from "../services/api";
+import Navbar from "../components/Navbar.vue";
 
 export default {
   name: "LeavesPage",
-  components: { Sidebar, Toast },
+  components: { Sidebar, Toast ,Navbar},
 
   data() {
     return {
@@ -105,7 +117,7 @@ export default {
       previousLeaves: [],
       toastMessage: "",
       toastType: "success",
-      employeeId: localStorage.getItem("employeeId") || 1
+      employeeId: Number(localStorage.getItem("employeeId") || 1)
     };
   },
 
@@ -129,6 +141,8 @@ export default {
         this.leaveTypes = response.data;
       } catch (error) {
         console.error("Error fetching leave types:", error);
+        this.toastMessage = "حدث خطأ أثناء جلب أنواع الإجازة ❌";
+        this.toastType = "error";
       }
     },
 
@@ -137,10 +151,12 @@ export default {
         const res = await api.get(`/LeaveRequests/${this.employeeId}`);
         this.previousLeaves = res.data.map(l => ({
           ...l,
-          leaveTypeName: this.leaveTypes.find(t => t.Id === l.leaveTypeId)?.Name || "غير معروف"
+          leaveTypeName: this.leaveTypes.find(t => Number(t.Id) === Number(l.leaveTypeId))?.Name || "غير معروف"
         }));
       } catch (error) {
         console.error("Error fetching previous leaves:", error);
+        this.toastMessage = "حدث خطأ أثناء جلب الإجازات السابقة ❌";
+        this.toastType = "error";
       }
     },
 
@@ -153,7 +169,7 @@ export default {
 
       try {
         const payload = {
-          employeeId: Number(this.employeeId),
+          employeeId: this.employeeId,
           leaveTypeId: Number(this.leaveForm.typeId),
           fromDate: this.leaveForm.fromDate,
           toDate: this.leaveForm.toDate,
@@ -166,12 +182,13 @@ export default {
 
         this.previousLeaves.unshift({
           ...payload,
-          leaveTypeName: this.leaveTypes.find(t => t.Id === payload.leaveTypeId)?.Name || "غير معروف"
+          leaveTypeName: this.leaveTypes.find(t => Number(t.Id) === payload.leaveTypeId)?.Name || "غير معروف"
         });
 
         this.toastMessage = "تم إرسال طلب الإجازة ✅";
         this.toastType = "success";
         this.leaveForm = { typeId: "", fromDate: "", toDate: "", days: 0, notes: "" };
+
       } catch (error) {
         console.error(error);
         this.toastMessage = "حدث خطأ أثناء إرسال الطلب ❌";
@@ -182,7 +199,3 @@ export default {
 };
 </script>
 
-<style scoped>
-.bg-primary { @apply bg-blue-800; }
-.bg-background { @apply bg-gray-100; }
-</style>

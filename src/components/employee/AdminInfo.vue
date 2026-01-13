@@ -70,7 +70,7 @@
     <div class="flex justify-center mt-8">
       <button
         @click="save"
-        class="bg-blue-800 hover:bg-blue-900 text-white px-8 py-2 rounded-lg transition w-full max-w-xs"
+        class="bg-primary hover:bg-primaryDark text-white py-2 px-6 rounded-lg transition w-full max-w-xs"
       >
         حفظ البيانات الإدارية
       </button>

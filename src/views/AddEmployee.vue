@@ -4,10 +4,15 @@
     <!-- Sidebar ثابتة على اليمين -->
     <Sidebar class="fixed top-0 right-0 h-screen w-24 md:w-64 z-50" />
 
+    
     <!-- المحتوى الرئيسي -->
     <div class="flex-1 p-6 min-h-screen mr-24 md:mr-64">
+      
+     <Navbar />
 <!-- التابات -->
-<div class="flex flex-row-reverse flex-nowrap gap-2 mb-4 overflow-x-auto justify-start">
+<div
+  class="flex flex-nowrap gap-2 mb-4 overflow-x-auto justify-start"
+>
   <button
     v-for="tab in tabs"
     :key="tab"
@@ -15,13 +20,14 @@
     :class="[
       'flex-shrink-0 rounded-lg transition text-sm md:text-base px-3 md:px-4 py-2',
       activeTab === tab
-        ? 'bg-blue-800 text-white'
-        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+        ? 'bg-primary text-white'          /* نفس لون Sidebar */
+        : 'bg-gray-200 text-gray-700 hover:bg-primaryDark'  /* Hover بنفس اللون الأغمق */
     ]"
   >
     {{ tab }}
   </button>
 </div>
+
 
       <!-- بطاقة المحتوى -->
       <div class="bg-white
@@ -41,18 +47,14 @@
           :employee="employee"
           @update-employee="updateEmployee"
         />
-        <QualificationInfo
-          v-if="activeTab === 'المؤهل العلمي'"
-          :employee="employee"
-          @update-employee="updateEmployee"
-        />
+       
       </div>
 
       <!-- زر الحفظ -->
       <div class="flex justify-center mb-6">
         <button
           @click="saveToBackend"
-          class="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-800 transition w-full max-w-xs"
+          class="bg-primary hover:bg-primaryDark text-white py-2 px-6 rounded-lg transition w-full max-w-xs"
         >
           حفظ الموظف 💾
         </button>
@@ -64,20 +66,22 @@
 
 <script>
 import Sidebar from "../components/Sidebar.vue"
+import Navbar from "../components/Navbar.vue";
 import BasicInfo from "../components/employee/BasicInfo.vue"
 import AdminInfo from "../components/employee/AdminInfo.vue"
 import FinancialInfo from "../components/employee/FinancialInfo.vue"
-import QualificationInfo from "../components/employee/QualificationInfo.vue"
 import api from "../services/api";
+
 
 export default {
   name: "AddEmployee",
   components: {
     Sidebar,
+    Navbar,
     BasicInfo,
     AdminInfo,
     FinancialInfo,
-    QualificationInfo
+   
   },
   data() {
     return {
@@ -104,7 +108,7 @@ export default {
         "البيانات الأساسية",
         "البيانات الإدارية",
         "البيانات المالية",
-        "المؤهل العلمي"
+      
       ],
       activeTab: "البيانات الأساسية"
     }

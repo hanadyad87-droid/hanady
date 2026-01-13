@@ -30,7 +30,7 @@
 
         <!-- الزر في الوسط -->
         <div class="flex justify-center mt-2">
-          <button @click="submitRequest" class="bg-blue-800 text-white rounded-xl py-2 px-6 hover:bg-blue-900 transition w-40 text-center">
+          <button @click="submitRequest"  class="bg-primary hover:bg-primaryDark text-white py-2 px-6 rounded-lg transition w-full max-w-xs">
             إرسال الطلب
           </button>
         </div>

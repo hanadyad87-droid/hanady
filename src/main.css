@@ -37,3 +37,8 @@ select.input {
 select.input option {
   direction: rtl;
 }
+body {
+  direction: rtl;
+  text-align: right;
+}
+

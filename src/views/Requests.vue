@@ -6,7 +6,7 @@
 
     <!-- المحتوى الرئيسي -->
     <div class="flex-1 p-6 mr-24 md:mr-64 text-right">
-
+<Navbar />
       <div class="card p-6 bg-white rounded-xl shadow-lg" dir="rtl">
         <h3 class="text-xl font-bold text-blue-800 mb-4">الطلبات</h3>
 
@@ -14,18 +14,18 @@
         <div class="mb-6">
           <select v-model="selectedRequest" class="w-full md:w-1/2 p-2 border rounded-lg border-gray-300">
             <option value="">كل الطلبات</option>
-            <option value="update">طلب تعديل بيانات</option>
+          
             <option value="transfer">طلب نقل قسم</option>
             <option value="permission">طلب إذن خروج</option>
             <option value="training">طلب دورة تدريبية</option>
-            <option value="marriage">طلب زواج</option>
+            <option value="marriage">طلب إجازة زواج</option>
             <option value="internet">طلب إنترنت</option>
             <option value="maintenance">طلب صيانة</option>
           </select>
         </div>
 
         <!-- عرض المكون حسب الاختيار -->
-        <UpdateInfo v-if="selectedRequest === 'update'" :employee="employee" />
+        
         <TransferRequest v-if="selectedRequest === 'transfer'" :employee="employee" />
         <PermissionRequest v-if="selectedRequest === 'permission'" :employee="employee" />
         <TrainingRequest v-if="selectedRequest === 'training'" :employee="employee" />
@@ -70,25 +70,26 @@
 
 <script>
 import SidebarPage from "../components/Sidebar.vue";
-import UpdateInfo from "../components/requests/UpdateInfo.vue";
+
 import TransferRequest from "../components/requests/TransferRequest.vue";
 import PermissionRequest from "../components/requests/PermissionRequest.vue";
 import TrainingRequest from "../components/requests/TrainingRequest.vue";
 import MarriageRequest from "../components/requests/MarriageRequest.vue";
 import InternetRequest from "../components/requests/InternetRequest.vue";
 import MaintenanceRequest from "../components/requests/MaintenanceRequest.vue";
-
+import Navbar from "../components/Navbar.vue";
 export default {
   name: "RequestsPage",
   components: {
     SidebarPage,
-    UpdateInfo,
+    
     TransferRequest,
     PermissionRequest,
     TrainingRequest,
     MarriageRequest,
     InternetRequest,
-    MaintenanceRequest
+    MaintenanceRequest,
+    Navbar
   },
   data() {
     return {
