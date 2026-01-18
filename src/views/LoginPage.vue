@@ -72,29 +72,34 @@ export default {
         return;
       }
 
-      try {
-        const res = await api.post("/User/login", {
-          username: this.username,
-          password: this.password
-        });
+     try {
+  const res = await api.post("/User/login", {
+    username: this.username,
+    password: this.password
+  });
 
-        localStorage.setItem("token", res.data.token);
-        localStorage.setItem("role", res.data.role);
+  // نحفظ التوكن والدور
+  localStorage.setItem("token", res.data.token);
+  localStorage.setItem("role", res.data.role);
 
-        this.toastMessage = "تم تسجيل الدخول بنجاح ✅";
-        this.toastType = "success";
+  // نضيف هنا UserId
+  localStorage.setItem("userId", res.data.userId);  // <-- هذا الجديد
 
-        setTimeout(() => {
-          this.toastMessage = "";
-          this.$router.push("/dashboard");
-        }, 1500);
+  this.toastMessage = "تم تسجيل الدخول بنجاح ✅";
+  this.toastType = "success";
 
-      } catch (err) {
-        console.error(err);
-        this.toastMessage = "خطأ في اسم المستخدم أو كلمة المرور ❌";
-        this.toastType = "error";
-        setTimeout(() => (this.toastMessage = ""), 3000);
-      }
+  setTimeout(() => {
+    this.toastMessage = "";
+    this.$router.push("/dashboard");
+  }, 1500);
+
+} catch (err) {
+  console.error(err);
+  this.toastMessage = "خطأ في اسم المستخدم أو كلمة المرور ❌";
+  this.toastType = "error";
+  setTimeout(() => (this.toastMessage = ""), 3000);
+}
+
     }
   }
 };

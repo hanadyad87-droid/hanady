@@ -85,25 +85,29 @@ export default {
   },
   data() {
     return {
-      employee: {
-        EmployeeNumber: '',
-        FullName: '',
-        MotherName: '',
-        NationalId: '',
-        BirthDate: '',
-        Gender: '',
-        Nationality: '',
-        HireDate: '',
-        DepartmentId: null,
-        JobTitleId: null,
-        EmploymentStatusId: null,
-        JobGradeId: null,
-        WorkLocationId: null,
-        Salary: 0,
-        BankId: null,
-        BankBranchId: null,
-        Qualification: ''
-      },
+    employee: {
+  EmployeeNumber: '',
+  FullName: '',
+  MotherName: '',
+  NationalId: '',
+  BirthDate: '',
+  Gender: '',
+  Nationality: '',
+  HireDate: '',
+  DepartmentId: null,
+  JobTitleId: null,
+  EmploymentStatusId: null,
+  JobGradeId: null,
+  WorkLocationId: null,
+  UserId: null,              // جديد
+  ManagerId: null,           // جديد، null لو المدير الأعلى
+  AnnualLeaveBalance: 20,    // جديد
+  Salary: 0,
+  BankId: null,
+  BankBranchId: null,
+  Qualification: ''
+}
+,
       tabs: [
         "البيانات الأساسية",
         "البيانات الإدارية",
@@ -118,15 +122,19 @@ export default {
       this.employee = { ...this.employee, ...data };
     },
     async saveToBackend() {
-      try {
-        const res = await api.post("/Employee/create", this.employee);
-        alert("تم إضافة الموظف بنجاح!");
-        console.log(res.data);
-      } catch (err) {
-        console.error(err);
-        alert("حدث خطأ أثناء الحفظ");
-      }
-    }
+  try {
+    // هنا نجيب الـ UserId من localStorage
+    this.employee.UserId = parseInt(localStorage.getItem("userId"));
+
+    const res = await api.post("/Employee/create", this.employee);
+    alert("تم إضافة الموظف بنجاح!");
+    console.log(res.data);
+  } catch (err) {
+    console.error(err);
+    alert("حدث خطأ أثناء الحفظ");
+  }
+}
+
   }
 }
 </script>
