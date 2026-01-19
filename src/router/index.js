@@ -6,6 +6,7 @@ import RequestsPage from '../views/Requests.vue'
 import EmployeeQualification from "../views/EmployeeQualification.vue";
 import UpdateInfo from "../views/UpdateInfo.vue";
 import PermissionsPage from '../views/PermissionsPage.vue';
+import ManagerLeavesPage from '../views/ManagerLeavesPage.vue';
 const routes = [
   {
     path: '/',
@@ -26,21 +27,28 @@ const routes = [
     path: '/leaves',
     name: 'LeavesPage',
     component: LeavesPage,
-    meta: { role: ['Employee', 'SuperAdmin'] }
+    meta: { role: ['موظف', 'SuperAdmin'] }
   },
   {
   path: "/employee-qualification",
   component: EmployeeQualification
 },
 
-  // ✅ صفحة الطلبات الموحدة
+  
   {
     path: '/requests',
     name: 'RequestsPage',
     component: RequestsPage,
-    meta: { role: ['Employee', 'SuperAdmin'] }
+    meta: { role: ['موظف', 'SuperAdmin'] }
   },
-
+  
+ {
+  path: '/manager/leaves',
+  name: 'ManagerLeavesPage',
+  component: ManagerLeavesPage,
+  meta: { role: ['مدير قسم', 'مدير إدارة فرعية', 'مدير إدارة', 'SuperAdmin'] }
+}
+,
   {
     path: '/employee',
     name: 'EmployeePage',
@@ -68,22 +76,24 @@ const router = createRouter({
 
 // 🔐 Route Guard
 router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('token')
-  const role = localStorage.getItem('role')
+  const token = localStorage.getItem('token');
+  let role = localStorage.getItem('role')?.trim(); // ✅ trim مهم
+  if (!role) role = 'موظف'; // افتراضي
 
   if (to.meta.role) {
     if (!token) {
-      alert('الرجاء تسجيل الدخول')
-      return next('/')
+      alert('الرجاء تسجيل الدخول');
+      return next('/');
     }
 
     if (!to.meta.role.includes(role)) {
-      alert('غير مسموح بالدخول')
-      return next('/dashboard')
+      alert('غير مسموح بالدخول');
+      return next('/dashboard');
     }
   }
 
-  next()
-})
+  next();
+});
+
 
 export default router

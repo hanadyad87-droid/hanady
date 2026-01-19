@@ -44,7 +44,6 @@
 
     <!-- Toast -->
     <Toast v-if="toastMessage" :message="toastMessage" :type="toastType" />
-
   </div>
 </template>
 
@@ -72,34 +71,34 @@ export default {
         return;
       }
 
-     try {
-  const res = await api.post("/User/login", {
-    username: this.username,
-    password: this.password
-  });
+      try {
+        const res = await api.post("/User/login", {
+          username: this.username,
+          password: this.password
+        });
 
-  // نحفظ التوكن والدور
-  localStorage.setItem("token", res.data.token);
-  localStorage.setItem("role", res.data.role);
+        // 🔹 خزن الدور كما جاء من السيرفر مباشرة
+        const role = res.data.role?.trim() || "موظف";
 
-  // نضيف هنا UserId
-  localStorage.setItem("userId", res.data.userId);  // <-- هذا الجديد
+        // تخزين التوكن والدور والـ employeeId
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("role", role);
+        localStorage.setItem("employeeId", res.data.employeeId);
 
-  this.toastMessage = "تم تسجيل الدخول بنجاح ✅";
-  this.toastType = "success";
+        this.toastMessage = "تم تسجيل الدخول بنجاح ✅";
+        this.toastType = "success";
 
-  setTimeout(() => {
-    this.toastMessage = "";
-    this.$router.push("/dashboard");
-  }, 1500);
+        setTimeout(() => {
+          this.toastMessage = "";
+          this.$router.push("/dashboard"); // التوجيه للصفحة الرئيسية
+        }, 1500);
 
-} catch (err) {
-  console.error(err);
-  this.toastMessage = "خطأ في اسم المستخدم أو كلمة المرور ❌";
-  this.toastType = "error";
-  setTimeout(() => (this.toastMessage = ""), 3000);
-}
-
+      } catch (err) {
+        console.error(err);
+        this.toastMessage = "خطأ في اسم المستخدم أو كلمة المرور ❌";
+        this.toastType = "error";
+        setTimeout(() => (this.toastMessage = ""), 3000);
+      }
     }
   }
 };

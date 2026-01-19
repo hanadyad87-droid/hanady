@@ -24,20 +24,14 @@
                  px-2 py-2 rounded-lg transition
                  text-sm md:text-base font-medium
                  text-center md:text-right"
-          :class="[
-            $route.path === link.path
-              ? 'bg-gray-300 text-gray-900 font-semibold'
-              : 'hover:bg-gray-500/30'
-          ]"
+          :class="[ $route.path === link.path
+                    ? 'bg-gray-300 text-gray-900 font-semibold'
+                    : 'hover:bg-gray-500/30' ]"
         >
           <span class="text-lg md:text-xl">{{ link.icon }}</span>
-          <span class="whitespace-nowrap leading-tight">
-            {{ link.name }}
-          </span>
+          <span class="whitespace-nowrap leading-tight">{{ link.name }}</span>
         </router-link>
       </li>
-
-    
     </ul>
   </div>
 </template>
@@ -45,35 +39,48 @@
 <script>
 export default {
   name: "SidebarPage",
+  data() {
+    return {
+   
+      role: "موظف"
+    };
+  },
   computed: {
-    role() {
-      return localStorage.getItem("role") || "Employee";
-    },
     normalLinks() {
+      // كل الأدوار الممكنة
+      const allRoles = ["موظف", "مدير قسم", "مدير إدارة فرعية", "مدير إدارة", "SuperAdmin"];
+      const adminRoles = ["SuperAdmin", "مدير إدارة"]; // فقط للأقسام الإدارية
+
       const links = [
-        { name: "الرئيسية", path: "/dashboard", icon: "🏠", roles: ["Employee", "SuperAdmin"] },
+        { name: "الرئيسية", path: "/dashboard", icon: "🏠", roles: allRoles },
         { name: "إضافة موظف", path: "/employee", icon: "👤", roles: ["SuperAdmin"] },
-       
-        { name: "الطلبات", path: "/requests", icon: "📄", roles: ["Employee", "SuperAdmin"] },
-        
-      { name: "الإجازات", path: "/leaves", icon: "✈️", roles: ["Employee", "SuperAdmin"] },
-      
-    { name: "المؤهل العلمي", path: "/employee-qualification", icon: "🎓", roles: ["Employee", "SuperAdmin"] },
-      { name: "الصلاحيات", path: "/permissions", icon: "🔐", roles: ["SuperAdmin", "Admin"] },
-    { name: "الشكاوى", path: "/complaints", icon: "📝", roles: ["Employee", "SuperAdmin"] },
-        { name: "التكليفات", path: "/tasks", icon: "💼", roles: ["Employee", "SuperAdmin"] },
+        { name: "الطلبات", path: "/requests", icon: "📄", roles: allRoles },
+        { name: "الإجازات", path: "/leaves", icon: "✈️", roles: ["موظف"] },
+        { name: "المؤهل العلمي", path: "/employee-qualification", icon: "🎓", roles: allRoles },
+        { name: "إدارة الإجازات", path: "/manager/leaves", icon: "🗂️", roles: ["مدير قسم", "مدير إدارة فرعية", "مدير إدارة", "SuperAdmin"] },
+        { name: "الصلاحيات", path: "/permissions", icon: "🔐", roles: adminRoles },
+        { name: "الشكاوى", path: "/complaints", icon: "📝", roles: allRoles },
+        { name: "التكليفات", path: "/tasks", icon: "💼", roles: allRoles },
         { name: "النماذج", path: "/templates", icon: "📑", roles: ["SuperAdmin"] },
-        { name: "التقييم", path: "/evaluation", icon: "⭐", roles: ["Employee", "SuperAdmin"] },
-        { name: "مركز المعرفة", path: "/knowledge", icon: "📚", roles: ["Employee", "SuperAdmin"] },
+        { name: "التقييم", path: "/evaluation", icon: "⭐", roles: allRoles },
+        { name: "مركز المعرفة", path: "/knowledge", icon: "📚", roles: allRoles }
       ];
-      return links.filter(l => l.roles.includes(this.role));
+
+      // فلترة الروابط حسب الدور الحالي
+      return links.filter(link => link.roles.includes(this.role));
     }
+  },
+  mounted() {
+    // خزن الدور كما جاء من السيرفر مباشرة
+    const storedRole = localStorage.getItem("role")?.trim();
+    if (storedRole) this.role = storedRole;
+
+    // تحديث role لو تغيرت في localStorage
+    window.addEventListener("storage", () => {
+      const updatedRole = localStorage.getItem("role")?.trim();
+      if (updatedRole) this.role = updatedRole;
+    });
   }
 };
 </script>
 
-<style>
-.bg-primary {
-  @apply bg-blue-800;
-}
-</style>
