@@ -153,52 +153,70 @@ export default {
     }
   },
 
-  methods: {
-    toggleMenu() {
-      this.showMenu = !this.showMenu;
-    },
+ methods: {
+  toggleMenu() {
+    this.showMenu = !this.showMenu;
+  },
 
-    openPasswordModal() {
-      this.showMenu = false;
-      this.showPasswordModal = true;
-    },
+  openPasswordModal() {
+    this.showMenu = false;
+    this.showPasswordModal = true;
+  },
 
-    closePasswordModal() {
-      this.showPasswordModal = false;
-      this.currentPassword = "";
-      this.newPassword = "";
-      this.confirmPassword = "";
-    },
+  closePasswordModal() {
+    this.showPasswordModal = false;
+    this.currentPassword = "";
+    this.newPassword = "";
+    this.confirmPassword = "";
+  },
 
-   savePassword() {
-  // 🔴 تحقق من الحقول الفاضية
-  if (!this.currentPassword || !this.newPassword || !this.confirmPassword) {
-    this.toastMessage = "الرجاء تعبئة جميع الحقول ❗";
-    this.toastType = "error";
+  savePassword() {
+    if (!this.currentPassword || !this.newPassword || !this.confirmPassword) {
+      this.toastMessage = "الرجاء تعبئة جميع الحقول ❗";
+      this.toastType = "error";
+      setTimeout(() => (this.toastMessage = ""), 3000);
+      return;
+    }
+
+    if (this.newPassword !== this.confirmPassword) {
+      this.toastMessage = "كلمتا المرور غير متطابقتين ❌";
+      this.toastType = "error";
+      setTimeout(() => (this.toastMessage = ""), 3000);
+      return;
+    }
+
+    this.toastMessage = "تم تغيير كلمة المرور بنجاح ✅";
+    this.toastType = "success";
     setTimeout(() => (this.toastMessage = ""), 3000);
-    return;
+
+    this.closePasswordModal();
+  },
+
+  goToUpdateInfo() {
+    this.showMenu = false;
+    this.$router.push("/update-info");
+  },
+
+  // ✅ دالة تسجيل الخروج
+  logout() {
+    // قفلي القائمة
+    this.showMenu = false;
+
+    // احذفي بيانات المستخدم
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("role");
+
+    // حوّلي لصفحة تسجيل الدخول
+    this.$router.push("/");
+
+    // (اختياري) رسالة
+    this.toastMessage = "تم تسجيل الخروج بنجاح 👋";
+    this.toastType = "success";
+    setTimeout(() => (this.toastMessage = ""), 2000);
   }
-
-  // 🔴 تحقق من تطابق كلمات المرور
-  if (this.newPassword !== this.confirmPassword) {
-    this.toastMessage = "كلمتا المرور غير متطابقتين ❌";
-    this.toastType = "error";
-    setTimeout(() => (this.toastMessage = ""), 3000);
-    return;
-  }
-
-  // ✅ نجاح
-  this.toastMessage = "تم تغيير كلمة المرور بنجاح ✅";
-  this.toastType = "success";
-  setTimeout(() => (this.toastMessage = ""), 3000);
-
-  this.closePasswordModal();
-},
-goToUpdateInfo() {
-  this.showMenu = false;
-  this.$router.push("/update-info");
 }
 
-  }
 };
 </script>

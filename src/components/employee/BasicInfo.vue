@@ -130,6 +130,12 @@
         </select>
       </div>
 
+        <!-- رصيد الإجازات السنوية -->
+      <div class="flex flex-col">
+        <label class="text-sm text-gray-600 mb-1">رصيد الإجازات السنوية</label>
+        <input type="number" v-model.number="localEmployee.AnnualLeaveBalance" class="input" min="0" />
+      </div>
+
       <!-- اختيار المدير -->
       <div class="flex flex-col">
         <label class="text-sm text-gray-600 mb-1">المدير</label>
@@ -141,11 +147,39 @@
         </select>
       </div>
 
-      <!-- رصيد الإجازات السنوية -->
-      <div class="flex flex-col">
-        <label class="text-sm text-gray-600 mb-1">رصيد الإجازات السنوية</label>
-        <input type="number" v-model.number="localEmployee.AnnualLeaveBalance" class="input" min="0" />
-      </div>
+     <!-- بيانات حساب المستخدم (SuperAdmin فقط) -->
+<div v-if="currentUserRole === 'SuperAdmin'" class="col-span-2 border p-4 rounded-lg">
+  <h4 class="font-bold text-blue-700 mb-3">بيانات حساب المستخدم</h4>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div>
+      <label class="text-sm">اسم المستخدم</label>
+      <input v-model="localEmployee.username" class="input" />
+    </div>
+
+    <div>
+      <label class="text-sm">كلمة المرور</label>
+      <input type="password" v-model="localEmployee.password" class="input" />
+    </div>
+
+    <div>
+      <label class="text-sm">الصلاحية</label>
+ <select v-model="localEmployee.role" class="input">
+  <option value="">اختر</option>
+  <option value="SuperAdmin">SuperAdmin</option>
+  <option value="Manager">مدير إدارة</option>
+  <option value="SubManager">مدير إدارة فرعية</option>
+  <option value="SectionManager">مدير قسم</option>
+  <option value="Employee">موظف</option>
+</select>
+
+
+    </div>
+  </div>
+</div>
+
+
+     
 
     </div>
 
@@ -172,13 +206,22 @@ export default {
   props: { employee: { type: Object, required: true } },
   components: { Toast },
   data() {
-    return {
-      localEmployee: { ...this.employee, ManagerId: null, AnnualLeaveBalance: 20 },
-      managers: [],
-      toastMessage: "",
-      toastType: "success"
-    };
-  },
+  return {
+    localEmployee: {
+      ...this.employee,
+      username: "",
+      password: "",
+      role: "",
+      AnnualLeaveBalance: 20,
+      ManagerId: null
+    },
+    managers: [],
+    toastMessage: "",
+    toastType: "success",
+    currentUserRole: "SuperAdmin"
+  };
+},
+
   watch: {
     employee: {
       deep: true,
@@ -189,12 +232,12 @@ export default {
   },
   mounted() {
     this.fetchManagers();
+  
   },
   methods: {
     async fetchManagers() {
       try {
         const { data } = await api.get("/Employee/all");
-        // فلترة المدراء حسب JobTitleId === 3
         this.managers = data.filter(emp => emp.jobTitle === "مدير");
         console.log("المدراء:", this.managers);
       } catch (err) {
@@ -202,48 +245,70 @@ export default {
       }
     },
 
-   async save() {
-  const payload = {
-    EmployeeNumber: this.localEmployee.EmployeeNumber,
-    FullName: this.localEmployee.FullName,
-    MotherName: this.localEmployee.MotherName,
-    NationalId: this.localEmployee.NationalId,
-    BirthDate: this.localEmployee.BirthDate,
-    Gender: this.localEmployee.Gender, // أو Number(this.localEmployee.Gender) حسب الـ API
-    Nationality: this.localEmployee.Nationality,
-    HireDate: this.localEmployee.HireDate,
-    MaritalStatusId: Number(this.localEmployee.MaritalStatusId),
-    JobTitleId: Number(this.localEmployee.JobTitleId),
-    EmploymentStatusId: Number(this.localEmployee.EmploymentStatusId),
-    DepartmentId: Number(this.localEmployee.DepartmentId),
-    WorkLocationId: Number(this.localEmployee.WorkLocationId),
-    JobGradeId: Number(this.localEmployee.JobGradeId),
-    ManagerId: this.localEmployee.ManagerId ? Number(this.localEmployee.ManagerId) : null,
-    UserId: Number(localStorage.getItem("userId")) || 1, // لازم ترسل UserId
-    AnnualLeaveBalance: Number(this.localEmployee.AnnualLeaveBalance || 20)
-  };
-
-  console.log("DATA SENT TO BACKEND:", payload);
-
-  if (!payload.EmployeeNumber || !payload.FullName) {
-    this.toastMessage = "الرجاء ملء الحقول المطلوبة ❌";
-    this.toastType = "error";
-    setTimeout(() => (this.toastMessage = ""), 3000);
-    return;
-  }
-
+  
+  async save() {
   try {
-    await api.post("/Employee/create", payload);
-    this.toastMessage = "تم حفظ البيانات الأساسية ✅";
+    if (!this.localEmployee.EmployeeNumber || !this.localEmployee.FullName) {
+      throw "رقم الموظف والاسم الكامل إجباري";
+    }
+
+    if (
+      this.currentUserRole === "SuperAdmin" &&
+      (!this.localEmployee.username ||
+        !this.localEmployee.password ||
+        !this.localEmployee.role)
+    ) {
+      throw "بيانات حساب المستخدم ناقصة";
+    }
+
+    const payload = {
+      username: this.localEmployee.username,
+      password: this.localEmployee.password,
+      role: this.localEmployee.role, // ✅ STRING
+
+      employeeNumber: this.localEmployee.EmployeeNumber,
+      fullName: this.localEmployee.FullName,
+      motherName: this.localEmployee.MotherName,
+      nationalId: this.localEmployee.NationalId,
+
+      birthDate: this.localEmployee.BirthDate
+        ? this.localEmployee.BirthDate + "T00:00:00"
+        : null,
+
+      gender: this.localEmployee.Gender,
+      nationality: this.localEmployee.Nationality,
+
+      hireDate: this.localEmployee.HireDate
+        ? this.localEmployee.HireDate + "T00:00:00"
+        : null,
+
+      maritalStatusId: Number(this.localEmployee.MaritalStatusId),
+      jobTitleId: Number(this.localEmployee.JobTitleId),
+      employmentStatusId: Number(this.localEmployee.EmploymentStatusId),
+      departmentId: Number(this.localEmployee.DepartmentId),
+      workLocationId: Number(this.localEmployee.WorkLocationId),
+      jobGradeId: Number(this.localEmployee.JobGradeId),
+
+      managerId: this.localEmployee.ManagerId
+        ? Number(this.localEmployee.ManagerId)
+        : null,
+
+      annualLeaveBalance: Number(this.localEmployee.AnnualLeaveBalance || 20)
+    };
+
+    console.log("SEND TO BACKEND:", payload);
+
+    await api.post("/Employee/create-account", payload);
+
+    this.toastMessage = "تم الحفظ بنجاح ✅";
     this.toastType = "success";
-    setTimeout(() => (this.toastMessage = ""), 3000);
   } catch (err) {
-    console.error(err.response?.data || err);
-    this.toastMessage = "حدث خطأ أثناء الحفظ ❌";
+    this.toastMessage =
+      err.response?.data?.message || err || "خطأ في الحفظ ❌";
     this.toastType = "error";
-    setTimeout(() => (this.toastMessage = ""), 3000);
   }
 }
+
 
   }
 };
