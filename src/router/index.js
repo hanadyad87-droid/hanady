@@ -7,6 +7,7 @@ import EmployeeQualification from "../views/EmployeeQualification.vue";
 import UpdateInfo from "../views/UpdateInfo.vue";
 import PermissionsPage from '../views/PermissionsPage.vue';
 import ManagerLeavesPage from '../views/ManagerLeavesPage.vue';
+import NotificationsPage from '../views/NotificationsPage.vue';
 const routes = [
   {
     path: '/',
@@ -66,7 +67,14 @@ const routes = [
     name: 'PermissionsPage',
     component: PermissionsPage,
     meta: { role: ['SuperAdmin', 'Admin'] } // <--- حدد من يسمح له بالدخول
-  }
+  },
+ {
+  path: "/notifications",
+  name: "Notifications",
+  component: NotificationsPage
+}
+
+
 ]
 
 const router = createRouter({

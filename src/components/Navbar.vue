@@ -9,16 +9,19 @@
     <!-- يمين -->
     <div class="flex items-center gap-3 relative">
 
-      <!-- إشعارات -->
-      <router-link to="/notifications" class="relative text-lg">
-        🔔
-        <span
-          class="absolute -top-1 -right-2 bg-red-500 text-white
-                 rounded-full px-1 text-[10px]"
-        >
-          3
-        </span>
-      </router-link>
+<router-link to="/notifications" class="relative inline-block text-lg">
+  🔔
+  <span
+    v-if="unreadCount > 0"
+    class="absolute -top-2 -right-2 bg-red-500 text-white
+           rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-bold"
+  >
+    {{ unreadCount }}
+  </span>
+</router-link>
+
+
+
 
       <!-- الحساب -->
       <div class="relative">
@@ -119,6 +122,7 @@
 
 <script>
 import Toast from "../components/Toast.vue";
+import api from "../services/api";
 
 export default {
   name: "NavbarPage",
@@ -132,7 +136,8 @@ export default {
       newPassword: "",
       confirmPassword: "",
       toastMessage: "",
-      toastType: "success"
+      toastType: "success",
+      notifications: [] // 🔔
     };
   },
 
@@ -150,73 +155,97 @@ export default {
         "/knowledge": "مركز المعرفة"
       };
       return map[this.$route.path] || "النظام";
+    },
+
+    // ✅ عدد الإشعارات غير المقروءة
+    unreadCount() {
+      return this.notifications.filter(n => !n.isRead).length;
     }
   },
 
- methods: {
-  toggleMenu() {
-    this.showMenu = !this.showMenu;
-  },
+  methods: {
+    toggleMenu() {
+      this.showMenu = !this.showMenu;
+    },
 
-  openPasswordModal() {
-    this.showMenu = false;
-    this.showPasswordModal = true;
-  },
+    openPasswordModal() {
+      this.showMenu = false;
+      this.showPasswordModal = true;
+    },
 
-  closePasswordModal() {
-    this.showPasswordModal = false;
-    this.currentPassword = "";
-    this.newPassword = "";
-    this.confirmPassword = "";
-  },
+    closePasswordModal() {
+      this.showPasswordModal = false;
+      this.currentPassword = "";
+      this.newPassword = "";
+      this.confirmPassword = "";
+    },
 
-  savePassword() {
-    if (!this.currentPassword || !this.newPassword || !this.confirmPassword) {
-      this.toastMessage = "الرجاء تعبئة جميع الحقول ❗";
-      this.toastType = "error";
+    savePassword() {
+      if (!this.currentPassword || !this.newPassword || !this.confirmPassword) {
+        this.toastMessage = "الرجاء تعبئة جميع الحقول ❗";
+        this.toastType = "error";
+        setTimeout(() => (this.toastMessage = ""), 3000);
+        return;
+      }
+
+      if (this.newPassword !== this.confirmPassword) {
+        this.toastMessage = "كلمتا المرور غير متطابقتين ❌";
+        this.toastType = "error";
+        setTimeout(() => (this.toastMessage = ""), 3000);
+        return;
+      }
+
+      this.toastMessage = "تم تغيير كلمة المرور بنجاح ✅";
+      this.toastType = "success";
       setTimeout(() => (this.toastMessage = ""), 3000);
-      return;
+
+      this.closePasswordModal();
+    },
+
+    goToUpdateInfo() {
+      this.showMenu = false;
+      this.$router.push("/update-info");
+    },
+
+    logout() {
+      this.showMenu = false;
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      localStorage.removeItem("userId");
+      localStorage.removeItem("role");
+      this.$router.push("/");
+    },
+
+    // ✅ جلب الإشعارات
+    async loadNotifications() {
+      try {
+        const userId = Number(localStorage.getItem("userId"));
+        const res = await api.get("/Notifications");
+
+        this.notifications = res.data.filter(
+          n => n.userId === userId
+        );
+      } catch (err) {
+        console.error("خطأ في جلب الإشعارات", err);
+      }
     }
-
-    if (this.newPassword !== this.confirmPassword) {
-      this.toastMessage = "كلمتا المرور غير متطابقتين ❌";
-      this.toastType = "error";
-      setTimeout(() => (this.toastMessage = ""), 3000);
-      return;
-    }
-
-    this.toastMessage = "تم تغيير كلمة المرور بنجاح ✅";
-    this.toastType = "success";
-    setTimeout(() => (this.toastMessage = ""), 3000);
-
-    this.closePasswordModal();
-  },
-
-  goToUpdateInfo() {
-    this.showMenu = false;
-    this.$router.push("/update-info");
-  },
-
-  // ✅ دالة تسجيل الخروج
-  logout() {
-    // قفلي القائمة
-    this.showMenu = false;
-
-    // احذفي بيانات المستخدم
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("role");
-
-    // حوّلي لصفحة تسجيل الدخول
-    this.$router.push("/");
-
-    // (اختياري) رسالة
-    this.toastMessage = "تم تسجيل الخروج بنجاح 👋";
-    this.toastType = "success";
-    setTimeout(() => (this.toastMessage = ""), 2000);
-  }
+    ,
+    async markAsRead(notification) {
+  if (notification.isRead) return;
+  await api.put(`/Notifications/${notification.id}/read`);
+  notification.isRead = true; // التحديث المباشر
 }
 
+  },
+
+  mounted() {
+    this.loadNotifications();
+
+    // تحديث كل 30 ثانية
+    setInterval(() => {
+      this.loadNotifications();
+    }, 30000);
+  }
 };
 </script>
+

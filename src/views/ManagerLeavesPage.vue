@@ -41,7 +41,7 @@
                   موافقة
                 </button>
                 <button
-                  @click="rejectLeave(l)"
+                  @click="openRejectModal(l)"
                   class="bg-red-500 text-white px-3 py-1 rounded"
                 >
                   رفض
@@ -50,6 +50,26 @@
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- مودال الرفض -->
+      <div
+        v-if="showRejectModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      >
+        <div class="bg-white p-6 rounded-xl w-96 shadow-lg">
+          <h3 class="text-lg font-bold mb-4">سبب رفض الإجازة لـ {{ selectedLeave.employeeName }}</h3>
+          <textarea
+            v-model="rejectReason"
+            class="w-full border p-2 rounded mb-4"
+            rows="4"
+            placeholder="اكتب سبب الرفض هنا"
+          ></textarea>
+          <div class="flex justify-end gap-2">
+            <button @click="closeRejectModal" class="px-4 py-2 rounded bg-gray-300">إلغاء</button>
+            <button @click="submitReject" class="px-4 py-2 rounded bg-red-500 text-white">رفض</button>
+          </div>
+        </div>
       </div>
 
       <Toast v-if="toastMessage" :message="toastMessage" :type="toastType" />
@@ -72,6 +92,9 @@ export default {
       leaveTypes: [],
       toastMessage: "",
       toastType: "success",
+      showRejectModal: false,
+      rejectReason: "",
+      selectedLeave: null
     };
   },
 
@@ -81,6 +104,16 @@ export default {
   },
 
   methods: {
+    openRejectModal(leave) {
+      this.selectedLeave = leave;
+      this.rejectReason = "";
+      this.showRejectModal = true;
+    },
+    closeRejectModal() {
+      this.showRejectModal = false;
+      this.selectedLeave = null;
+      this.rejectReason = "";
+    },
     formatDate(dt) {
       if (!dt) return "";
       return dt.slice(0, 10);
@@ -101,9 +134,8 @@ export default {
         const res = await api.get("/LeaveRequest/manager/pending");
         this.pendingLeaves = res.data.map(l => ({
           ...l,
-          leaveTypeName:
-            this.leaveTypes.find(t => t.Id === l.leaveTypeId)?.Name || "غير معروف",
-          remainingBalance: l.remainingBalance ?? null, // إذا جلبت الرصيد من السيرفر
+          leaveTypeName: this.leaveTypes.find(t => t.Id === l.leaveTypeId)?.Name || "غير معروف",
+          remainingBalance: l.remainingBalance ?? null
         }));
       } catch (e) {
         this.toastMessage = "خطأ في جلب الطلبات المعلقة";
@@ -113,14 +145,18 @@ export default {
 
     async approveLeave(leave) {
       try {
-        await api.post(
-          `/LeaveRequest/${leave.id}/manager-decision?approve=true&note=موافقة`
-        );
+        // التحقق من الرصيد قبل الموافقة
+        if (leave.remainingBalance != null && leave.remainingBalance < leave.totalDays) {
+          // رفض تلقائي بسبب الرصيد
+          await this.rejectLeaveAutomatically(leave, "رصيد الإجازات غير كافي");
+          return;
+        }
+
+        await api.post(`/LeaveRequest/${leave.id}/manager-decision?approve=true&note=موافقة`);
 
         this.toastMessage = `تمت الموافقة على طلب ${leave.employeeName} ✅`;
         this.toastType = "success";
 
-        // خصم الأيام من الرصيد محلياً (يعتمد إذا جلبت الرصيد)
         if (leave.remainingBalance != null) {
           leave.remainingBalance -= leave.totalDays;
         }
@@ -128,24 +164,17 @@ export default {
         this.pendingLeaves = this.pendingLeaves.filter(l => l.id !== leave.id);
       } catch (e) {
         console.error(e);
-        this.toastMessage = "خطأ أثناء الموافقة ❌";
+        this.toastMessage = "خطأ أثناء الموافقة لعدم وجود رصيد كافي❌";
         this.toastType = "error";
       }
     },
 
-    async rejectLeave(leave) {
-      const reason = prompt(`سبب رفض طلب ${leave.employeeName}:`);
-      if (!reason) return;
-
+    async rejectLeaveAutomatically(leave, reason) {
       try {
-        await api.post(
-          `/LeaveRequest/${leave.id}/manager-decision?approve=false&note=${encodeURIComponent(
-            reason
-          )}`
-        );
+        await api.post(`/LeaveRequest/${leave.id}/manager-decision?approve=false&note=${encodeURIComponent(reason)}`);
 
-        this.toastMessage = `تم رفض طلب ${leave.employeeName} ❌`;
-        this.toastType = "success";
+        this.toastMessage = `تم رفض طلب ${leave.employeeName} ❌\nالسبب: ${reason}`;
+        this.toastType = "error";
 
         this.pendingLeaves = this.pendingLeaves.filter(l => l.id !== leave.id);
       } catch (e) {
@@ -154,7 +183,17 @@ export default {
         this.toastType = "error";
       }
     },
-  },
+
+    async submitReject() {
+      if (!this.rejectReason.trim()) {
+        this.toastMessage = "الرجاء كتابة سبب الرفض ❗";
+        this.toastType = "error";
+        return;
+      }
+      await this.rejectLeaveAutomatically(this.selectedLeave, this.rejectReason);
+      this.closeRejectModal();
+    }
+  }
 };
 </script>
 

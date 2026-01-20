@@ -38,14 +38,18 @@
       </div>
 
       <!-- الجنس -->
-      <div class="flex flex-col">
-        <label class="text-sm text-gray-600 mb-1">الجنس</label>
-        <select v-model="localEmployee.Gender" class="input text-right pr-2">
-          <option value="">اختر</option>
-          <option value="ذكر">ذكر</option>
-          <option value="أنثى">أنثى</option>
-        </select>
-      </div>
+ <div class="flex flex-col">
+  <label class="text-sm text-gray-600 mb-1">الجنس</label>
+  <div class="flex gap-4">
+    <label>
+      <input type="radio" value="ذكر" v-model="localEmployee.Gender" /> ذكر
+    </label>
+    <label>
+      <input type="radio" value="أنثى" v-model="localEmployee.Gender" /> أنثى
+    </label>
+  </div>
+</div>
+
 
       <!-- الجنسية -->
       <div class="flex flex-col">
@@ -167,10 +171,10 @@
  <select v-model="localEmployee.role" class="input">
   <option value="">اختر</option>
   <option value="SuperAdmin">SuperAdmin</option>
-  <option value="Manager">مدير إدارة</option>
-  <option value="SubManager">مدير إدارة فرعية</option>
-  <option value="SectionManager">مدير قسم</option>
-  <option value="Employee">موظف</option>
+  <option value="مدير إدارة">مدير إدارة</option>
+  <option value="مدير إدارة فرعية">مدير إدارة فرعية</option>
+  <option value="مدير قسم">مدير قسم</option>
+  <option value="موظف">موظف</option>
 </select>
 
 

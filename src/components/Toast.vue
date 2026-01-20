@@ -3,9 +3,10 @@
   <transition name="fade">
     <div v-if="visible" 
          class="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-      <div :class="bgClass + ' text-white px-6 py-3 rounded-lg shadow-lg pointer-events-auto'">
-        {{ message }}
-      </div>
+      <div :class="bgClass + ' text-white px-6 py-3 rounded-lg shadow-lg pointer-events-auto whitespace-pre-line text-center'">
+  {{ message }}
+</div>
+
     </div>
   </transition>
 </template>
