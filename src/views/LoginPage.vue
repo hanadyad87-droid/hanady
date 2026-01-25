@@ -63,43 +63,41 @@ export default {
     };
   },
   methods: {
-    async login() {
-      if (!this.username || !this.password) {
-        this.toastMessage = "الرجاء إدخال اسم المستخدم وكلمة المرور ❌";
-        this.toastType = "error";
-        setTimeout(() => (this.toastMessage = ""), 3000);
-        return;
-      }
+   async login() {
+  if (!this.username || !this.password) {
+    this.toastMessage = "الرجاء إدخال اسم المستخدم وكلمة المرور ❌";
+    this.toastType = "error";
+    setTimeout(() => (this.toastMessage = ""), 3000);
+    return;
+  }
 
-      try {
-        const res = await api.post("/User/login", {
-          username: this.username,
-          password: this.password
-        });
+  try {
+    const res = await api.post("/User/login", {
+      username: this.username,
+      password: this.password
+    });
 
-        // 🔹 خزن الدور كما جاء من السيرفر مباشرة
-        const role = res.data.role?.trim() || "موظف";
+    // 🔹 خزن التوكن و roleId مباشرة
+    localStorage.setItem("token", res.data.token);
+    localStorage.setItem("roleId", res.data.roleId);   // <-- هنا
+    localStorage.setItem("employeeId", res.data.employeeId || "");
 
-        // تخزين التوكن والدور والـ employeeId
-        localStorage.setItem("token", res.data.token);
-        localStorage.setItem("role", role);
-        localStorage.setItem("employeeId", res.data.employeeId);
+    this.toastMessage = "تم تسجيل الدخول بنجاح ✅";
+    this.toastType = "success";
 
-        this.toastMessage = "تم تسجيل الدخول بنجاح ✅";
-        this.toastType = "success";
+    setTimeout(() => {
+      this.toastMessage = "";
+      this.$router.push("/dashboard");
+    }, 1500);
 
-        setTimeout(() => {
-          this.toastMessage = "";
-          this.$router.push("/dashboard"); // التوجيه للصفحة الرئيسية
-        }, 1500);
+  } catch (err) {
+    console.error(err);
+    this.toastMessage = "خطأ في اسم المستخدم أو كلمة المرور ❌";
+    this.toastType = "error";
+    setTimeout(() => (this.toastMessage = ""), 3000);
+  }
+}
 
-      } catch (err) {
-        console.error(err);
-        this.toastMessage = "خطأ في اسم المستخدم أو كلمة المرور ❌";
-        this.toastType = "error";
-        setTimeout(() => (this.toastMessage = ""), 3000);
-      }
-    }
   }
 };
-</script>
+</script>   

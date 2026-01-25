@@ -50,15 +50,7 @@
        
       </div>
 
-      <!-- زر الحفظ -->
-      <div class="flex justify-center mb-6">
-        <button
-          @click="saveToBackend"
-          class="bg-primary hover:bg-primaryDark text-white py-2 px-6 rounded-lg transition w-full max-w-xs"
-        >
-          حفظ الموظف 💾
-        </button>
-      </div>
+   
 
     </div>
   </div>

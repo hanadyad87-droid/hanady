@@ -8,93 +8,56 @@ import UpdateInfo from "../views/UpdateInfo.vue";
 import PermissionsPage from '../views/PermissionsPage.vue';
 import ManagerLeavesPage from '../views/ManagerLeavesPage.vue';
 import NotificationsPage from '../views/NotificationsPage.vue';
+import ComplaintsPage from "../views/Complaints.vue";
+import TasksPage from "../views/Tasks.vue";
+import TemplatesPage from "../views/Templates.vue";
+import EvaluationPage from "../views/Evaluation.vue";
+import KnowledgePage from "../views/Knowledge.vue";
+
 const routes = [
-  {
-    path: '/',
-    name: 'LoginPage',
-    component: LoginPage
-  },
-  {
-    path: '/dashboard',
-    name: 'Dashboard',
-    component: Dashboard
-  },
-    {
-    path: "/update-info",
-    name: "UpdateInfo",
-    component: UpdateInfo
-  },
-  {
-    path: '/leaves',
-    name: 'LeavesPage',
-    component: LeavesPage,
-    meta: { role: ['موظف', 'SuperAdmin'] }
-  },
-  {
-  path: "/employee-qualification",
-  component: EmployeeQualification
-},
+  { path: '/', name: 'LoginPage', component: LoginPage },
+  { path: '/dashboard', name: 'Dashboard', component: Dashboard },
+  { path: '/update-info', name: 'UpdateInfo', component: UpdateInfo },
 
+  // الصفحات حسب roleId
+  { path: '/leaves', name: 'LeavesPage', component: LeavesPage, meta: { role: ['5','2','3','4'] } },
+  { path: "/employee-qualification", component: EmployeeQualification },
+
+  { path: '/requests', name: 'RequestsPage', component: RequestsPage, meta: { role: ['5','1','2','3','4'] } },
+  { path: '/manager/leaves', name: 'ManagerLeavesPage', component: ManagerLeavesPage, meta: { role: ['1','2','3','4'] } },
   
-  {
-    path: '/requests',
-    name: 'RequestsPage',
-    component: RequestsPage,
-    meta: { role: ['موظف', 'SuperAdmin'] }
-  },
-  
- {
-  path: '/manager/leaves',
-  name: 'ManagerLeavesPage',
-  component: ManagerLeavesPage,
-  meta: { role: ['مدير قسم', 'مدير إدارة فرعية', 'مدير إدارة', 'SuperAdmin'] }
-}
-,
-  {
-    path: '/employee',
-    name: 'EmployeePage',
-    component: () => import('../views/AddEmployee.vue'),
-    meta: { role: ['SuperAdmin'] }
-  },
-  {
-    path: '/employee/add',
-    name: 'AddEmployee',
-    component: () => import('../views/AddEmployee.vue'),
-    meta: { role: ['SuperAdmin'] }
-  },
-    {
-    path: '/permissions',
-    name: 'PermissionsPage',
-    component: PermissionsPage,
-    meta: { role: ['SuperAdmin', 'Admin'] } // <--- حدد من يسمح له بالدخول
-  },
- {
-  path: "/notifications",
-  name: "Notifications",
-  component: NotificationsPage
-}
+  { path: '/employees', name: 'EmployeesList', component: () => import('../views/Employees.vue'), meta: { role:['1'] } }, // فقط SuperAdmin
+  { path: "/employees/:id", name: "EmployeeView", component: () => import("../views/EmployeeView.vue"), meta: { role: ['1','2','3','4','5'] } },
+  { path: '/employees/add', name: 'AddEmployee', component: () => import('../views/AddEmployee.vue'), meta: { role: ['1'] } },
 
-
-]
+  { path: '/permissions', name: 'PermissionsPage', component: PermissionsPage, meta: { role: ['1'] } }, // SuperAdmin فقط
+  { path: "/notifications", name: "Notifications", component: NotificationsPage },
+  { path: "/complaints", name: "Complaints", component: ComplaintsPage, meta: { role: ['1','2','3','4','5'] } },
+  { path: "/tasks", name: "Tasks", component: TasksPage, meta: { role: ['1','2','3','4','5'] } },
+  { path: "/templates", name: "Templates", component: TemplatesPage, meta: { role: ['1'] } }, // SuperAdmin فقط
+  { path: "/evaluation", name: "Evaluation", component: EvaluationPage, meta: { role: ['1','2','3','4','5'] } },
+  { path: "/knowledge", name: "Knowledge", component: KnowledgePage, meta: { role: ['1','2','3','4','5'] } }
+];
 
 const router = createRouter({
   history: createWebHistory(),
   routes
-})
+});
 
-// 🔐 Route Guard
+// 🔐 Route Guard حسب roleId
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token');
-  let role = localStorage.getItem('role')?.trim(); // ✅ trim مهم
-  if (!role) role = 'موظف'; // افتراضي
+  const roleId = localStorage.getItem('roleId'); // رقم الدور المخزن عند login
 
+  // إذا الصفحة تحتاج تسجيل دخول
   if (to.meta.role) {
-    if (!token) {
+    if (!token || !roleId) {
       alert('الرجاء تسجيل الدخول');
       return next('/');
     }
 
-    if (!to.meta.role.includes(role)) {
+    // التحقق من صلاحية الدور
+    if (!to.meta.role.includes(roleId)) {
       alert('غير مسموح بالدخول');
       return next('/dashboard');
     }
@@ -103,5 +66,4 @@ router.beforeEach((to, from, next) => {
   next();
 });
 
-
-export default router
+export default router;
