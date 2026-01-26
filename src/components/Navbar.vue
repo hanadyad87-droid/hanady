@@ -216,19 +216,33 @@ export default {
       this.$router.push("/");
     },
 
-    // ✅ جلب الإشعارات
-    async loadNotifications() {
-      try {
-        const userId = Number(localStorage.getItem("userId"));
-        const res = await api.get("/Notifications");
+async loadNotifications() {
+  try {
+    const userId = Number(localStorage.getItem("userId"));
+    const token = localStorage.getItem("token");
 
-        this.notifications = res.data.filter(
-          n => n.userId === userId
-        );
-      } catch (err) {
-        console.error("خطأ في جلب الإشعارات", err);
-      }
+    if (!userId || !token) {
+      this.notifications = []; // خلي الإشعارات فاضية
+      return; // ما في أي رسالة أو console
     }
+
+    const res = await api.get("/Notifications", {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    this.notifications = res.data.filter(n => n.userId === userId);
+
+  } catch (err) {
+    // لو في أي خطأ نعرض toast فقط بدون console
+    this.notifications = [];
+    this.toastMessage = "تعذر جلب الإشعارات حالياً ❌";
+    this.toastType = "error";
+    setTimeout(() => (this.toastMessage = ""), 3000);
+  }
+}
+
+
+
     ,
     async markAsRead(notification) {
   if (notification.isRead) return;
@@ -238,14 +252,14 @@ export default {
 
   },
 
-  mounted() {
+ mounted() {
+  const token = localStorage.getItem("token");
+  if (token) {
     this.loadNotifications();
-
-    // تحديث كل 30 ثانية
-    setInterval(() => {
-      this.loadNotifications();
-    }, 30000);
+    setInterval(() => this.loadNotifications(), 30000);
   }
+}
+
 };
 </script>
 

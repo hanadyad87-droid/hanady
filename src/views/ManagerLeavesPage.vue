@@ -1,9 +1,7 @@
 <template>
   <div class="flex min-h-screen bg-background">
-    <!-- Sidebar -->
     <Sidebar class="fixed top-0 right-0 h-screen w-24 md:w-64 bg-primary text-white p-4 z-50" />
 
-    <!-- المحتوى -->
     <div class="flex-1 p-6 min-h-screen mr-24 md:mr-64">
       <Navbar />
 
@@ -12,7 +10,7 @@
         <p class="text-gray-500 text-right mt-1">إدارة طلبات الإجازة للموظفين</p>
       </div>
 
-      <div class="bg-white rounded-xl shadow-lg p-6 max-w-6xl mx-auto">
+      <div class="bg-white rounded-xl shadow-lg p-6 max-w-6xl mx-auto overflow-x-auto">
         <table class="w-full border text-sm text-center">
           <thead class="bg-gray-100">
             <tr>
@@ -21,18 +19,16 @@
               <th class="border p-1">من</th>
               <th class="border p-1">إلى</th>
               <th class="border p-1">الأيام</th>
-              <th class="border p-1">رصيد الموظف</th>
               <th class="border p-1">إجراء</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="l in pendingLeaves" :key="l.id">
               <td class="border p-1">{{ l.employeeName }}</td>
-              <td class="border p-1">{{ l.leaveTypeName || "غير معروف" }}</td>
+              <td class="border p-1">{{ l.leaveTypeName }}</td>
               <td class="border p-1">{{ formatDate(l.fromDate) }}</td>
               <td class="border p-1">{{ formatDate(l.toDate) }}</td>
               <td class="border p-1">{{ l.totalDays }}</td>
-              <td class="border p-1">{{ l.remainingBalance ?? "غير معروف" }}</td>
               <td class="border p-1 flex gap-2 justify-center">
                 <button
                   @click="approveLeave(l)"
@@ -58,16 +54,24 @@
         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
       >
         <div class="bg-white p-6 rounded-xl w-96 shadow-lg">
-          <h3 class="text-lg font-bold mb-4">سبب رفض الإجازة لـ {{ selectedLeave.employeeName }}</h3>
+          <h3 class="text-lg font-bold mb-4">
+            سبب رفض الإجازة لـ {{ selectedLeave.employeeName }}
+          </h3>
+
           <textarea
             v-model="rejectReason"
             class="w-full border p-2 rounded mb-4"
             rows="4"
             placeholder="اكتب سبب الرفض هنا"
-          ></textarea>
+          />
+
           <div class="flex justify-end gap-2">
-            <button @click="closeRejectModal" class="px-4 py-2 rounded bg-gray-300">إلغاء</button>
-            <button @click="submitReject" class="px-4 py-2 rounded bg-red-500 text-white">رفض</button>
+            <button @click="closeRejectModal" class="px-4 py-2 bg-gray-300 rounded">
+              إلغاء
+            </button>
+            <button @click="submitReject" class="px-4 py-2 bg-red-500 text-white rounded">
+              رفض
+            </button>
           </div>
         </div>
       </div>
@@ -76,7 +80,6 @@
     </div>
   </div>
 </template>
-
 <script>
 import Sidebar from "../components/Sidebar.vue";
 import Navbar from "../components/Navbar.vue";
@@ -89,7 +92,6 @@ export default {
   data() {
     return {
       pendingLeaves: [],
-      leaveTypes: [],
       toastMessage: "",
       toastType: "success",
       showRejectModal: false,
@@ -98,105 +100,102 @@ export default {
     };
   },
 
-  async mounted() {
-    await this.fetchLeaveTypes();
-    await this.fetchPendingLeaves();
+  mounted() {
+    this.fetchPendingLeaves();
   },
 
   methods: {
-    openRejectModal(leave) {
-      this.selectedLeave = leave;
-      this.rejectReason = "";
-      this.showRejectModal = true;
-    },
-    closeRejectModal() {
-      this.showRejectModal = false;
-      this.selectedLeave = null;
-      this.rejectReason = "";
-    },
     formatDate(dt) {
-      if (!dt) return "";
-      return dt.slice(0, 10);
-    },
-
-    async fetchLeaveTypes() {
-      try {
-        const res = await api.get("/LeaveType");
-        this.leaveTypes = res.data.map(t => ({ Id: t.id, Name: t.اسم_الاجازة }));
-      } catch (e) {
-        this.toastMessage = "خطأ في جلب أنواع الإجازة";
-        this.toastType = "error";
-      }
+      return dt ? dt.slice(0, 10) : "";
     },
 
     async fetchPendingLeaves() {
       try {
         const res = await api.get("/LeaveRequest/manager/pending");
-        this.pendingLeaves = res.data.map(l => ({
-          ...l,
-          leaveTypeName: this.leaveTypes.find(t => t.Id === l.leaveTypeId)?.Name || "غير معروف",
-          remainingBalance: l.remainingBalance ?? null
-        }));
-      } catch (e) {
+        this.pendingLeaves = res.data;
+      } catch {
         this.toastMessage = "خطأ في جلب الطلبات المعلقة";
         this.toastType = "error";
       }
     },
 
-    async approveLeave(leave) {
-      try {
-        // التحقق من الرصيد قبل الموافقة
-        if (leave.remainingBalance != null && leave.remainingBalance < leave.totalDays) {
-          // رفض تلقائي بسبب الرصيد
-          await this.rejectLeaveAutomatically(leave, "رصيد الإجازات غير كافي");
-          return;
-        }
-
-        await api.post(`/LeaveRequest/${leave.id}/manager-decision?approve=true&note=موافقة`);
-
-        this.toastMessage = `تمت الموافقة على طلب ${leave.employeeName} ✅`;
-        this.toastType = "success";
-
-        if (leave.remainingBalance != null) {
-          leave.remainingBalance -= leave.totalDays;
-        }
-
-        this.pendingLeaves = this.pendingLeaves.filter(l => l.id !== leave.id);
-      } catch (e) {
-        console.error(e);
-        this.toastMessage = "خطأ أثناء الموافقة لعدم وجود رصيد كافي❌";
-        this.toastType = "error";
-      }
+    openRejectModal(leave) {
+      this.selectedLeave = leave;
+      this.rejectReason = "";
+      this.showRejectModal = true;
     },
 
-    async rejectLeaveAutomatically(leave, reason) {
-      try {
-        await api.post(`/LeaveRequest/${leave.id}/manager-decision?approve=false&note=${encodeURIComponent(reason)}`);
-
-        this.toastMessage = `تم رفض طلب ${leave.employeeName} ❌\nالسبب: ${reason}`;
-        this.toastType = "error";
-
-        this.pendingLeaves = this.pendingLeaves.filter(l => l.id !== leave.id);
-      } catch (e) {
-        console.error(e);
-        this.toastMessage = "خطأ أثناء الرفض ❌";
-        this.toastType = "error";
-      }
+    closeRejectModal() {
+      this.showRejectModal = false;
+      this.selectedLeave = null;
     },
 
-    async submitReject() {
-      if (!this.rejectReason.trim()) {
-        this.toastMessage = "الرجاء كتابة سبب الرفض ❗";
-        this.toastType = "error";
-        return;
+ async approveLeave(leave) {
+  try {
+    await api.post(
+      `/LeaveRequest/${leave.id}/manager-decision`,
+      null,
+      {
+        params: {
+          approve: true,
+          note: "موافقة"
+        }
       }
-      await this.rejectLeaveAutomatically(this.selectedLeave, this.rejectReason);
-      this.closeRejectModal();
-    }
+    );
+
+    this.toastMessage = "تمت الموافقة على الطلب ✅";
+    this.toastType = "success";
+    this.pendingLeaves = this.pendingLeaves.filter(
+      l => l.id !== leave.id
+    );
+  } catch (e) {
+    console.error(e.response?.data);
+
+    // 👇 نعرض رسالة الباكند نفسها
+    this.toastMessage =
+      e.response?.data || "تعذر الموافقة على الطلب";
+    this.toastType = "error";
+  }
+}
+
+,
+
+  async submitReject() {
+  if (!this.rejectReason.trim()) {
+    this.toastMessage = "يرجى كتابة سبب الرفض";
+    this.toastType = "error";
+    return;
+  }
+
+  try {
+    await api.post(
+      `/LeaveRequest/${this.selectedLeave.id}/manager-decision`,
+      null,
+      {
+        params: {
+          approve: false, // رفض الطلب
+          note: this.rejectReason
+        }
+      }
+    );
+
+    this.toastMessage = "تم رفض الطلب ❌";
+    this.toastType = "error";
+
+    // إزالة الطلب من القائمة
+    this.pendingLeaves = this.pendingLeaves.filter(
+      l => l.id !== this.selectedLeave.id
+    );
+
+    this.closeRejectModal();
+  } catch (e) {
+    console.error(e.response?.data);
+    this.toastMessage = e.response?.data || "تعذر رفض الطلب";
+    this.toastType = "error";
+  }
+}
+
+
   }
 };
 </script>
-
-<style scoped>
-/* أي ستايل إضافي */
-</style>
