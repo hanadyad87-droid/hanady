@@ -101,11 +101,6 @@
       </div>
 
       <div class="flex flex-col">
-        <label class="text-sm text-gray-600 mb-1">الجنسية</label>
-        <input v-model="localEmployee.Nationality" class="input" />
-      </div>
-
-      <div class="flex flex-col">
         <label class="text-sm text-gray-600 mb-1">الحالة الاجتماعية</label>
         <select v-model="localEmployee.MaritalStatusId" class="input text-right pr-2">
           <option :value="1">أعزب</option>
@@ -130,40 +125,43 @@
       <div class="flex flex-col">
         <label class="text-sm text-gray-600 mb-1">الوضع الوظيفي</label>
         <select v-model="localEmployee.EmploymentStatusId" class="input text-right pr-2">
-          <option :value="1">نشط</option>
-          <option :value="2">إجازة مؤقتة</option>
-          <option :value="3">متقاعد</option>
+          <option :value="1">موظف دائم</option>
+          <option :value="2">موظف مؤقت</option>
+          <option :value="3">موظف متعاقد</option>
+             <option :value="4"> متدرب</option>
+          <option :value="5"> مستقبل</option>
+          <option :value="6">موقوف </option>
         </select>
       </div>
 
       <div class="flex flex-col">
         <label class="text-sm text-gray-600 mb-1">الإدارة</label>
         <select v-model="localEmployee.DepartmentId" class="input text-right pr-2">
-          <option :value="1">الإدارة العامة</option>
-          <option :value="2">الإدارة المالية</option>
-          <option :value="3">إدارة الموارد البشرية</option>
+          <option :value="5">الإدارة العامة</option>
+          <option :value="6">الإدارة المالية</option>
+          <option :value="7"> الموارد البشرية</option>
+           <option :value="8">  تقنية المعلومات</option>
         </select>
       </div>
 
       <div class="flex flex-col">
         <label class="text-sm text-gray-600 mb-1">موقع العمل</label>
         <select v-model="localEmployee.WorkLocationId" class="input text-right pr-2">
-          <option :value="1">طرابلس</option>
-          <option :value="2">بنغازي</option>
-          <option :value="3">مصراتة</option>
-          <option :value="4">الزاوية</option>
-          <option :value="5">سبها</option>
-          <option :value="6">الجبل الغربي</option>
-          <option :value="7">الجفرة</option>
+          <option :value="1">المكتب الرئيسي</option>
+          <option :value="2">فرع طرابلس </option>
+          <option :value="3">فرع الجمهورية</option>
+          <option :value="4">فرع سبها</option>
+          <option :value="5">فرع مصراتة</option>
+         
         </select>
       </div>
 
       <div class="flex flex-col">
         <label class="text-sm text-gray-600 mb-1">الدرجة الوظيفية</label>
         <select v-model="localEmployee.JobGradeId" class="input text-right pr-2">
-          <option :value="7">الدرجة الأولى</option>
-          <option :value="8">الدرجة الثانية</option>
-          <option :value="9">الدرجة الثالثة</option>
+          <option :value="1">الدرجة الأولى</option>
+          <option :value="2">الدرجة الثانية</option>
+          <option :value="3">الدرجة الثالثة</option>
         </select>
       </div>
 
@@ -172,15 +170,7 @@
         <input type="number" v-model.number="localEmployee.AnnualLeaveBalance" class="input" min="0" />
       </div>
 
-      <div class="flex flex-col">
-        <label class="text-sm text-gray-600 mb-1">المدير</label>
-        <select v-model="localEmployee.ManagerId" class="input text-right pr-2">
-          <option v-for="mgr in managers" :key="mgr.id" :value="mgr.id">
-            {{ mgr.fullName }}
-          </option>
-        </select>
-      </div>
-
+   
       <!-- بيانات حساب المستخدم (SuperAdmin فقط) -->
       <div
         v-if="currentUserRole === 'SuperAdmin'"
@@ -321,10 +311,9 @@ export default {
     },
 
 async save() {
- 
   this.toastMessage = "";
-  
- 
+
+  // تحقق من الحقول المطلوبة
   const requiredFields = [
     'EmployeeNumber',
     'FullName',
@@ -338,11 +327,10 @@ async save() {
     if (!this.localEmployee[field]) {
       this.toastMessage = `يرجى ملء الحقل: ${field}`;
       this.toastType = "error";
-      return; // إيقاف الحفظ
+      return;
     }
   }
 
-  // تحقق من الأخطاء في الحقول
   if (
     this.errors.nationalId ||
     this.errors.phone1 ||
@@ -367,48 +355,48 @@ async save() {
   }
 
   try {
-    const payload = {
-      username: this.localEmployee.username,
-      password: this.localEmployee.password,
-      roleId: Number(this.localEmployee.roleId),
-      employeeNumber: this.localEmployee.EmployeeNumber,
-      fullName: this.localEmployee.FullName,
-      phone1: this.localEmployee.phone1,
-      phone2: this.localEmployee.phone2,
-      motherName: this.localEmployee.MotherName,
-      nationalId: this.localEmployee.NationalId,
-      birthDate: this.localEmployee.BirthDate
-        ? this.localEmployee.BirthDate + "T00:00:00"
-        : null,
-      gender: this.localEmployee.Gender,
-      nationality: this.localEmployee.Nationality,
-      hireDate: this.localEmployee.HireDate
-        ? this.localEmployee.HireDate + "T00:00:00"
-        : null,
-      maritalStatusId: Number(this.localEmployee.MaritalStatusId),
-      jobTitleId: Number(this.localEmployee.JobTitleId),
-      employmentStatusId: Number(this.localEmployee.EmploymentStatusId),
-      departmentId: Number(this.localEmployee.DepartmentId),
-      workLocationId: Number(this.localEmployee.WorkLocationId),
-      jobGradeId: Number(this.localEmployee.JobGradeId),
-      managerId: Number(this.localEmployee.ManagerId),
-      annualLeaveBalance: Number(this.localEmployee.AnnualLeaveBalance || 20)
-    };
+    // إنشاء الموظف بدون ManagerId
+  const payload = {
+  username: this.localEmployee.username || "", // اجعلها string فارغ لو null
+  password: this.localEmployee.password || "",
+  roleId: Number(this.localEmployee.roleId || 5), // default لموظف
+  employeeNumber: this.localEmployee.EmployeeNumber,
+  fullName: this.localEmployee.FullName,
+  phone1: this.localEmployee.phone1,
+  phone2: this.localEmployee.phone2,
+  motherName: this.localEmployee.MotherName,
+  nationalId: this.localEmployee.NationalId,
+  birthDate: this.localEmployee.BirthDate ? new Date(this.localEmployee.BirthDate).toISOString() : null,
+  gender: this.localEmployee.Gender || "ذكر",
+  hireDate: this.localEmployee.HireDate ? new Date(this.localEmployee.HireDate).toISOString() : null,
+  maritalStatusId: Number(this.localEmployee.MaritalStatusId || 1),
+  jobTitleId: Number(this.localEmployee.JobTitleId || 4),
+  employmentStatusId: Number(this.localEmployee.EmploymentStatusId || 1),
+  departmentId: Number(this.localEmployee.DepartmentId || 5),
+  workLocationId: Number(this.localEmployee.WorkLocationId || 1),
+  jobGradeId: Number(this.localEmployee.JobGradeId || 1),
+  annualLeaveBalance: Number(this.localEmployee.AnnualLeaveBalance || 20)
+};
 
-    await api.post("/Employee/create-account", payload);
 
-    this.toastMessage = "تم الحفظ بنجاح ✅";
+     await api.post("/Employee/create-account", payload);
+
+    // لو تم اختيار مدير، نرسل طلب تعيينه
+    if (this.localEmployee.ManagerId) {
+      await api.post(`/Employee/assign-manager?departmentId=${this.localEmployee.DepartmentId}&employeeId=${this.localEmployee.ManagerId}`);
+    }
+
+    this.toastMessage = "تم إنشاء الموظف  بنجاح ✅";
     this.toastType = "success";
 
-    // بعد الحفظ الناجح فقط: مسح الحقول
     this.resetForm();
-
   } catch (err) {
     this.toastMessage =
       err.response?.data?.message || err.message || "خطأ في الحفظ ❌";
     this.toastType = "error";
   }
-},
+}
+,
 
 resetForm() {
   this.localEmployee = {

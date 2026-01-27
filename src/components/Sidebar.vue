@@ -56,6 +56,12 @@ export default {
         { name: "الموظفون", path: "/employees", icon: "👥", roles: [1] }, // فقط SuperAdmin
         { name: "الإجازات", path: "/leaves", icon: "✈️", roles: [5,2,3,4,] },
         { name: "الطلبات", path: "/requests", icon: "📄", roles: [1,2,3,4,5] },
+         { 
+        name: "إدارة الإدارات",
+        path: "/departments-management",
+        icon: "🏢",
+        roles: [1] 
+      },
         { name: "المؤهل العلمي", path: "/employee-qualification", icon: "🎓", roles: [1,2,3,4,5] },
         { name: "إدارة الإجازات", path: "/manager/leaves", icon: "🗂️", roles: [2,3,4] },
         { name: "الصلاحيات", path: "/permissions", icon: "🔐", roles: [1,2] },
