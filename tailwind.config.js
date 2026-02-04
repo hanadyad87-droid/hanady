@@ -7,10 +7,11 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: "#0c4a6e",   // أزرق رسمي
+        primary: "#1D4736",   
         secondary: "#f97316", // برتقالي
         background: "#f5f5f5",
-        primaryDark: "#0a3b58"
+        primaryDark: "#051F20",
+        navbar:"#E9F5DB"
       },
     },
   },

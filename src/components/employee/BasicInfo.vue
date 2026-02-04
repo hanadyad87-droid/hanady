@@ -1,6 +1,5 @@
 <template>
   <div class="basic-info p-4" dir="rtl">
-
     <h3 class="text-xl font-bold mb-4 text-right text-blue-800">
       البيانات الأساسية
     </h3>
@@ -8,37 +7,49 @@
     <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-4">
 
       <!-- رقم الموظف -->
-      <div class="flex flex-col">
+      <div class="flex flex-col relative">
         <label class="text-sm text-gray-600 mb-1">رقم الموظف</label>
         <input v-model="localEmployee.EmployeeNumber" class="input" />
       </div>
 
-      <!-- الاسم الكامل -->
-      <div class="flex flex-col">
-        <label class="text-sm text-gray-600 mb-1">الاسم الكامل</label>
-        <input
-          v-model="localEmployee.FullName"
-          @input="validateArabic('FullName')"
-          @keypress="allowArabic($event)"
-          class="input"
-        />
-        <span class="text-red-600 text-xs mt-1">{{ errors.fullName }}</span>
-      </div>
+    <!-- الاسم الكامل -->
+<div class="flex flex-col relative">
+  <label class="text-sm text-gray-600 mb-1">الاسم الكامل</label>
+  <input
+    v-model="localEmployee.FullName"
+    @keypress="allowArabic($event, 'fullName')"
+    class="input"
+    placeholder="اكتب بالعربية فقط"
+  />
+  <span
+    class="text-red-600 text-xs mt-1 absolute top-full right-0"
+    v-if="errors.fullName"
+  >
+    {{ errors.fullName }}
+  </span>
+</div>
 
-      <!-- اسم الأم -->
-      <div class="flex flex-col">
-        <label class="text-sm text-gray-600 mb-1">اسم الأم</label>
-        <input
-          v-model="localEmployee.MotherName"
-          @input="validateArabic('MotherName')"
-          @keypress="allowArabic($event)"
-          class="input"
-        />
-        <span class="text-red-600 text-xs mt-1">{{ errors.motherName }}</span>
-      </div>
+<!-- اسم الأم -->
+<div class="flex flex-col relative">
+  <label class="text-sm text-gray-600 mb-1">اسم الأم</label>
+  <input
+    v-model="localEmployee.MotherName"
+    @keypress="allowArabic($event, 'motherName')"
+    class="input"
+    placeholder="اكتب بالعربية فقط"
+  />
+  <span
+    class="text-red-600 text-xs mt-1 absolute top-full right-0"
+    v-if="errors.motherName"
+  >
+    {{ errors.motherName }}
+  </span>
+</div>
 
-      <!-- الرقم الوطني -->
-      <div class="flex flex-col">
+
+
+       <!-- الرقم الوطني -->
+      <div class="flex flex-col relative">
         <label class="text-sm text-gray-600 mb-1"> الرقم الوطني</label>
         <input
           v-model="localEmployee.NationalId"
@@ -46,11 +57,15 @@
           @keypress="allowDigits($event)"
           class="input"
         />
-        <span class="text-red-600 text-xs mt-1">{{ errors.nationalId }}</span>
+        <span
+          class="text-red-600 text-xs mt-1 absolute top-full right-0"
+          v-if="errors.nationalId"
+        >
+          {{ errors.nationalId }}
+        </span>
       </div>
-
       <!-- الهاتف الأول -->
-      <div class="flex flex-col">
+         <div class="flex flex-col relative">
         <label class="text-sm text-gray-600 mb-1">رقم الهاتف 1</label>
         <input
           v-model="localEmployee.phone1"
@@ -59,12 +74,17 @@
           class="input"
           placeholder="091xxxxxxx"
         />
-        <span class="text-red-600 text-xs mt-1">{{ errors.phone1 }}</span>
+        <span
+          class="text-red-600 text-xs mt-1 absolute top-full right-0"
+          v-if="errors.phone1"
+        >
+          {{ errors.phone1 }}
+        </span>
       </div>
 
       <!-- الهاتف الثاني -->
-      <div class="flex flex-col">
-        <label class="text-sm text-gray-600 mb-1">رقم الهاتف 2</label>
+          <div class="flex flex-col relative">
+        <label class="text-sm text-gray-600 mb-1">رقم الهاتف 2 (اختياري)</label>
         <input
           v-model="localEmployee.phone2"
           @input="validatePhone('phone2')"
@@ -72,8 +92,14 @@
           class="input"
           placeholder="092xxxxxxx"
         />
-        <span class="text-red-600 text-xs mt-1">{{ errors.phone2 }}</span>
+        <span
+          class="text-red-600 text-xs mt-1 absolute top-full right-0"
+          v-if="errors.phone2"
+        >
+          {{ errors.phone2 }}
+        </span>
       </div>
+
 
       <!-- تاريخ الميلاد -->
       <div class="flex flex-col">
@@ -94,7 +120,7 @@
         </div>
       </div>
 
-      <!-- باقي الحقول (تاريخ التعيين، الجنسية، الحالة الاجتماعية، الصفة، الوضع الوظيفي، الإدارة، موقع العمل، الدرجة الوظيفية، رصيد الإجازات، المدير) -->
+
       <div class="flex flex-col">
         <label class="text-sm text-gray-600 mb-1">تاريخ التعيين</label>
         <input type="date" v-model="localEmployee.HireDate" class="input" />
@@ -171,8 +197,7 @@
       </div>
 
    
-      <!-- بيانات حساب المستخدم (SuperAdmin فقط) -->
-      <div
+   <div
         v-if="currentUserRole === 'SuperAdmin'"
         class="col-span-1 md:col-span-2 border p-4 rounded-lg"
       >
@@ -180,12 +205,12 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           <div>
             <label class="text-sm">اسم المستخدم</label>
-            <input v-model="localEmployee.username" class="input" />
+            <input v-model="localEmployee.username" class="input" placeholder="فارغ بشكل افتراضي" />
           </div>
 
           <div>
             <label class="text-sm">كلمة المرور</label>
-            <input type="password" v-model="localEmployee.password" class="input" />
+            <input type="password" v-model="localEmployee.password" class="input" placeholder="فارغ بشكل افتراضي" />
           </div>
 
           <div>
@@ -234,7 +259,7 @@ export default {
         roleId: null,
         phone1: "",
         phone2: "",
-        AnnualLeaveBalance: 20,
+        AnnualLeaveBalance: "",
         ManagerId: null
       },
       managers: [],
@@ -288,14 +313,15 @@ export default {
       }
     },
 
-    validateArabic(field) {
-      const value = this.localEmployee[field];
-      if (!/^[\u0621-\u064A\s]*$/.test(value)) {
-        this.errors[field] = "يجب أن يحتوي على حروف عربية فقط";
-      } else {
-        this.errors[field] = "";
-      }
-    },
+   validateArabic(field) {
+  const value = this.localEmployee[field];
+  if (value && !/^[\u0621-\u064A\s]+$/.test(value)) {
+    this.errors[field] = "يجب أن يحتوي على حروف عربية فقط";
+  } else {
+    this.errors[field] = "";
+  }
+},
+
 
     // منع كتابة أي حرف غير مسموح
     allowDigits(event) {
@@ -304,11 +330,16 @@ export default {
       }
     },
 
-    allowArabic(event) {
-      if (!/[\u0621-\u064A\s]/.test(event.key)) {
-        event.preventDefault();
-      }
-    },
+  allowArabic(event, field) {
+  const arabicRegex = /[\u0621-\u064A\s]/;
+  if (!arabicRegex.test(event.key)) {
+    event.preventDefault(); // يمنع كتابة أي حرف غير عربي
+    this.errors[field] = "يجب أن يكون بالعربية فقط"; // يظهر التحذير
+  } else {
+    this.errors[field] = ""; // يمسح التحذير لو كتب بالعربي
+  }
+}
+,
 
 async save() {
   this.toastMessage = "";
@@ -320,7 +351,7 @@ async save() {
     'MotherName',
     'NationalId',
     'phone1',
-    'phone2'
+   
   ];
 
   for (let field of requiredFields) {
@@ -416,7 +447,7 @@ resetForm() {
     DepartmentId: null,
     WorkLocationId: null,
     JobGradeId: null,
-    AnnualLeaveBalance: 20,
+    AnnualLeaveBalance: null,
     ManagerId: null,
     username: "",
     password: "",

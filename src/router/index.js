@@ -14,6 +14,8 @@ import TemplatesPage from "../views/Templates.vue";
 import EvaluationPage from "../views/Evaluation.vue";
 import KnowledgePage from "../views/Knowledge.vue";
 import DepartmentsManagement from "../views/DepartmentsManagement.vue";
+import ManagerComplaints from "../views/ManagerComplaints.vue";
+import AnnouncementsPage from "../views/Announcements.vue";
 const routes = [
   { path: '/', name: 'LoginPage', component: LoginPage },
   { path: '/dashboard', name: 'Dashboard', component: Dashboard },
@@ -35,9 +37,23 @@ const routes = [
   component: DepartmentsManagement,
   meta: { role: ['1'] } 
 },
+{
+  path: "/manager/complaints",
+  name: "ManagerComplaints",
+  component: ManagerComplaints,
+  meta: { role: ['2','3','4'] }
+}
+,
+  {
+    path: "/announcements",
+    name: "Announcements",
+    component: AnnouncementsPage,
+    meta: { role: ['1','2','3','4'] } // نفس الصلاحيات التي وضعتها في السايدبار
+  },
+  
   { path: '/permissions', name: 'PermissionsPage', component: PermissionsPage, meta: { role: ['1'] } }, // SuperAdmin فقط
   { path: "/notifications", name: "Notifications", component: NotificationsPage },
-  { path: "/complaints", name: "Complaints", component: ComplaintsPage, meta: { role: ['1','2','3','4','5'] } },
+  { path: "/complaints", name: "Complaints", component: ComplaintsPage, meta: { role: ['5'] } },
   { path: "/tasks", name: "Tasks", component: TasksPage, meta: { role: ['1','2','3','4','5'] } },
   { path: "/templates", name: "Templates", component: TemplatesPage, meta: { role: ['1'] } }, // SuperAdmin فقط
   { path: "/evaluation", name: "Evaluation", component: EvaluationPage, meta: { role: ['1','2','3','4','5'] } },

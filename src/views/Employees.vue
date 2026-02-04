@@ -11,7 +11,7 @@
 
       <!-- العنوان + زر إضافة -->
       <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold text-gray-800">الموظفون</h2>
+        <h2 class="text-2xl font-bold text-gray-800">الموظفين</h2>
 
         <router-link
           to="/employees/add"
