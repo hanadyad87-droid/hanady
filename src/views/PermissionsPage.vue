@@ -1,179 +1,223 @@
 <template>
   <div class="flex h-screen bg-gray-100" dir="rtl">
-    
-     <Sidebar class="fixed top-0 right-0 h-screen w-24 md:w-64 bg-primary text-white p-4 z-50" />
-
-
-    <!-- Main content -->
+    <Sidebar class="fixed top-0 right-0 h-screen w-24 md:w-64 bg-primary text-white p-4 z-50" />
     <div class="flex-1 p-6 min-h-screen mr-24 md:mr-64">
       <Navbar />
 
-      <!-- Mobile Sidebar -->
-      <transition name="slide">
-        <aside v-if="sidebarOpen" class="fixed inset-0 bg-black bg-opacity-30 z-50 md:hidden">
-          <div class="absolute right-0 w-64 bg-blue-800 h-full p-4">
-            <button @click="sidebarOpen = false" class="text-white text-xl mb-4">✕</button>
-            <ul class="flex flex-col gap-2">
-              <li v-for="link in links" :key="link.name">
-                <router-link 
-                  :to="link.path"
-                  class="flex items-center gap-2 px-2 py-2 rounded hover:bg-blue-700 transition"
-                  @click="sidebarOpen=false"
-                  :class="$route.path === link.path ? 'bg-gray-200 text-gray-900 font-semibold' : ''"
-                >
-                  <span>{{ link.icon }}</span>
-                  <span>{{ link.name }}</span>
-                </router-link>
-              </li>
-            </ul>
-          </div>
-        </aside>
-      </transition>
-
-      <!-- Page content -->
       <main class="p-6 overflow-auto">
-        <h2 class="text-2xl font-bold text-blue-800 mb-4">إدارة الصلاحيات</h2>
-
-        <div class="bg-white shadow rounded-xl p-6 max-w-4xl mx-auto flex flex-col gap-6">
+        <div class="bg-white shadow-xl rounded-2xl p-6 max-w-7xl mx-auto flex flex-col gap-8">
 
           <!-- اختيار الموظف -->
-          <div>
-            <label class="block mb-1 font-medium text-gray-700">اختر الموظف</label>
-            <select v-model="selectedEmployee" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option disabled value="">ابحث باسم الموظف...</option>
-              <option v-for="emp in filteredEmployees" :key="emp.id" :value="emp">{{ emp.FullName }}</option>
-            </select>
-          </div>
-
-          <!-- اختيار الصلاحية -->
-          <div>
-            <label class="block mb-1 font-medium text-gray-700">الصلاحية</label>
-            <select v-model="selectedRole" class="w-full p-2 border rounded-lg">
-              <option disabled value="">اختر الصلاحية</option>
-              <option v-for="role in roles" :key="role" :value="role">{{ role }}</option>
-            </select>
-          </div>
-
-          <!-- اختيار الوظائف والصلاحيات -->
-          <div>
-            <h3 class="font-bold text-lg mb-2">وظائف الموظف</h3>
-            <div v-for="(func, index) in functions" :key="index" class="border rounded-lg p-3 mb-3">
-              <div class="flex justify-between items-center mb-2">
-                <span class="font-semibold">{{ func.name }}</span>
-                <label class="flex items-center gap-2 text-sm">
-                  <input type="checkbox" v-model="func.selectAll" @change="toggleAll(func)">
-                  تحديد الكل
-                </label>
-              </div>
-              <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
-                <label v-for="perm in permissions" :key="perm" class="flex items-center gap-1 text-sm">
-                  <input type="checkbox" v-model="func.perms" :value="perm">
-                  {{ perm }}
-                </label>
-              </div>
+          <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+            <div>     
+              <label class="text-base font-semibold text-gray-700 mb-2">اختر الموظف</label>
+              <select v-model="selectedEmployeeId" @change="loadUserPermissions"
+                      class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
+                <option :value="null">-- اختر الموظف --</option>
+                <option v-for="e in employees" :key="e.id" :value="e.id">
+                  {{ e.fullName }}
+                </option>
+              </select>
             </div>
           </div>
 
-          <!-- زر حفظ -->
-          <div class="flex justify-center mt-4">
-            <button @click="savePermissions" class="bg-primary hover:bg-primaryDark text-white py-2 px-6 rounded-lg transition w-full max-w-xs">
-              حفظ
+        <!-- جدول الصلاحيات حسب الفئة -->
+<div v-for="(category, index) in categories" :key="index" class="border border-gray-200 rounded-xl p-5 bg-gray-50 shadow-sm">
+  <div class="flex justify-between items-center mb-4">
+    <span class="font-semibold text-lg text-gray-800">{{ category.name }}</span>
+    <label class="flex items-center gap-2 text-sm text-gray-600 font-medium cursor-pointer">
+      <input type="checkbox" v-model="category.selectAll" @change="toggleCategory(category)"
+             class="w-4 h-4 accent-blue-500" />
+      تحديد الكل
+    </label>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <label v-for="perm in category.permissions" :key="perm.permissionName"
+           class="flex items-center gap-2 text-sm bg-white p-3 rounded-lg shadow hover:shadow-md hover:bg-blue-50 transition cursor-pointer">
+      <input type="checkbox" v-model="perm.hasPermission" class="w-4 h-4 accent-blue-500" />
+      <span>{{ perm.permissionName }}</span>
+      <span v-if="perm.isException" class="text-red-500 text-xs font-semibold">(استثناء)</span>
+    </label>
+  </div>
+</div>
+
+
+          <!-- زر الحفظ -->
+          <div class="flex justify-center mt-6">
+            <button @click="savePermissions"
+              class="bg-primary hover:bg-primaryDark text-white py-3 px-8 rounded-lg transition font-semibold shadow-md hover:shadow-lg">
+              حفظ الصلاحيات
             </button>
           </div>
 
           <!-- Toast -->
           <Toast v-if="toastMessage" :message="toastMessage" :type="toastType" />
-
         </div>
       </main>
     </div>
-
   </div>
 </template>
 
+<style scoped>
+.bg-gray-50 {
+  background-color: #f9fafb;
+}
+input[type="checkbox"] {
+  accent-color: #2563eb;
+}
+
+/* تحسين البطاقات */
+label:hover {
+  transform: translateY(-2px);
+  transition: transform 0.2s ease;
+}
+
+/* زر الحفظ */
+button:focus {
+  outline: none;
+  ring: 2px solid #2563eb;
+}
+
+/* تحسين المسافات بين الفئات */
+.grid > label {
+  min-height: 50px;
+}
+</style>
+
+
 <script>
-import Toast from "../components/Toast.vue";
 import Navbar from "../components/Navbar.vue";
 import Sidebar from "../components/Sidebar.vue";
+import Toast from "../components/Toast.vue";
+import api from "../services/api";
 
 export default {
   name: "PermissionsPage",
-  components: { Toast, Sidebar, Navbar },
+  components: { Navbar, Sidebar, Toast },
   data() {
     return {
-      sidebarOpen: false,
-      selectedEmployee: null,
-      employees: [
-        { id: 1, FullName: "هند عبدالله" },
-        { id: 2, FullName: "محمد علي" },
-        { id: 3, FullName: "سامي محمود" },
-        { id: 4, FullName: "ميساء يوسف" }
-      ],
-      selectedRole: "",
-      roles: ["موظف", "مدير قسم", "مدير إدارة", "مسؤول النظام", "موارد بشرية", "IT/توثيق"],
-      permissions: ["عرض", "إضافة", "حذف", "تعديل", "طباعة"],
-      functions: [
-    
-        { name: "الشكاوى", perms: [], selectAll: false },
-        { name: "الإجازات", perms: [], selectAll: false },
-        { name: "الطلبات", perms: [], selectAll: false },
-        { name: "النماذج", perms: [], selectAll: false },
-       
-     { name: "التقييم", perms: [], selectAll: false },
-       
-     { name: "مركز المعرفة", perms: [], selectAll: false },
-       { name: "إدارة الصلاحيات RBAC", perms: [], selectAll: false },
-
-    
-    
-    ],
+      selectedEmployeeId: null,
+      employees: [],
+      permissions: [],
+      categories: [],
       toastMessage: "",
-      toastType: "success",
-      employeeSearch: ""
+      toastType: "success"
     };
   },
-  computed: {
-    filteredEmployees() {
-      const search = this.employeeSearch.toLowerCase();
-      return this.employees.filter(emp => emp.FullName.toLowerCase().includes(search));
-    },
-    links() {
-      const role = localStorage.getItem("role") || "موظف";
-      const allLinks = [
-        { name: "الرئيسية", path: "/dashboard", icon: "🏠", roles: ["موظف","مدير قسم","مدير إدارة","مسؤول النظام"] },
-        { name: "إضافة موظف", path: "/employee", icon: "👤", roles: ["مسؤول النظام"] },
-        { name: "الطلبات", path: "/requests", icon: "📄", roles: ["موظف","مدير قسم","مدير إدارة"] },
-        { name: "الإجازات", path: "/leaves", icon: "✈️", roles: ["موظف","مدير قسم","مدير إدارة"] },
-        { name: "المؤهل العلمي", path: "/employee-qualification", icon: "🎓", roles: ["موظف","مدير قسم","مدير إدارة"] },
-        { name: "إدارة الصلاحيات", path: "/permissions", icon: "🔑", roles: ["مسؤول النظام"] },
-      ];
-      return allLinks.filter(l => l.roles.includes(role));
-    }
+  created() {
+    this.loadEmployees();
+    this.loadPermissions();
   },
   methods: {
-    toggleAll(func) {
-      func.perms = func.selectAll ? [...this.permissions] : [];
+    async loadEmployees() {
+      try {
+        const { data } = await api.get("/Employee/all", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+          }
+        });
+        // نحتفظ بنفس أسماء الخصائص مثل API
+        this.employees = data; // الآن كل عنصر فيه {id, fullName, employeeNumber}
+      } catch (err) {
+        console.error(err);
+        this.showToast("❌ فشل تحميل الموظفين", "error");
+      }
     },
-    savePermissions() {
-      if (!this.selectedEmployee) {
-        this.toastMessage = "الرجاء اختيار الموظف";
-        this.toastType = "error";
+
+    async loadPermissions() {
+      try {
+        const { data } = await api.get("/Permission/all", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+          }
+        });
+        this.permissions = data.map(p => ({ ...p, hasPermission: false, isException: false }));
+
+        const categoriesMap = {};
+        this.permissions.forEach(p => {
+          const cat = p.category || "عام";
+          if (!categoriesMap[cat]) categoriesMap[cat] = [];
+          categoriesMap[cat].push(p);
+        });
+
+        this.categories = Object.keys(categoriesMap).map(name => ({
+          name,
+          permissions: categoriesMap[name],
+          selectAll: false
+        }));
+
+      } catch (err) {
+        console.error(err);
+        this.showToast("❌ فشل تحميل الصلاحيات", "error");
+      }
+    },
+
+    async loadUserPermissions() {
+      if (!this.selectedEmployeeId) return;
+      try {
+        const { data } = await api.get(`/PermissionsManagement/user-summary/${this.selectedEmployeeId}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+          }
+        });
+
+        this.permissions.forEach(p => {
+          let has = data.defaultPermissions.includes(p.permissionName);
+          const exception = data.exceptions.find(e => e.permissionName === p.permissionName);
+          if (exception) has = exception.isAllowed;
+          p.hasPermission = has;
+          p.isException = !!exception;
+        });
+
+        this.categories.forEach(cat => {
+          cat.selectAll = cat.permissions.every(p => p.hasPermission);
+        });
+
+      } catch (err) {
+        console.error(err);
+        this.showToast("❌ فشل تحميل صلاحيات الموظف", "error");
+      }
+    },
+
+    toggleCategory(category) {
+      category.permissions.forEach(p => (p.hasPermission = category.selectAll));
+    },
+
+    async savePermissions() {
+      if (!this.selectedEmployeeId) {
+        this.showToast("الرجاء اختيار الموظف", "error");
         return;
       }
-      if (!this.selectedRole) {
-        this.toastMessage = "الرجاء اختيار الصلاحية";
-        this.toastType = "error";
-        return;
+
+      try {
+        const promises = this.permissions.map(p =>
+          api.post("/PermissionsManagement/set-exception", null, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`
+            },
+            params: {
+              userId: this.selectedEmployeeId,
+              permissionId: p.id,
+              isAllowed: p.hasPermission
+            }
+          })
+        );
+
+        await Promise.all(promises);
+        this.showToast("✅ تم حفظ الصلاحيات بنجاح", "success");
+        await this.loadUserPermissions();
+
+      } catch (err) {
+        console.error(err);
+        this.showToast("❌ فشل الحفظ", "error");
       }
+    },
 
-      console.log("Employee:", this.selectedEmployee);
-      console.log("Role:", this.selectedRole);
-      console.log("Functions:", this.functions);
-
-      this.toastMessage = "تم حفظ الصلاحيات بنجاح ✅";
-      this.toastType = "success";
-
-      setTimeout(() => { this.toastMessage = ""; }, 2000);
+    showToast(message, type = "success") {
+      this.toastMessage = message;
+      this.toastType = type;
+      setTimeout(() => (this.toastMessage = ""), 2500);
     }
   }
 };

@@ -16,20 +16,21 @@ import KnowledgePage from "../views/Knowledge.vue";
 import DepartmentsManagement from "../views/DepartmentsManagement.vue";
 import ManagerComplaints from "../views/ManagerComplaints.vue";
 import AnnouncementsPage from "../views/Announcements.vue";
+import FAQManagement from "../views/FAQManagement.vue";
 const routes = [
   { path: '/', name: 'LoginPage', component: LoginPage },
   { path: '/dashboard', name: 'Dashboard', component: Dashboard },
   { path: '/update-info', name: 'UpdateInfo', component: UpdateInfo },
 
 
-  { path: '/leaves', name: 'LeavesPage', component: LeavesPage, meta: { role: ['5','2','3','4'] } },
+  { path: '/leaves', name: 'LeavesPage', component: LeavesPage, meta: { role: ['5','2','3','4','6'] } },
   { path: "/employee-qualification", component: EmployeeQualification },
 
-  { path: '/requests', name: 'RequestsPage', component: RequestsPage, meta: { role: ['5','1','2','3','4'] } },
-  { path: '/manager/leaves', name: 'ManagerLeavesPage', component: ManagerLeavesPage, meta: { role: ['1','2','3','4'] } },
+  { path: '/requests', name: 'RequestsPage', component: RequestsPage, meta: { role: ['5','1','2','3','4','6'] } },
+  { path: '/manager/leaves', name: 'ManagerLeavesPage', component: ManagerLeavesPage, meta: { role: ['1','2','3','4','5'] } },
   
   { path: '/employees', name: 'EmployeesList', component: () => import('../views/Employees.vue'), meta: { role:['1'] } },
-  { path: "/employees/:id", name: "EmployeeView", component: () => import("../views/EmployeeView.vue"), meta: { role: ['1','2','3','4','5'] } },
+  { path: "/employees/:id", name: "EmployeeView", component: () => import("../views/EmployeeView.vue"), meta: { role: ['1','2','3','4','5','6'] } },
   { path: '/employees/add', name: 'AddEmployee', component: () => import('../views/AddEmployee.vue'), meta: { role: ['1'] } },
 {
   path: "/departments-management",
@@ -53,11 +54,17 @@ const routes = [
   
   { path: '/permissions', name: 'PermissionsPage', component: PermissionsPage, meta: { role: ['1'] } }, // SuperAdmin فقط
   { path: "/notifications", name: "Notifications", component: NotificationsPage },
-  { path: "/complaints", name: "Complaints", component: ComplaintsPage, meta: { role: ['5'] } },
-  { path: "/tasks", name: "Tasks", component: TasksPage, meta: { role: ['1','2','3','4','5'] } },
+  { path: "/complaints", name: "Complaints", component: ComplaintsPage, meta: { role: ['6'] } },
+  { path: "/tasks", name: "Tasks", component: TasksPage, meta: { role: ['1','2','3','4','5','6'] } },
   { path: "/templates", name: "Templates", component: TemplatesPage, meta: { role: ['1'] } }, // SuperAdmin فقط
-  { path: "/evaluation", name: "Evaluation", component: EvaluationPage, meta: { role: ['1','2','3','4','5'] } },
-  { path: "/knowledge", name: "Knowledge", component: KnowledgePage, meta: { role: ['1','2','3','4','5'] } }
+  { path: "/evaluation", name: "Evaluation", component: EvaluationPage, meta: { role: ['1','2','3','4','5','6'] } },
+  { path: "/knowledge", name: "Knowledge", component: KnowledgePage, meta: { role: ['1','2','3','4','5','6'] } },
+   {
+    path: "/faq-mangement",
+    name: "FAQManagement",
+    component: FAQManagement,
+    meta: { role: ['1','2'] } // فقط الأدمن والمدير مثلاً
+  }
 ];
 
 const router = createRouter({

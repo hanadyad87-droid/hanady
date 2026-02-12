@@ -191,14 +191,20 @@ export default {
     this.fetchAnnouncements();
   },
   methods: {
+    // -------------------------
+    // جلب الإعلانات
+    // -------------------------
     async fetchAnnouncements(departmentId = null) {
       try {
         let url = "/Announcements";
-        if(departmentId) url += `?departmentId=${departmentId}`;
+        if (departmentId) url += `?departmentId=${departmentId}`;
         const { data } = await api.get(url);
         this.announcements = (data || []).sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
       } catch(err) { console.error(err); }
     },
+    // -------------------------
+    // جلب الإدارات
+    // -------------------------
     async fetchDepartments() {
       try {
         const { data } = await api.get("/Department");
@@ -206,13 +212,16 @@ export default {
       } catch(err){ console.error(err); }
     },
     getDepartmentName(id) {
-      if(!id) return "غير محدد";
+      if (!id) return "غير محدد";
       const dept = (this.departments || []).find(d => d.id == id);
       return dept ? dept.name : "غير محدد";
     },
     formatDate(dateStr) {
       return new Date(dateStr).toLocaleDateString('ar-SA',{year:'numeric',month:'long',day:'numeric'});
     },
+    // -------------------------
+    // فتح وإغلاق المودال
+    // -------------------------
     openAddModal() {
       this.resetForm();
       this.showAddModal = true;
@@ -235,43 +244,79 @@ export default {
       this.toastType = type; 
       this.toastKey++; 
     },
-    async saveAnnouncement() {
-      if(!this.form.targetAll && !this.form.targetDepartmentId){
-        this.showToast('اختر الإدارة إذا كان الإعلان لإدارة محددة', 'error');
-        return;
-      }
-      try {
-        const url = this.showEditModal ? `/Announcements/${this.editingId}` : '/Announcements';
-        const method = this.showEditModal ? 'put' : 'post';
-        const { data } = await api[method](url, this.form);
+    // -------------------------
+    // إضافة أو تعديل إعلان
+    // -------------------------
+// -------------------------
+// إضافة أو تعديل إعلان
+// -------------------------
+async saveAnnouncement() {
+  // تحقق من الإدخال
+  if (!this.form.targetAll && !this.form.targetDepartmentId) {
+    this.showToast('اختر الإدارة إذا كان الإعلان لإدارة محددة', 'error');
+    return;
+  }
 
-        if(this.showEditModal){
-          const index = this.announcements.findIndex(a => a.id === this.editingId);
-          if(index !== -1) this.announcements[index] = data;
-          this.showToast('تم تعديل الإعلان بنجاح', 'success');
-        } else {
-          this.announcements.unshift(data);
-          this.showToast('تم إضافة الإعلان بنجاح', 'success');
-        }
+  try {
+    // إعداد payload حسب الباكند
+    const payload = {
+      title: this.form.title,
+      message: this.form.message,
+      targetAll: this.form.targetAll,
+      targetDepartmentId: this.form.targetAll ? null : this.form.targetDepartmentId,
+      active: this.form.active,
+      createdAt: this.form.createdAt || new Date().toISOString()
+    };
 
-        this.closeModal();
-        this.resetForm();
-      } catch(err) {
-        console.error(err);
-        this.showToast('حدث خطأ أثناء الحفظ', 'error');
-      }
-    },
-    async toggleStatus(a) {
-      try {
-        const { data } = await api.put(`/Announcements/${a.id}`, { ...a, active: !a.active });
-        const index = this.announcements.findIndex(x => x.id === a.id);
-        if(index !== -1) this.announcements[index] = data;
-        this.showToast('تم تغيير حالة الإعلان', 'success');
-      } catch(err) {
-        console.error(err);
-        this.showToast('خطأ في تغيير الحالة', 'error');
-      }
-    },
+    const url = this.showEditModal ? `/Announcements/${this.editingId}` : '/Announcements';
+    const method = this.showEditModal ? 'put' : 'post';
+    const { data } = await api[method](url, payload);
+
+    if (this.showEditModal) {
+      const index = this.announcements.findIndex(a => a.id === this.editingId);
+      if (index !== -1) this.announcements[index] = data;
+      this.showToast('تم تعديل الإعلان بنجاح', 'success');
+    } else {
+      this.announcements.unshift(data);
+      this.showToast('تم إضافة الإعلان بنجاح', 'success');
+    }
+
+    this.closeModal();
+    this.resetForm();
+  } catch (err) {
+    console.error(err);
+    this.showToast('حدث خطأ أثناء الحفظ', 'error');
+  }
+},
+
+// -------------------------
+// تبديل حالة الإعلان
+// -------------------------
+async toggleStatus(a) {
+  try {
+    const payload = {
+      title: a.title,
+      message: a.message,
+      targetAll: a.targetAll,
+      targetDepartmentId: a.targetAll ? null : a.targetDepartmentId,
+      active: !a.active,
+      createdAt: a.createdAt
+    };
+
+    const { data } = await api.put(`/Announcements/${a.id}`, payload);
+    const index = this.announcements.findIndex(x => x.id === a.id);
+    if (index !== -1) this.announcements[index] = data;
+
+    this.showToast('تم تغيير حالة الإعلان', 'success');
+  } catch (err) {
+    console.error(err);
+    this.showToast('خطأ في تغيير الحالة', 'error');
+  }
+}
+,
+    // -------------------------
+    // حذف الإعلان
+    // -------------------------
     async deleteAnnouncement(id) {
       try {
         await api.delete(`/Announcements/${id}`);
@@ -286,6 +331,7 @@ export default {
   }
 };
 </script>
+
 
 <style scoped>
 .input { @apply p-2 border rounded-lg w-full text-right focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent; }

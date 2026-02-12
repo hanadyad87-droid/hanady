@@ -56,21 +56,22 @@ export default {
   computed: {
     normalLinks() {
       const links = [
-        { name: "الرئيسية", path: "/dashboard", icon: "🏠", roles: [1,2,3,4,5] },
+        { name: "الرئيسية", path: "/dashboard", icon: "🏠", roles: [1,2,3,4,5,6] },
         { name: "الموظفين", path: "/employees", icon: "👥", roles: [1] },
-        { name: "الإجازات", path: "/leaves", icon: "✈️", roles: [5,2,3,4] },
-        { name: "الطلبات", path: "/requests", icon: "📄", roles: [1,2,3,4,5] },
+        { name: "الإجازات", path: "/leaves", icon: "✈️", roles: [5,2,3,4,6] },
+        { name: "الطلبات", path: "/requests", icon: "📄", roles: [1,2,3,4,5,6] },
         { name: "تعيين الإدارات", path: "/departments-management", icon: "🏢", roles: [1] },
-        { name: "المؤهل العلمي", path: "/employee-qualification", icon: "🎓", roles: [1,2,3,4,5] },
-        { name: "إدارة الإجازات", path: "/manager/leaves", icon: "🗂️", roles: [2,3,4] },
-        { name: "الصلاحيات", path: "/permissions", icon: "🔐", roles: [1,2] },
-        { name: "الشكاوى", path: "/complaints", icon: "📝", roles: [5] },
-        { name: "الشكاوى", path: "/manager/complaints", icon: "📝", roles: [2,3,4] },
-        { name: "الإعلانات", path: "/announcements", icon: "📢", roles: [1,2,3,4] },
-        { name: "التكليفات", path: "/tasks", icon: "💼", roles: [1,2,3,4,5] },
+        { name: "المؤهل العلمي", path: "/employee-qualification", icon: "🎓", roles: [1] },
+        { name: "إدارة الإجازات", path: "/manager/leaves", icon: "🗂️", roles: [2,3,4,5] },
+        { name: "الصلاحيات", path: "/permissions", icon: "🔐", roles: [1] },
+        { name: "الشكاوى", path: "/complaints", icon: "📝", roles: [3,4,5,6] },
+        { name: "ادارة الشكاوي", path: "/manager/complaints", icon: "📝", roles: [3,4,5] },
+        { name: "الإعلانات", path: "/announcements", icon: "📢", roles: [1] },
+        { name: "التكليفات", path: "/tasks", icon: "💼", roles: [1,2,3,4,5,6] },
         { name: "النماذج", path: "/templates", icon: "📑", roles: [1] },
-        { name: "التقييم", path: "/evaluation", icon: "⭐", roles: [1,2,3,4,5] },
-        { name: "مركز المعرفة", path: "/knowledge", icon: "📚", roles: [1,2,3,4,5] }
+        { name: "التقييم", path: "/evaluation", icon: "⭐", roles: [1,2,3,4,5,6] },
+        { name: " FAQ", path: "/knowledge", icon: "📚", roles: [1,2,3,4,5,6] },
+        { name:  "FAQ إدارة", path: "/faq-mangement", icon: "📚", roles: [1,2] }
       ];
       return links.filter(link => link.roles.includes(this.roleId));
     }

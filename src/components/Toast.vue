@@ -1,12 +1,16 @@
-<!-- components/Toast.vue -->
 <template>
   <transition name="fade">
     <div v-if="visible" 
          class="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-      <div :class="bgClass + ' text-white px-6 py-3 rounded-lg shadow-lg pointer-events-auto whitespace-pre-line text-center'">
-  {{ message }}
-</div>
+      <div :class="bgClass + ' text-white px-6 py-3 rounded-lg shadow-lg pointer-events-auto text-center flex flex-col items-center gap-2'">
+        <span>{{ message }}</span>
 
+        <!-- زر التأكيد يظهر إذا تم تمرير callback -->
+        <button v-if="onConfirm" @click="handleConfirm"
+                class="bg-white text-black px-4 py-1 rounded hover:bg-gray-200 mt-1">
+          تأكيد
+        </button>
+      </div>
     </div>
   </transition>
 </template>
@@ -17,11 +21,10 @@ export default {
   props: {
     message: { type: String, required: true },
     type: { type: String, default: 'success' }, // success / error / info
-    duration: { type: Number, default: 2000 }
+    duration: { type: Number, default: 3000 },
+    onConfirm: { type: Function, default: null } // callback عند الضغط على زر التأكيد
   },
-  data() {
-    return { visible: false };
-  },
+  data() { return { visible: false }; },
   computed: {
     bgClass() {
       switch(this.type){
@@ -32,9 +35,15 @@ export default {
     }
   },
   methods: {
-    show() {
-      this.visible = true;
-      setTimeout(() => { this.visible = false }, this.duration);
+    show() { 
+      this.visible = true; 
+      if (!this.onConfirm) {
+        setTimeout(() => { this.visible = false }, this.duration);
+      }
+    },
+    handleConfirm() {
+      if (this.onConfirm) this.onConfirm();
+      this.visible = false;
     }
   },
   mounted() { this.show(); }

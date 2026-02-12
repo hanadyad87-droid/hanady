@@ -6,7 +6,8 @@
 
     <!-- المحتوى الرئيسي -->
     <div class="flex-1 p-6 mr-24 md:mr-64 text-right">
-<Navbar />
+      <Navbar />
+
       <div class="card p-6 bg-white rounded-xl shadow-lg" dir="rtl">
         <h3 class="text-xl font-bold text-blue-800 mb-4">الطلبات</h3>
 
@@ -14,24 +15,28 @@
         <div class="mb-6">
           <select v-model="selectedRequest" class="w-full md:w-1/2 p-2 border rounded-lg border-gray-300">
             <option value="">كل الطلبات</option>
-          
             <option value="transfer">طلب نقل قسم</option>
             <option value="permission">طلب إذن خروج</option>
             <option value="training">طلب دورة تدريبية</option>
             <option value="marriage">طلب إجازة زواج</option>
             <option value="internet">طلب إنترنت</option>
+            <option value="update">طلب تعديل بيانات</option>
+            <option value="salaryCertificate">طلب شهادة راتب</option>
             <option value="maintenance">طلب صيانة</option>
           </select>
         </div>
 
         <!-- عرض المكون حسب الاختيار -->
-        
         <TransferRequest v-if="selectedRequest === 'transfer'" :employee="employee" />
         <PermissionRequest v-if="selectedRequest === 'permission'" :employee="employee" />
         <TrainingRequest v-if="selectedRequest === 'training'" :employee="employee" />
         <MarriageRequest v-if="selectedRequest === 'marriage'" :employee="employee" />
         <InternetRequest v-if="selectedRequest === 'internet'" :employee="employee" />
         <MaintenanceRequest v-if="selectedRequest === 'maintenance'" :employee="employee" />
+
+        <!-- صفحات جديدة -->
+        <UpdateInfo v-if="selectedRequest === 'update'" :employee="employee" />
+        <SalaryCertificateRequest v-if="selectedRequest === 'salaryCertificate'" :employee="employee" />
 
         <!-- الجدول العام لبقية الطلبات -->
         <div class="overflow-x-auto mt-6" v-if="!selectedRequest">
@@ -64,7 +69,6 @@
 
       </div>
     </div>
-
   </div>
 </template>
 
@@ -77,18 +81,22 @@ import TrainingRequest from "../components/requests/TrainingRequest.vue";
 import MarriageRequest from "../components/requests/MarriageRequest.vue";
 import InternetRequest from "../components/requests/InternetRequest.vue";
 import MaintenanceRequest from "../components/requests/MaintenanceRequest.vue";
+import UpdateInfo from "../components/requests/UpdateInfo.vue";
+import SalaryCertificateRequest from "../components/requests/SalaryCertificateRequest.vue";
 import Navbar from "../components/Navbar.vue";
+
 export default {
   name: "RequestsPage",
   components: {
     SidebarPage,
-    
     TransferRequest,
     PermissionRequest,
     TrainingRequest,
     MarriageRequest,
     InternetRequest,
     MaintenanceRequest,
+    UpdateInfo,
+    SalaryCertificateRequest,
     Navbar
   },
   data() {

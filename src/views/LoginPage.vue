@@ -35,7 +35,7 @@
 
         <button
           @click="login"
-          class="w-full bg-primary text-white py-2 rounded-lg hover:bg-navbar-900 transition"
+          class="w-full bg-primary text-white px-6 py-2 rounded-xl font-semibold shadow-md transition"
         >
           دخول
         </button>

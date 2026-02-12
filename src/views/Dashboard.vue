@@ -207,24 +207,14 @@ export default {
     },
 
     async fetchAnnouncements() {
-      try {
-        const response = await api.get("/Announcements");
-        const allAnnouncements = response.data || [];
-
-        const userDeptId = this.user.departmentId;
-        if (!userDeptId) {
-          console.warn("departmentId غير موجود، سيتم عرض الإعلانات العامة فقط");
-        }
-
-        const filteredAnnouncements = allAnnouncements
-          .filter(ann => ann.active && (ann.targetAll || ann.targetDepartmentId === userDeptId))
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-        this.announcements = filteredAnnouncements;
-      } catch (err) {
-        console.error("خطأ في جلب الإعلانات:", err);
-      }
-    },
+  try {
+    const response = await api.get("/Announcements/my-announcements");
+    this.announcements = response.data || [];
+  } catch (err) {
+    console.error("خطأ في جلب الإعلانات:", err);
+  }
+}
+,
 
     formatDate(dateString) {
       if (!dateString) return 'بدون تاريخ';

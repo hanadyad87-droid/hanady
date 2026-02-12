@@ -1,105 +1,92 @@
 <template>
-  <div 
-    class="fixed top-0 right-24 md:right-64 left-0 h-12 
-           bg-navbar shadow-sm border-b border-gray-200 
-           flex justify-between items-center px-4 z-40"
-    dir="rtl"
-    ref="navbarRef"
-  >
-
- <div class="flex items-center gap-2">
-  <!-- صورة الموظف (ثابتة) -->
-  <div
-    class="w-8 h-8 rounded-full overflow-hidden 
-           border border-gray-300 bg-gray-100 flex-shrink-0"
-  >
-    <img
-      src="@/assets/user.png"
-      alt="employee"
-      class="w-full h-full object-cover"
-    />
-  </div>
-
-  <!-- الاسم + القسم -->
-  <div class="leading-tight">
-    <div class="text-sm font-semibold text-gray-800">
-      {{ userName }}
-    </div>
-    <div
-      v-if="userProfile?.departmentName"
-      class="text-xs text-gray-500"
+  <div>
+    <!-- Navbar ثابت أعلى الصفحة -->
+    <div 
+      class="fixed top-0 right-24 md:right-64 left-0 h-12 
+             bg-navbar shadow-sm border-b border-gray-200 
+             flex justify-between items-center px-4 z-40"
+      dir="rtl"
+      ref="navbarRef"
     >
-      {{ userProfile.departmentName }}
-    </div>
-  </div>
-</div>
-
-
-
-
-    <!-- الإشعارات + الحساب -->
-    <div class="flex items-center gap-3 relative">
-
-      <!-- الإشعارات -->
-      <router-link 
-        to="/notifications" 
-        class="relative text-lg hover:text-primary transition-colors"
-      >
-        🔔
-        <span
-          v-if="unreadCount > 0"
-          class="absolute -top-1 -right-1 bg-red-500 text-white
-                 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold"
-        >
-          {{ unreadCount }}
-        </span>
-      </router-link>
-
-      <!-- الحساب -->
-      <div class="relative" ref="dropdownRef">
-        <button
-          @click.stop="toggleMenu"
-          class="px-3 py-1 border border-gray-300 rounded-lg text-sm font-medium
-                 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200
-                 flex items-center gap-1"
-        >
-         
-          <span>الحساب</span>
-          <span :class="showMenu ? 'rotate-180' : ''" class="transition-transform text-xs">▼</span>
-        </button>
-
-        <!-- Dropdown Menu -->
+      <!-- قسم الاسم + الصورة -->
+      <div class="flex items-center gap-2">
         <div
-          v-if="showMenu"
-          class="absolute left-0 mt-1 w-52
-                 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden"
+          class="w-8 h-8 rounded-full overflow-hidden 
+                 border border-gray-300 bg-gray-100 flex-shrink-0"
         >
-          <button
-            @click="goToUpdateInfo"
-            class="w-full text-right px-3 py-2 text-sm hover:bg-gray-50 
-                   border-b border-gray-100 flex items-center justify-between"
+          <img
+            :src="userProfile?.photoUrl || userImg"
+            alt="employee"
+            class="w-full h-full object-cover"
+          />
+        </div>
+
+        <div class="leading-tight">
+          <div class="text-sm font-semibold text-gray-800">
+            {{ userName }}
+          </div>
+          <div v-if="userProfile?.departmentName" class="text-xs text-gray-500">
+            {{ userProfile.departmentName }}
+          </div>
+        </div>
+      </div>
+
+      <!-- الإشعارات + الحساب -->
+      <div class="flex items-center gap-3 relative">
+        <!-- الإشعارات -->
+        <router-link 
+          to="/notifications" 
+          class="relative text-lg hover:text-primary transition-colors"
+        >
+          🔔
+          <span
+            v-if="unreadCount > 0"
+            class="absolute -top-1 -right-1 bg-red-500 text-white
+                   rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold"
           >
-             طلب تعديل البيانات
+            {{ unreadCount }}
+          </span>
+        </router-link>
+
+        <!-- Dropdown الحساب -->
+        <div class="relative" ref="dropdownRef">
+          <button
+            @click.stop="toggleMenu"
+            class="px-3 py-1 border border-gray-300 rounded-lg text-sm font-medium
+                   hover:bg-gray-50 hover:border-gray-400 transition-all duration-200
+                   flex items-center gap-1"
+          >
+            <span>الحساب</span>
+            <span :class="showMenu ? 'rotate-180' : ''" class="transition-transform text-xs">▼</span>
           </button>
 
-          <button
-            @click="openPasswordModal"
-            class="w-full text-right px-3 py-2 text-sm hover:bg-gray-50 
-                   border-b border-gray-100 flex items-center justify-between"
+          <div
+            v-if="showMenu"
+            class="absolute left-0 mt-1 w-52
+                   bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden"
           >
-             تغيير كلمة المرور
-          </button>
+            <button
+              @click="openPasswordModal"
+              class="w-full text-right px-3 py-2 text-sm hover:bg-gray-50 
+                     border-b border-gray-100 flex items-center justify-between"
+            >
+               تغيير كلمة المرور
+            </button>
 
-          <button
-            @click="logout"
-            class="w-full text-right px-3 py-2 text-sm
-                   text-red-600 hover:bg-red-50 flex items-center justify-between"
-          >
-             تسجيل خروج
-          </button>
+            <button
+              @click="logout"
+              class="w-full text-right px-3 py-2 text-sm
+                     text-red-600 hover:bg-red-50 flex items-center justify-between"
+            >
+               تسجيل خروج
+            </button>
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- Spacer لتعويض ارتفاع Navbar -->
+    <div class="h-12"></div>
 
     <!-- مودال تغيير كلمة المرور -->
     <div
@@ -135,13 +122,11 @@
     </div>
 
   </div>
-
-  <!-- Spacer لتعويض ارتفاع النافبار الثابت -->
-  <div class="h-12"></div>
 </template>
 
 <script>
 import api from "../services/api";
+import userImg from "../assets/user.png";
 
 export default {
   name: "NavbarPage",
@@ -158,6 +143,7 @@ export default {
       notifications: [],
       userName: "",
       userProfile: null,
+      userImg
     };
   },
 
@@ -197,11 +183,6 @@ export default {
       this.closePasswordModal();
     },
 
-    goToUpdateInfo() {
-      this.showMenu = false;
-      this.$router.push("/update-info");
-    },
-
     logout() {
       this.showMenu = false;
       localStorage.clear();
@@ -210,14 +191,13 @@ export default {
 
     async loadNotifications() {
       try {
-        const userId = Number(localStorage.getItem("userId"));
         const token = localStorage.getItem("token");
-        if (!userId || !token) return;
+        if (!token) return;
 
         const res = await api.get("/Notifications", { headers: { Authorization: `Bearer ${token}` } });
-        this.notifications = res.data.filter(n => n.userId === userId);
+        this.notifications = res.data || [];
       } catch (err) {
-        console.error(err);
+        console.error("خطأ في جلب الإشعارات:", err);
       }
     },
 
@@ -225,11 +205,13 @@ export default {
       try {
         const token = localStorage.getItem("token");
         if (!token) return;
+
         const res = await api.get("/Employee/my-profile", { headers: { Authorization: `Bearer ${token}` } });
         this.userName = res.data.fullName;
         this.userProfile = res.data;
       } catch (err) {
-        console.error(err);
+        console.error("خطأ في جلب بيانات البروفايل:", err);
+        this.userName = "الموظف";
       }
     },
 
@@ -260,7 +242,6 @@ export default {
 </script>
 
 <style scoped>
-/* input fields */
 .input-field {
   width: 100%;
   border: 1px solid #d1d5db;
@@ -275,13 +256,11 @@ export default {
   box-shadow: 0 0 0 2px rgba(59,130,246,0.3);
 }
 
-/* حركة السهم في زر الحساب */
 .rotate-180 {
   transform: rotate(180deg);
   transition: transform 0.2s;
 }
 
-/* الظلال */
 .shadow-lg { box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1),0 10px 10px -5px rgba(0,0,0,0.04); }
 .shadow-sm { box-shadow: 0 2px 4px -1px rgba(0,0,0,0.06),0 4px 6px -1px rgba(0,0,0,0.1); }
 </style>
