@@ -78,58 +78,70 @@
   
     
 
-      <div>
-        <label class="label">الوضع الوظيفي</label>
-        <select v-model.number="form.jobStatus" class="input">
-          <option :value="JobStatus.Appointment">تعيين</option>
-          <option :value="JobStatus.Contract">متعاقد</option>
-          <option :value="JobStatus.Transfer">منتدب</option>
-          <option :value="JobStatus.Secondment">إعارة</option>
-        </select>
-      </div>
+<div>
+  <label class="label">الوضع الوظيفي</label>
+  <select v-model.number="form.jobStatus" class="input">
+   
+    <option :value="JobStatus.Appointment">تعيين</option>
+    <option :value="JobStatus.Contract">متعاقد</option>
+    <option :value="JobStatus.Transfer">منتدب</option>
+    <option :value="JobStatus.Secondment">إعارة</option>
+  </select>
+</div>
 
-      <!-- الحقول الخاصة بكل وضع وظيفي -->
-      <div v-if="form.jobStatus === JobStatus.Appointment">
-        <label class="label">تاريخ التعيين</label>
-        <input type="date" v-model="form.appointmentDate" class="input" />
-      </div>
+<!-- الحقول الخاصة بكل وضع وظيفي -->
+<div v-if="form.jobStatus === JobStatus.Appointment">
+  <label class="label">تاريخ التعيين</label>
+  <input type="date" v-model="form.appointmentDate" class="input" />
+</div>
 
-      <div v-if="form.jobStatus === JobStatus.Contract" class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="label">بداية العقد</label>
-          <input type="date" v-model="form.contractStartDate" class="input" />
-        </div>
-        <div>
-          <label class="label">نهاية العقد</label>
-          <input type="date" v-model="form.contractEndDate" class="input" />
-        </div>
-      </div>
+<div v-if="form.jobStatus === JobStatus.Contract" class="grid grid-cols-2 gap-4">
+  <div>
+    <label class="label">بداية العقد</label>
+    <input type="date" v-model="form.contractStartDate" class="input" />
+  </div>
+  <div>
+    <label class="label">نهاية العقد</label>
+    <input type="date" v-model="form.contractEndDate" class="input" />
+  </div>
+</div>
 
-      <div v-if="form.jobStatus === JobStatus.Transfer" class="space-y-3">
-        <div>
-          <label class="label">الجهة المنتدب منها (ID)</label>
-          <input type="number" v-model.number="form.transferFromEntityId" class="input" />
-        </div>
-        <div>
-          <label class="label">نوع الانتداب</label>
-          <div class="flex gap-6 mt-2">
-            <label><input type="radio" value="كلي" v-model="form.transferType" /> كلي</label>
-            <label><input type="radio" value="جزئي" v-model="form.transferType" /> جزئي</label>
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-4">
-          <input type="date" v-model="form.transferStartDate" class="input" />
-          <input type="date" v-model="form.transferEndDate" class="input" />
-        </div>
-      </div>
+<div v-if="form.jobStatus === JobStatus.Transfer" class="space-y-3">
+  <div>
+    <label class="label">الجهة المنتدب منها</label>
+    <select v-model.number="form.transferFromEntityId" class="input">
+      <option :value="null">اختر الجهة</option>
+      <option v-for="e in departments" :key="e.id" :value="e.id">{{ e.name }}</option>
+    </select>
+  </div>
+  <div>
+    <label class="label">نوع الانتداب</label>
+    <div class="flex gap-6 mt-2">
+      <label><input type="radio" value="كلي" v-model="form.transferType" /> كلي</label>
+      <label><input type="radio" value="جزئي" v-model="form.transferType" /> جزئي</label>
+    </div>
+  </div>
+  <div class="grid grid-cols-2 gap-4">
+    <input type="date" v-model="form.transferStartDate" class="input" />
+    <input type="date" v-model="form.transferEndDate" class="input" />
+  </div>
+</div>
 
-      <div v-if="form.jobStatus === JobStatus.Secondment" class="space-y-3">
-        <input type="number" v-model.number="form.secondmentToEntityId" class="input" placeholder="الجهة المعار إليها (ID)" />
-        <div class="grid grid-cols-2 gap-4">
-          <input type="date" v-model="form.secondmentStartDate" class="input" />
-          <input type="date" v-model="form.secondmentEndDate" class="input" />
-        </div>
-      </div>
+<div v-if="form.jobStatus === JobStatus.Secondment" class="space-y-3">
+  <div>
+    <label class="label">الجهة المعار إليها</label>
+    <select v-model.number="form.secondmentToEntityId" class="input">
+      <option :value="null">اختر الجهة</option>
+      <option v-for="e in departments" :key="e.id" :value="e.id">{{ e.name }}</option>
+    </select>
+  </div>
+  <div class="grid grid-cols-2 gap-4">
+    <input type="date" v-model="form.secondmentStartDate" class="input" />
+    <input type="date" v-model="form.secondmentEndDate" class="input" />
+  </div>
+</div>
+
+
 
        <!-- زر الحفظ -->
     <div class="flex justify-center mt-8">
@@ -156,7 +168,14 @@
 import api from "../../services/api";
 import Toast from "../Toast.vue";
 
-const JobStatus = { Appointment: 1, Contract: 2, Transfer: 3, Secondment: 4 };
+// ===== هنا تضيف JobStatus =====
+const JobStatus = { 
+ 
+  Contract: 2,     // متعاقد
+  Appointment: 3,  // تعيين
+  Transfer: 4,     // منتدب
+  Secondment: 5    // إعارة
+};
 
 export default {
   name: "AdminInfo",
@@ -225,11 +244,12 @@ export default {
       jobGrades: [
         { id: 1, name: "الأولى" },
         { id: 2, name: "الثانية" },
-        { id: 3, name: "الثالثة" },
-        { id: 4, name: "الرابعة" }
+        { id: 3, name: "الثالثة" }
+       
       ],
     };
   },
+  
   computed: {
     filteredSubDepartments() {
       return this.subDepartments.filter(s => s.departmentId === this.form.departmentId);
@@ -266,9 +286,28 @@ export default {
         secondmentEndDate: ""
       };
     },
-    onEmployeeChange() {
-      this.employeeNumber = this.selectedEmployee?.id || "";
-    },
+   async onEmployeeChange() {
+  if (!this.selectedEmployee) {
+    this.employeeNumber = "";
+    this.form = this.emptyForm();
+    return;
+  }
+
+  this.employeeNumber = this.selectedEmployee.id;
+
+  try {
+    const res = await api.get(`/EmployeeAdministrative/by-employee/${this.selectedEmployee.id}`);
+    if (res.data) {
+      this.form = { ...this.emptyForm(), ...res.data };
+    } else {
+      this.form = this.emptyForm();
+    }
+  } catch (err) {
+    console.error(err);
+    this.form = this.emptyForm();
+  }
+}
+,
     async save() {
       if (!this.selectedEmployee) {
         this.showToast("❌ يرجى اختيار موظف أولاً", "error");

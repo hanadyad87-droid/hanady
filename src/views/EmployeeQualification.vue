@@ -68,7 +68,7 @@
         <div class="flex justify-center mt-8">
           <button
             @click="save"
-           class="bg-primary hover:bg-primaryDark text-white py-2 px-6 rounded-lg transition w-full max-w-xs"
+           class="bg-primary hover:bg-primaryDark text-white px-6 py-2 rounded-xl font-semibold shadow-md transition"
           >
             حفظ المؤهل العلمي
           </button>

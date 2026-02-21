@@ -8,8 +8,8 @@
 
       <!-- محتوى المعرفة -->
       <div class="bg-white rounded-xl shadow p-6 max-w-4xl mx-auto">
-        <h2 class="text-2xl font-bold mb-2 text-right">مركز المعرفة</h2>
-        <p class="text-gray-500 mb-6 text-right">مقالات، سياسات، وأدلة</p>
+        <h2 class="text-2xl font-bold mb-2 text-right">الاسئلة الشائعة </h2>
+       
 
         <!-- قائمة FAQ -->
         <div v-if="faqs.length" class="space-y-4">

@@ -63,7 +63,7 @@ export default {
     };
   },
   methods: {
-   async login() {
+  async login() {
   if (!this.username || !this.password) {
     this.toastMessage = "الرجاء إدخال اسم المستخدم وكلمة المرور ❌";
     this.toastType = "error";
@@ -77,9 +77,15 @@ export default {
       password: this.password
     });
 
-    // 🔹 خزن التوكن و roleId مباشرة
+    // ✅ تخزين التوكن
     localStorage.setItem("token", res.data.token);
-    localStorage.setItem("roleId", res.data.roleId);   // <-- هنا
+
+    // ✅ تخزين كل الرولات كمصفوفة
+    localStorage.setItem(
+      "roles",
+      JSON.stringify(res.data.roles.map(r => r.id))
+    );
+
     localStorage.setItem("employeeId", res.data.employeeId || "");
 
     this.toastMessage = "تم تسجيل الدخول بنجاح ✅";
@@ -91,12 +97,12 @@ export default {
     }, 1500);
 
   } catch (err) {
-    console.error(err);
     this.toastMessage = "خطأ في اسم المستخدم أو كلمة المرور ❌";
     this.toastType = "error";
     setTimeout(() => (this.toastMessage = ""), 3000);
   }
 }
+
 
   }
 };

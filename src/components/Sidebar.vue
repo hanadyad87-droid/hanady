@@ -50,9 +50,13 @@
 <script>
 export default {
   name: "SidebarPage",
+
   data() {
-    return { roleId: 0 };
+    return {
+      roles: []
+    };
   },
+
   computed: {
     normalLinks() {
       const links = [
@@ -70,20 +74,29 @@ export default {
         { name: "التكليفات", path: "/tasks", icon: "💼", roles: [1,2,3,4,5,6] },
         { name: "النماذج", path: "/templates", icon: "📑", roles: [1] },
         { name: "التقييم", path: "/evaluation", icon: "⭐", roles: [1,2,3,4,5,6] },
-        { name: " FAQ", path: "/knowledge", icon: "📚", roles: [1,2,3,4,5,6] },
-        { name:  "FAQ إدارة", path: "/faq-mangement", icon: "📚", roles: [1,2] }
+        { name: "الاسئلة الشائعة", path: "/knowledge", icon: "📚", roles: [1,2,3,4,5,6] },
+        { name: "إدارة الاسئلة الشائعة", path: "/faq-mangement", icon: "📚", roles: [1,2] }
       ];
-      return links.filter(link => link.roles.includes(this.roleId));
+
+      // 🔥 يتحقق لو عنده أي رول من المسموح
+      return links.filter(link =>
+        this.roles.some(role => link.roles.includes(role))
+      );
     }
   },
-  mounted() {
-    const storedRoleId = Number(localStorage.getItem("roleId"));
-    if (storedRoleId) this.roleId = storedRoleId;
 
-    window.addEventListener("storage", () => {
-      const updatedRoleId = Number(localStorage.getItem("roleId"));
-      if (updatedRoleId) this.roleId = updatedRoleId;
-    });
+  mounted() {
+    this.loadRoles();
+
+    window.addEventListener("storage", this.loadRoles);
+  },
+
+  methods: {
+    loadRoles() {
+      const storedRoles = JSON.parse(localStorage.getItem("roles") || "[]");
+      this.roles = storedRoles.map(Number);
+    }
   }
 };
 </script>
+

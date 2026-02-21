@@ -9,7 +9,7 @@
 
       <!-- عنوان الصفحة -->
       <div class="max-w-4xl mx-auto">
-        <h2 class="text-2xl font-bold mb-4 text-right">الإشعارات</h2>
+       
 
         <!-- إذا لا توجد إشعارات -->
         <div v-if="notifications.length === 0" class="text-gray-500 text-center py-6">

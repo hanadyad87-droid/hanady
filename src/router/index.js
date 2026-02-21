@@ -17,54 +17,85 @@ import DepartmentsManagement from "../views/DepartmentsManagement.vue";
 import ManagerComplaints from "../views/ManagerComplaints.vue";
 import AnnouncementsPage from "../views/Announcements.vue";
 import FAQManagement from "../views/FAQManagement.vue";
+
+import AdminInfo from '../views/AdminInfoPage.vue';  // صفحة مستقلة للإدارية
+import EmployeeFinancialPage from '../views/EmployeeFinancialPage.vue'; // صفحة مستقلة للمالية
+import BasicInfoPage from "@/views/BasicInfoPage.vue";
+
 const routes = [
   { path: '/', name: 'LoginPage', component: LoginPage },
   { path: '/dashboard', name: 'Dashboard', component: Dashboard },
   { path: '/update-info', name: 'UpdateInfo', component: UpdateInfo },
-
-
-  { path: '/leaves', name: 'LeavesPage', component: LeavesPage, meta: { role: ['5','2','3','4','6'] } },
-  { path: "/employee-qualification", component: EmployeeQualification },
-
-  { path: '/requests', name: 'RequestsPage', component: RequestsPage, meta: { role: ['5','1','2','3','4','6'] } },
-  { path: '/manager/leaves', name: 'ManagerLeavesPage', component: ManagerLeavesPage, meta: { role: ['1','2','3','4','5'] } },
-  
-  { path: '/employees', name: 'EmployeesList', component: () => import('../views/Employees.vue'), meta: { role:['1'] } },
-  { path: "/employees/:id", name: "EmployeeView", component: () => import("../views/EmployeeView.vue"), meta: { role: ['1','2','3','4','5','6'] } },
-  { path: '/employees/add', name: 'AddEmployee', component: () => import('../views/AddEmployee.vue'), meta: { role: ['1'] } },
-{
-  path: "/departments-management",
-  name: "DepartmentsManagement",
-  component: DepartmentsManagement,
-  meta: { role: ['1'] } 
+ {
+    path: "/employees/create",
+    name: "CreateEmployee",
+    component: BasicInfoPage
+  },
+  {
+  path: "/admin-info",
+  name: "AdminInfo",
+  component: AdminInfo
 },
 {
-  path: "/manager/complaints",
-  name: "ManagerComplaints",
-  component: ManagerComplaints,
-  meta: { role: ['2','3','4'] }
+  path: "/financial-info/:publicId",
+  name: "EmployeeFinancial",
+  component: EmployeeFinancialPage,
+  props: true // يمكن تمرير employeeId كـ prop
+},
+  { path: '/leaves', component: LeavesPage, meta: { role: ['5','2','3','4','6'] } },
+  { path: "/employee-qualification", component: EmployeeQualification },
+
+  { path: '/requests', component: RequestsPage, meta: { role: ['5','1','2','3','4','6'] } },
+  { path: '/manager/leaves', component: ManagerLeavesPage, meta: { role: ['1','2','3','4','5'] } },
+  
+  { path: '/employees', component: () => import('../views/Employees.vue'), meta: { role:['1'] } },
+  { path: "/employees/:id", component: () => import("../views/EmployeeView.vue"), meta: { role: ['1','2','3','4','5','6'] } },
+  { path: '/employees/add', component: () => import('../views/AddEmployee.vue'), meta: { role: ['1'] } },
+{
+  path: "/admin-info/:publicId",
+  name: "AdminInfo",
+  component: AdminInfo,
+  props: true // مهم جدًا
+}
+
+,
+{
+  path: '/employees/:id/edit-basic',
+  component: () => import('../views/EditBasicPage.vue')
 }
 ,
-  {
-    path: "/announcements",
-    name: "Announcements",
-    component: AnnouncementsPage,
-    meta: { role: ['1','2','3','4'] } // نفس الصلاحيات التي وضعتها في السايدبار
-  },
-  
-  { path: '/permissions', name: 'PermissionsPage', component: PermissionsPage, meta: { role: ['1'] } }, // SuperAdmin فقط
-  { path: "/notifications", name: "Notifications", component: NotificationsPage },
-  { path: "/complaints", name: "Complaints", component: ComplaintsPage, meta: { role: ['6'] } },
-  { path: "/tasks", name: "Tasks", component: TasksPage, meta: { role: ['1','2','3','4','5','6'] } },
-  { path: "/templates", name: "Templates", component: TemplatesPage, meta: { role: ['1'] } }, // SuperAdmin فقط
-  { path: "/evaluation", name: "Evaluation", component: EvaluationPage, meta: { role: ['1','2','3','4','5','6'] } },
-  { path: "/knowledge", name: "Knowledge", component: KnowledgePage, meta: { role: ['1','2','3','4','5','6'] } },
-   {
-    path: "/faq-mangement",
-    name: "FAQManagement",
-    component: FAQManagement,
-    meta: { role: ['1','2'] } // فقط الأدمن والمدير مثلاً
-  }
+{
+  path: '/employees/:id/edit-admin',
+  component: () => import('../views/EditAdministrative.vue')
+},
+{
+  path: '/employees/:id/edit-financial',
+  component: () => import('../views/EditFinancial.vue')
+}
+
+,
+
+  { path: "/departments-management", component: DepartmentsManagement, meta: { role: ['1'] } },
+
+  { path: "/manager/complaints", component: ManagerComplaints, meta: { role: ['2','3','4'] } },
+
+  { path: "/announcements", component: AnnouncementsPage, meta: { role: ['1','2','3','4'] } },
+
+  { path: '/permissions', component: PermissionsPage, meta: { role: ['1'] } },
+
+  { path: "/notifications", component: NotificationsPage },
+
+  { path: "/complaints", component: ComplaintsPage, meta: { role: ['6'] } },
+
+  { path: "/tasks", component: TasksPage, meta: { role: ['1','2','3','4','5','6'] } },
+
+  { path: "/templates", component: TemplatesPage, meta: { role: ['1'] } },
+
+  { path: "/evaluation", component: EvaluationPage, meta: { role: ['1','2','3','4','5','6'] } },
+
+  { path: "/knowledge", component: KnowledgePage, meta: { role: ['1','2','3','4','5','6'] } },
+
+  { path: "/faq-mangement", component: FAQManagement, meta: { role: ['1','2'] } }
 ];
 
 const router = createRouter({
@@ -73,25 +104,31 @@ const router = createRouter({
 });
 
 
+/* 🔥 الحارس المعدل لدعم تعدد الرولات */
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token');
-  const roleId = localStorage.getItem('roleId'); // رقم الدور المخزن عند login
+  const roles = JSON.parse(localStorage.getItem('roles') || '[]');
 
- 
   if (to.meta.role) {
-    if (!token || !roleId) {
+
+    if (!token || roles.length === 0) {
       alert('الرجاء تسجيل الدخول');
       return next('/');
     }
 
-  
-    if (!to.meta.role.includes(roleId)) {
+    // يتحقق لو عنده أي رول من المسموح
+    const hasAccess = roles.some(r => 
+      to.meta.role.includes(r.toString())
+    );
+
+    if (!hasAccess) {
       alert('غير مسموح بالدخول');
       return next('/dashboard');
     }
+
   }
 
   next();
 });
 
-export default router;
+export default router; 

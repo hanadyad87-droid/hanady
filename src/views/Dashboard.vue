@@ -186,7 +186,8 @@ export default {
           departmentName: resProfile.data.departmentName 
         };
 
-        const resLeaves = await api.get("/LeaveRequest/my-requests");
+        const resLeaves = await api.get("/leave-requests/my-requests");
+
         const requests = resLeaves.data.requests || [];
 
         this.leaveSummary.new = requests.filter(r => r.status === "قيد_الانتظار").length;

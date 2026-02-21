@@ -6,10 +6,15 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-4">
 
-      <!-- رقم الموظف -->
+      <!-- رقم الموظف (قراءة فقط) -->
       <div class="flex flex-col relative">
         <label class="text-sm text-gray-600 mb-1">رقم الموظف</label>
-        <input v-model="localEmployee.EmployeeNumber" class="input" />
+        <input 
+          v-model="localEmployee.EmployeeNumber" 
+          class="input" 
+          readonly 
+          placeholder="سيتم توليده تلقائيًا"
+        />
       </div>
 
       <!-- الاسم الكامل -->
@@ -90,7 +95,6 @@
         <input type="date" v-model="localEmployee.BirthDate" class="input" />
       </div>
 
-    
       <!-- الجنس -->
       <div class="flex flex-col">
         <label class="text-sm text-gray-600 mb-1">الجنس</label>
@@ -117,8 +121,8 @@
 
       <!-- رفع صورة الموظف -->
       <div class="flex flex-col relative">
-        <label class="text-sm text-gray-600 mb-1">صورة الموظف (اختياري)</label>
-        <input type="file" @change="handlePhoto" accept="image/*" class="input" />
+        <label class="text-sm text-gray-600 mb-1">رفع صورة الموظف (PDF/PNG/JPEG)</label>
+        <input type="file" @change="handleFile" accept=".pdf,.png,.jpeg,.jpg" class="input" />
         <span v-if="errors.Photo" class="text-red-600 text-xs mt-1 absolute top-full right-0">
           {{ errors.Photo }}
         </span>
@@ -126,7 +130,7 @@
 
       <!-- بيانات حساب المستخدم (SuperAdmin فقط) -->
       <div v-if="currentUserRole === 'SuperAdmin'" class="col-span-1 md:col-span-2 border p-4 rounded-lg">
-        <h4 class="font-bold text-blue-700 mb-3">بيانات حساب المستخدم</h4>
+        <h4 class="font-bold text-bg-primary mb-3">بيانات حساب المستخدم</h4>
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           <div>
             <label class="text-sm">اسم المستخدم</label>
@@ -139,7 +143,6 @@
           </div>
 
           <div class="flex flex-col">
-            <label class="text-sm mb-1">الصلاحيات</label>
             <label class="inline-flex items-center gap-2">
               <input type="checkbox" v-model="localEmployee.IsSuperAdmin" /> SuperAdmin
             </label>
@@ -163,7 +166,6 @@
     </div>
 
     <Toast v-if="toastMessage" :message="toastMessage" :type="toastType" />
-
   </div>
 </template>
 
@@ -183,11 +185,8 @@ export default {
         password: "",
         IsSuperAdmin: false,
         IsHR: false,
-        Phone1: "",
-        Phone2: "",
-        MaritalStatusId: 1,
       },
-      photoFile: null,
+      file: null,
       toastMessage: "",
       toastType: "success",
       currentUserRole: "SuperAdmin",
@@ -198,7 +197,7 @@ export default {
     employee: {
       deep: true,
       handler(val) {
-        this.localEmployee = { ...val, ManagerId: val.ManagerId || null };
+        this.localEmployee = { ...val };
       }
     }
   },
@@ -216,23 +215,34 @@ export default {
     },
     validateNationalId() {
       const id = this.localEmployee.NationalId;
-      if (!/^\d{12}$/.test(id)) this.errors.NationalId = "الرقم الوطني يجب أن يكون 12 رقماً";
-      else this.errors.NationalId = "";
+      this.errors.NationalId = /^\d{12}$/.test(id) ? "" : "الرقم الوطني يجب أن يكون 12 رقماً";
     },
     validatePhone(field) {
       const phone = this.localEmployee[field];
-      if (!/^\d{10}$/.test(phone)) this.errors[field] = "رقم الهاتف يجب أن يكون 10 أرقام";
-      else this.errors[field] = "";
+      this.errors[field] = /^\d{10}$/.test(phone) ? "" : "رقم الهاتف يجب أن يكون 10 أرقام";
     },
     formatDate(dateStr) {
       if (!dateStr) return null;
       const d = new Date(dateStr);
       return d.toISOString();
     },
+    handleFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const allowedTypes = ["application/pdf", "image/png", "image/jpeg"];
+      if (!allowedTypes.includes(file.type)) {
+        this.errors.Photo = "الملف غير مدعوم";
+        this.file = null;
+        return;
+      }
+      this.errors.Photo = "";
+      this.file = file;
+    },
     async save() {
       this.toastMessage = "";
 
-      const requiredFields = ['EmployeeNumber','FullName','MotherName','NationalId','Phone1','BirthDate','Gender'];
+      const requiredFields = ['FullName','MotherName','NationalId','Phone1','BirthDate','Gender'];
       for (let field of requiredFields) {
         if (!this.localEmployee[field]) {
           this.toastMessage = `يرجى ملء الحقل: ${field}`;
@@ -249,24 +259,20 @@ export default {
 
       try {
         const formData = new FormData();
-        formData.append("Username", this.localEmployee.username);
-        formData.append("Password", this.localEmployee.password);
-        formData.append("EmployeeNumber", this.localEmployee.EmployeeNumber);
+        formData.append("Username", this.localEmployee.username || "");
+        formData.append("Password", this.localEmployee.password || "");
         formData.append("FullName", this.localEmployee.FullName);
         formData.append("MotherName", this.localEmployee.MotherName);
         formData.append("NationalId", this.localEmployee.NationalId);
         formData.append("Phone1", this.localEmployee.Phone1);
         formData.append("Phone2", this.localEmployee.Phone2 || "");
         formData.append("BirthDate", this.formatDate(this.localEmployee.BirthDate));
-       
         formData.append("Gender", this.localEmployee.Gender);
         formData.append("MaritalStatusId", Number(this.localEmployee.MaritalStatusId));
         formData.append("IsHR", this.localEmployee.IsHR);
         formData.append("IsSuperAdmin", this.localEmployee.IsSuperAdmin);
 
-        if (this.photoFile) {
-          formData.append("Photo", this.photoFile);
-        }
+        if (this.file) formData.append("Photo", this.file);
 
         await api.post("/Employee/create-account", formData, {
           headers: { "Content-Type": "multipart/form-data" }
@@ -276,7 +282,7 @@ export default {
         this.toastType = "success";
         this.resetForm();
       } catch (err) {
-        this.toastMessage = err.response?.data?.message || err.message || "خطأ في الحفظ ❌";
+        this.toastMessage = err.response?.data || err.message || "خطأ في الحفظ ❌";
         this.toastType = "error";
       }
     },
@@ -289,7 +295,6 @@ export default {
         Phone1: "",
         Phone2: "",
         BirthDate: "",
-       Photo:"",
         Gender: "",
         MaritalStatusId: 1,
         username: "",
@@ -298,20 +303,7 @@ export default {
         IsHR: false
       };
       this.errors = { NationalId: "", Phone1: "", Phone2: "", FullName: "", MotherName: "", Photo: "" };
-      this.photoFile = null;
-    },
-    handlePhoto(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      if (!file.type.startsWith("image/")) {
-        this.errors.Photo = "يجب أن يكون ملف صورة";
-        this.photoFile = null;
-        return;
-      }
-
-      this.errors.Photo = "";
-      this.photoFile = file;
+      this.file = null;
     }
   }
 };

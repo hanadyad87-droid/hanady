@@ -1,134 +1,84 @@
 <template>
   <div class="flex min-h-screen bg-gray-100">
-
-    <!-- Sidebar ثابتة على اليمين -->
     <Sidebar class="fixed top-0 right-0 h-screen w-24 md:w-64 z-50" />
-
-    
-    <!-- المحتوى الرئيسي -->
     <div class="flex-1 p-6 min-h-screen mr-24 md:mr-64">
-      
-     <Navbar />
-<!-- التابات -->
-<div
-  class="flex flex-nowrap gap-2 mb-4 overflow-x-auto justify-start"
->
-  <button
-    v-for="tab in tabs"
-    :key="tab"
-    @click="activeTab = tab"
-    :class="[
-      'flex-shrink-0 rounded-lg transition text-sm md:text-base px-3 md:px-4 py-2',
-      activeTab === tab
-        ? 'bg-primary text-white'          /* نفس لون Sidebar */
-        : 'bg-gray-200 text-gray-700 hover:bg-primaryDark'  /* Hover بنفس اللون الأغمق */
-    ]"
-  >
-    {{ tab }}
-  </button>
-</div>
+      <Navbar />
 
-
-      <!-- بطاقة المحتوى -->
-      <div class="bg-white
- p-6 rounded-xl shadow mb-6 w-full max-w-4xl mx-auto">
-        <BasicInfo
-          v-if="activeTab === 'البيانات الأساسية'"
-          :employee="employee"
-          @update-employee="updateEmployee"
-        />
-        <AdminInfo
-          v-if="activeTab === 'البيانات الإدارية'"
-          :employee="employee"
-          @update-employee="updateEmployee"
-        />
-        <FinancialInfo
-          v-if="activeTab === 'البيانات المالية'"
-          :employee="employee"
-          @update-employee="updateEmployee"
-        />
-       
+      <!-- التابات -->
+      <div class="flex flex-nowrap gap-2 mb-4 overflow-x-auto justify-start sticky top-16 bg-gray-100 z-40">
+        <button
+          v-for="tab in tabs"
+          :key="tab.name"
+          @click="switchTab(tab.name)"
+          :class="[
+            'flex-shrink-0 rounded-lg transition text-sm md:text-base px-3 md:px-4 py-2',
+            currentTab === tab.name ? 'bg-primary text-white' : 'bg-gray-200 text-gray-700 hover:bg-primaryDark'
+          ]"
+        >
+          {{ tab.name }}
+        </button>
       </div>
 
-   
-
+      <keep-alive>
+        <component 
+          :is="currentComponent"
+          :employee-id="employeeId"
+          @saved-basic="afterBasicSaved"
+          @saved-admin="afterAdminSaved"
+          @saved-financial="afterFinancialSaved"
+        />
+      </keep-alive>
     </div>
   </div>
 </template>
 
 <script>
-import Sidebar from "../components/Sidebar.vue"
-import Navbar from "../components/Navbar.vue";
-import BasicInfo from "../components/employee/BasicInfo.vue"
-import AdminInfo from "../components/employee/AdminInfo.vue"
-import FinancialInfo from "../components/employee/FinancialInfo.vue"
-import api from "../services/api";
+import Sidebar from "@/components/Sidebar.vue";
+import Navbar from "@/components/Navbar.vue";
 
+import BasicInfoPage from "@/views/BasicInfoPage.vue";
+import AdminInfoPage from "@/views/AdminInfoPage.vue";
+import EmployeeFinancialPage from "@/views/EmployeeFinancialPage.vue";
 
 export default {
   name: "AddEmployee",
-  components: {
-    Sidebar,
-    Navbar,
-    BasicInfo,
-    AdminInfo,
-    FinancialInfo,
-   
-  },
+  components: { Sidebar, Navbar, BasicInfoPage, AdminInfoPage, EmployeeFinancialPage },
   data() {
     return {
-    employee: {
-  EmployeeNumber: '',
-  FullName: '',
-  MotherName: '',
-  NationalId: '',
-  BirthDate: '',
-  Gender: '',
-  Nationality: '',
-  HireDate: '',
-  DepartmentId: null,
-  JobTitleId: null,
-  EmploymentStatusId: null,
-  JobGradeId: null,
-  WorkLocationId: null,
-  UserId: null,              // جديد
-  ManagerId: null,           // جديد، null لو المدير الأعلى
-  AnnualLeaveBalance: 20,    // جديد
-  Salary: 0,
-  BankId: null,
-  BankBranchId: null,
-  Qualification: ''
-}
-,
+      employeeId: null,
+      currentTab: "البيانات الأساسية",
       tabs: [
-        "البيانات الأساسية",
-        "البيانات الإدارية",
-        "البيانات المالية",
-      
+        { name: "البيانات الأساسية", component: BasicInfoPage },
+        { name: "البيانات الإدارية", component: AdminInfoPage },
+        { name: "البيانات المالية", component: EmployeeFinancialPage },
       ],
-      activeTab: "البيانات الأساسية"
-    }
+    };
+  },
+  computed: {
+    currentComponent() {
+      const tab = this.tabs.find(t => t.name === this.currentTab);
+      return tab ? tab.component : null;
+    },
   },
   methods: {
-    updateEmployee(data) {
-      this.employee = { ...this.employee, ...data };
+    switchTab(name) {
+      this.currentTab = name;
     },
-    async saveToBackend() {
-  try {
-    // هنا نجيب الـ UserId من localStorage
-    this.employee.UserId = parseInt(localStorage.getItem("userId"));
-
-    const res = await api.post("/Employee/create", this.employee);
-    alert("تم إضافة الموظف بنجاح!");
-    console.log(res.data);
-  } catch (err) {
-    console.error(err);
-    alert("حدث خطأ أثناء الحفظ");
+    afterBasicSaved(id) {
+      this.employeeId = id;
+      this.currentTab = "البيانات الإدارية"; // الانتقال تلقائي للإدارية
+    },
+    afterAdminSaved() {
+      this.currentTab = "البيانات المالية"; // الانتقال تلقائي للمالية
+    },
+    afterFinancialSaved() {
+      console.log("تم حفظ البيانات المالية بنجاح ✅");
+    }
   }
-}
-
-  }
-}
+};
 </script>
 
-
+<style scoped>
+.bg-primary { @apply bg-blue-600; }
+.bg-primaryDark { @apply bg-blue-700; }
+</style>

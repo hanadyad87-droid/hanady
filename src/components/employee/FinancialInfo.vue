@@ -135,7 +135,7 @@ import Toast from "../Toast.vue";
 export default {
   name: "EmployeeFinancial",
   components: { Toast },
-
+props: ["id"],
   data() {
     return {
       employees: [],

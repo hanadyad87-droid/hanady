@@ -15,7 +15,7 @@
 
         <router-link
           to="/employees/add"
-          class="bg-primary hover:bg-primaryDark text-white px-4 py-2 rounded-lg transition"
+          class="bg-primary hover:bg-primaryDark text-white px-6 py-2 rounded-xl font-semibold shadow-md transition"
         >
           ➕ إضافة موظف
         </router-link>
@@ -48,7 +48,7 @@
       <!-- جدول الموظفين -->
       <div class="bg-white rounded-xl shadow overflow-x-auto">
         <table class="w-full text-right text-sm border-collapse">
-  <thead class="bg-gray-100">
+          <thead class="bg-gray-100">
             <tr>
               <th class="p-3">رقم الموظف</th>
               <th class="p-3">الاسم</th>
@@ -63,10 +63,10 @@
           <tbody>
             <tr
               v-for="emp in filteredEmployees"
-              :key="emp.id"
+              :key="emp.PublicId"
               class="border-t hover:bg-gray-50"
             >
-              <td class="p-3">{{ emp.id }}</td>
+              <td class="p-3">{{ emp.EmployeeNumber }}</td>
               <td class="p-3 font-medium">{{ emp.fullName }}</td>
               <td class="p-3">{{ emp.department }}</td>
               <td class="p-3">{{ emp.jobTitle }}</td>
@@ -75,8 +75,7 @@
                 <span
                   :class="emp.employmentStatus === 'نشط'
                     ? 'text-green-600'
-                    : 'text-yellow-600'"
-                >
+                    : 'text-yellow-600'">
                   {{ emp.employmentStatus }}
                 </span>
               </td>
@@ -84,15 +83,8 @@
               <!-- الإجراءات -->
               <td class="p-3 text-center flex justify-center gap-2">
                 <router-link
-                  :to="`/employees/${emp.id}`"
+                  :to="`/employees/${emp.PublicId}`"
                   class="text-blue-600 hover:underline"
-                >
-                  👁️
-                </router-link>
-
-                <router-link
-                  :to="`/employees/${emp.id}/edit`"
-                  class="text-yellow-600 hover:underline"
                 >
                   ✏️
                 </router-link>
@@ -124,7 +116,7 @@ export default {
 
   data() {
     return {
-      employees: [],
+      employees: [], // بيانات مدموجة
       search: "",
       departmentFilter: "",
       departments: []
@@ -133,14 +125,12 @@ export default {
 
   computed: {
     filteredEmployees() {
-      // فلترة حسب الاسم والإدارة فقط
-      return this.employees
-        .filter(emp => {
-          const matchesName = emp.fullName?.includes(this.search);
-          const matchesDepartment =
-            !this.departmentFilter || emp.department === this.departmentFilter;
-          return matchesName && matchesDepartment;
-        });
+      return this.employees.filter(emp => {
+        const matchesName = emp.fullName?.toLowerCase().includes(this.search.toLowerCase());
+        const matchesDepartment =
+          !this.departmentFilter || emp.department === this.departmentFilter;
+        return matchesName && matchesDepartment;
+      });
     }
   },
 
@@ -151,14 +141,35 @@ export default {
   methods: {
     async fetchEmployees() {
       try {
-        const { data } = await api.get("/Employee/all");
+        // جلب بيانات Employee و EmployeeAdministrative
+        const [empRes, adminRes] = await Promise.all([
+          api.get("/Employee/all"),
+          api.get("/EmployeeAdministrative/all-with-admin")
+        ]);
 
-        // ترتيب تنازلي حسب id => آخر موظف مضاف أولاً
-        this.employees = data.sort((a, b) => b.id - a.id);
+        const employees = empRes.data;
+        const adminData = adminRes.data;
+
+        // دمج البيانات حسب id
+       this.employees = adminData
+  .map(adm => {
+    const emp = employees.find(e => e.id === adm.id);
+    return {
+      fullName: adm.fullName,
+      EmployeeNumber: emp ? emp.employeeNumber : "غير محدد",
+      department: adm.department || "غير محدد",
+      jobTitle: adm.jobTitle || "-",
+      workLocation: adm.workLocation || "-",
+      employmentStatus: adm.employmentStatus || "غير محدد",
+      PublicId: adm.employeePublicId,
+      id: adm.id // نحتفظ بالـ id للترتيب
+    };
+  })
+  .sort((a, b) => b.id - a.id); // الترتيب التنازلي
 
         // استخراج الإدارات للفلترة
         this.departments = [
-          ...new Set(data.map(e => e.department).filter(Boolean))
+          ...new Set(this.employees.map(e => e.department).filter(Boolean))
         ];
       } catch (err) {
         console.error("خطأ في جلب الموظفين:", err);

@@ -33,7 +33,7 @@
             <div class="flex flex-col">
               <label class="text-sm text-gray-600 mb-1">اختر الرول</label>
               <select v-model="selectedRoleId" class="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" @change="onRoleChange">
-                <option :value="null">-- اختر رول --</option>
+                <option :value="null">-- اختر الدور --</option>
                 <option v-for="r in roles" :key="r.Id" :value="r.Id">{{ r.RoleName }}</option>
               </select>
             </div>
