@@ -31,11 +31,7 @@ const routes = [
     name: "CreateEmployee",
     component: BasicInfoPage
   },
-  {
-  path: "/admin-info",
-  name: "AdminInfo",
-  component: AdminInfo
-},
+ 
 {
   path: "/financial-info/:publicId",
   name: "EmployeeFinancial",
@@ -49,7 +45,12 @@ const routes = [
   { path: '/manager/leaves', component: ManagerLeavesPage, meta: { role: ['1','2','3','4','5'] } },
   
   { path: '/employees', component: () => import('../views/Employees.vue'), meta: { role:['1'] } },
-  { path: "/employees/:id", component: () => import("../views/EmployeeView.vue"), meta: { role: ['1','2','3','4','5','6'] } },
+ { 
+  path: "/employees/:publicId",
+  name: "EmployeeFullView",
+  component: () => import("../views/EmployeeView.vue"),
+  meta: { role: ['1','2','3','4','5','6'] }
+},
   { path: '/employees/add', component: () => import('../views/AddEmployee.vue'), meta: { role: ['1'] } },
 {
   path: "/admin-info/:publicId",
@@ -60,20 +61,27 @@ const routes = [
 
 ,
 {
-  path: '/employees/:id/edit-basic',
-  component: () => import('../views/EditBasicPage.vue')
+  path: "/employees/:publicId/edit-basic",
+  name: "BasicInfo",
+  component: BasicInfoPage,
+  props: true
 }
 ,
+// Administrative Info
 {
-  path: '/employees/:id/edit-admin',
-  component: () => import('../views/EditAdministrative.vue')
+  path: "/employees/:publicId/edit-admin",
+  name: "AdminInfo",
+  component: AdminInfo,
+  props: true
 },
-{
-  path: '/employees/:id/edit-financial',
-  component: () => import('../views/EditFinancial.vue')
-}
 
-,
+// Financial Info
+{
+  path: "/employees/:publicId/edit-financial",
+  name: "EmployeeFinancial",
+  component: EmployeeFinancialPage,
+  props: true
+},
 
   { path: "/departments-management", component: DepartmentsManagement, meta: { role: ['1'] } },
 

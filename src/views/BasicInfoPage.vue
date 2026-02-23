@@ -118,6 +118,9 @@ import api from "../services/api";
 export default {
   name: "BasicInfoPage",
   components: { Sidebar, Navbar, Toast },
+
+  props: ["publicId"],
+
   data() {
     return {
       form: {
@@ -137,51 +140,190 @@ export default {
       file: null,
       errors: {},
       toastMessage: "",
-      toastType: "success"
+      toastType: "success",
+      loading: false
     };
   },
+
+  async mounted() {
+    const publicId = this.$route.params.publicId;
+
+    if (publicId) {
+      await this.loadEmployee(publicId);
+    }
+  },
+
   methods: {
-    allowDigits(event) { if (!/[0-9]/.test(event.key)) event.preventDefault(); },
-    allowArabic(event, field) { if (!/[\u0621-\u064A\s]/.test(event.key)) { event.preventDefault(); this.errors[field] = "يجب أن يكون بالعربية فقط"; } else { this.errors[field] = ""; } },
-    validateNationalId() { this.errors.NationalId = /^\d{12}$/.test(this.form.NationalId) ? "" : "الرقم الوطني يجب أن يكون 12 رقماً"; },
-    validatePhone(field) { const val = this.form[field]; this.errors[field] = val && !/^\d{10}$/.test(val) ? "رقم الهاتف يجب أن يكون 10 أرقام" : ""; },
-    validateEmail() { const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; this.errors.Email = re.test(this.form.Email) ? "" : "البريد الإلكتروني غير صحيح"; },
-    handleFile(event) { const file = event.target.files[0]; if (!file) return; const allowedTypes = ["image/png", "image/jpeg", "image/jpg"]; if (!allowedTypes.includes(file.type)) { this.errors.Photo = "الملف غير مدعوم"; this.file = null; return; } this.errors.Photo = ""; this.file = file; },
-    
-    save() {
-      // تحقق الحقول
-      const requiredFields = ["Username","Email","FullName","MotherName","NationalId","Phone1","BirthDate","Gender"];
-      for (let f of requiredFields) {
-        if (!this.form[f]) { this.toastMessage = `يرجى ملء الحقل: ${f}`; this.toastType = "error"; return; }
+
+    /* ===================== تحميل بيانات للتعديل ===================== */
+
+    async loadEmployee(publicId) {
+      try {
+        this.loading = true;
+
+        const { data } = await api.get(`/Employee/details/${publicId}`);
+
+        this.form.Username = data.username || "";
+        this.form.Email = data.email || "";
+        this.form.FullName = data.fullName || "";
+        this.form.MotherName = data.motherName || "";
+        this.form.NationalId = data.nationalId || "";
+        this.form.Phone1 = data.phone1 || "";
+        this.form.Phone2 = data.phone2 || "";
+        this.form.BirthDate = data.birthDate
+          ? data.birthDate.split("T")[0]
+          : "";
+        this.form.Gender = data.gender || "ذكر";
+        this.form.MaritalStatusId = data.maritalStatusId || 1;
+        this.form.IsHR = data.isHR || false;
+        this.form.IsSuperAdmin = data.isSuperAdmin || false;
+
+      } catch (error) {
+        console.error("خطأ في تحميل البيانات:", error);
+      } finally {
+        this.loading = false;
       }
+    },
+
+    /* ===================== Validation ===================== */
+
+    allowDigits(event) {
+      if (!/[0-9]/.test(event.key)) event.preventDefault();
+    },
+
+    allowArabic(event, field) {
+      if (!/[\u0621-\u064A\s]/.test(event.key)) {
+        event.preventDefault();
+        this.errors[field] = "يجب أن يكون بالعربية فقط";
+      } else {
+        this.errors[field] = "";
+      }
+    },
+
+    validateNationalId() {
+      this.errors.NationalId = /^\d{12}$/.test(this.form.NationalId)
+        ? ""
+        : "الرقم الوطني يجب أن يكون 12 رقماً";
+    },
+
+    validatePhone(field) {
+      const val = this.form[field];
+      this.errors[field] =
+        val && !/^\d{10}$/.test(val)
+          ? "رقم الهاتف يجب أن يكون 10 أرقام"
+          : "";
+    },
+
+    validateEmail() {
+      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      this.errors.Email = re.test(this.form.Email)
+        ? ""
+        : "البريد الإلكتروني غير صحيح";
+    },
+
+    handleFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const allowedTypes = ["image/png", "image/jpeg", "image/jpg"];
+      if (!allowedTypes.includes(file.type)) {
+        this.errors.Photo = "الملف غير مدعوم";
+        this.file = null;
+        return;
+      }
+
+      this.errors.Photo = "";
+      this.file = file;
+    },
+
+    /* ===================== حفظ ===================== */
+
+    async save() {
+
+      const requiredFields = [
+        "Username",
+        "Email",
+        "FullName",
+        "MotherName",
+        "NationalId",
+        "Phone1",
+        "BirthDate",
+        "Gender"
+      ];
+
+      for (let f of requiredFields) {
+        if (!this.form[f]) {
+          this.toastMessage = `يرجى ملء الحقل: ${f}`;
+          this.toastType = "error";
+          return;
+        }
+      }
+
       this.validateEmail();
-      if (Object.values(this.errors).some(e => e)) { this.toastMessage = "يرجى تصحيح الحقول قبل الحفظ"; this.toastType = "error"; return; }
+
+      if (Object.values(this.errors).some(e => e)) {
+        this.toastMessage = "يرجى تصحيح الحقول قبل الحفظ";
+        this.toastType = "error";
+        return;
+      }
 
       const formData = new FormData();
-      Object.keys(this.form).forEach(k => formData.append(k, this.form[k] ?? ""));
-      if (this.file) formData.append("Photo", this.file);
+      Object.keys(this.form).forEach(k =>
+        formData.append(k, this.form[k] ?? "")
+      );
 
-      api.post("/Employee/create-account", formData, { headers: { "Content-Type": "multipart/form-data" } })
-        .then(res => {
-          const newEmployeeId = res.data.employeeId;
-          const newEmployeePublicId = res.data.publicId;
-          console.log("ID الموظف الجديد:", newEmployeeId);
-          console.log("PublicId:", newEmployeePublicId);
+      if (this.file) {
+        formData.append("Photo", this.file);
+      }
+
+      const publicId = this.$route.params.publicId;
+
+      try {
+        this.loading = true;
+
+        // 🔥 تعديل
+        if (publicId) {
+
+          await api.put(
+            `/Employee/update-full/${publicId}`,
+            formData,
+            { headers: { "Content-Type": "multipart/form-data" } }
+          );
+
+          this.toastMessage = "تم تحديث البيانات بنجاح ✅";
+          this.toastType = "success";
+
+        }
+        // 🔥 إضافة
+        else {
+
+          const res = await api.post(
+            "/Employee/create-account",
+            formData,
+            { headers: { "Content-Type": "multipart/form-data" } }
+          );
+
+          const newPublicId = res.data.publicId;
 
           this.toastMessage = "تم إنشاء الموظف بنجاح ✅";
           this.toastType = "success";
 
           this.resetForm();
 
-          // إرسال PublicId للصفحة الإدارية
-      this.$router.push({ name: 'AdminInfo', params: { publicId: newEmployeePublicId } });
-  })
-       
-        .catch(err => {
-          console.error(err);
-          this.toastMessage = err.response?.data?.message || "خطأ في الحفظ ❌";
-          this.toastType = "error";
-        });
+          this.$router.push({
+            name: "AdminInfo",
+            params: { publicId: newPublicId }
+          });
+        }
+
+      } catch (err) {
+        console.error(err);
+        this.toastMessage =
+          err.response?.data?.message || "حدث خطأ ❌";
+        this.toastType = "error";
+      } finally {
+        this.loading = false;
+      }
     },
 
     resetForm() {
@@ -201,7 +343,9 @@ export default {
       };
       this.errors = {};
       this.file = null;
-      if (this.$refs.photoInput) this.$refs.photoInput.value = null;
+      if (this.$refs.photoInput) {
+        this.$refs.photoInput.value = null;
+      }
     }
   }
 };

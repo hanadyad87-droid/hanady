@@ -140,7 +140,6 @@ export default {
       internalPublicId: null,
       employeeName: "",
       employeeNumber: "",
-
       form: {
         bankId: null,
         bankBranchId: null,
@@ -157,9 +156,7 @@ export default {
         delegatedGradeId: null,
         delegatedGradeDate: null
       },
-
       toast: { visible: false, message: "", type: "success" },
-
       banks: [
         { id: 1, name: "البنك الأهلي" },
         { id: 2, name: "بنك ليبيا" }
@@ -184,6 +181,7 @@ export default {
         if (val) {
           this.internalPublicId = val;
           this.loadEmployeeData(val);
+          this.loadFinancialData(val);
         }
       }
     }
@@ -201,6 +199,35 @@ export default {
         this.employeeNumber = res.data.employeeNumber;
       } catch {
         this.showToast("❌ فشل تحميل بيانات الموظف", "error");
+      }
+    },
+
+    async loadFinancialData(publicId) {
+      try {
+        const res = await api.get(`/EmployeeFinancial/employee/${publicId}`);
+        const data = res.data;
+
+        if (data) {
+          this.form.bankId = data.bankId || null;
+          this.form.bankBranchId = data.bankBranchId || null;
+          this.form.accountNumber = data.accountNumber || "";
+          this.form.newAccountNumber = data.newAccountNumber || "";
+          this.form.administrativeNumber = data.administrativeNumber || "";
+          this.form.basicSalary = data.basicSalary || null;
+          this.form.jobGradeId = data.jobGradeId || null;
+          this.form.jobGradeDate = data.jobGradeDate ? data.jobGradeDate.split("T")[0] : null;
+          this.form.allowance = data.allowance || null;
+          this.form.allowanceDate = data.allowanceDate ? data.allowanceDate.split("T")[0] : null;
+          this.form.currentLinkedSalary = data.currentLinkedSalary || null;
+          this.form.currentLinkedSalaryDate = data.currentLinkedSalaryDate
+            ? data.currentLinkedSalaryDate.split("T")[0]
+            : null;
+          this.form.delegatedGradeId = data.delegatedGradeId || null;
+          this.form.delegatedGradeDate = data.delegatedGradeDate ? data.delegatedGradeDate.split("T")[0] : null;
+        }
+      } catch (err) {
+        console.error(err.response?.data);
+        this.showToast("❌ فشل تحميل البيانات المالية", "error");
       }
     },
 

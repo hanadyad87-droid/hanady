@@ -78,7 +78,6 @@
             <label class="label">تاريخ المباشرة</label>
             <input type="date" v-model="form.startWorkDate" class="input" />
           </div>
-
           <div>
             <label class="label">رصيد الإجازات</label>
             <input type="number" v-model.number="form.leaveBalance" class="input" />
@@ -113,6 +112,58 @@
           </div>
         </div>
 
+        <!-- الانتداب -->
+        <div v-if="form.jobStatus === JobStatus.Transfer" class="grid grid-cols-2 gap-4 mt-4">
+          <div>
+            <label class="label">نوع الانتداب</label>
+            <div class="flex gap-4 items-center mt-1">
+              <label class="flex items-center">
+                <input type="checkbox" value="كلي" v-model="transferTypeSelection" @change="onTransferTypeChange" />
+                <span class="mr-1">كلي</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" value="جزئي" v-model="transferTypeSelection" @change="onTransferTypeChange" />
+                <span class="mr-1">جزئي</span>
+              </label>
+            </div>
+          </div>
+          <div>
+            <label class="label">الجهة المنتدب منها</label>
+            <select v-model.number="form.transferFromEntityId" class="input">
+              <option :value="null">اختر</option>
+              <option v-for="d in departments" :key="d.id" :value="d.id">{{ d.name }}</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="label">بداية الانتداب</label>
+            <input type="date" v-model="form.transferStartDate" class="input" />
+          </div>
+          <div>
+            <label class="label">نهاية الانتداب</label>
+            <input type="date" v-model="form.transferEndDate" class="input" />
+          </div>
+        </div>
+
+        <!-- الإعارة -->
+        <div v-if="form.jobStatus === JobStatus.Secondment" class="grid grid-cols-2 gap-4 mt-4">
+          <div>
+            <label class="label">الجهة المعار إليها</label>
+            <select v-model.number="form.secondmentToEntityId" class="input">
+              <option :value="null">اختر</option>
+              <option v-for="d in departments" :key="d.id" :value="d.id">{{ d.name }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="label">بداية الإعارة</label>
+            <input type="date" v-model="form.secondmentStartDate" class="input" />
+          </div>
+          <div>
+            <label class="label">نهاية الإعارة</label>
+            <input type="date" v-model="form.secondmentEndDate" class="input" />
+          </div>
+        </div>
+
         <div class="flex justify-center mt-8">
           <button @click="save" class="bg-primary hover:bg-primaryDark text-white py-2 px-6 rounded-lg">
             حفظ البيانات الإدارية
@@ -136,7 +187,7 @@ const JobStatus = { Contract: 2, Appointment: 3, Transfer: 4, Secondment: 5 };
 export default {
   name: "AdminInfoPage",
   components: { Sidebar, Navbar, Toast },
-   props: ['publicId'],
+  props: ['publicId'],
   data() {
     return {
       JobStatus,
@@ -144,6 +195,7 @@ export default {
       employeeNumber: "",
       employeePublicIdInternal: null,
       form: this.emptyForm(),
+      transferTypeSelection: [], // لتخزين اختيار كلي أو جزئي
       toast: { visible: false, message: "", type: "success", onConfirm: null },
       departments: [
         { id: 1, name: "الإدارة العامة" },
@@ -204,89 +256,151 @@ export default {
       ]
     };
   },
- 
- watch: {
-  publicId: {
-    immediate: true,
-    handler(newVal) {
-      if (newVal) {
-        this.employeePublicIdInternal = newVal;
-        this.loadEmployeeData(newVal);
+
+  watch: {
+    publicId: {
+      immediate: true,
+      handler(newVal) {
+        if (newVal) {
+          this.employeePublicIdInternal = newVal;
+          this.loadEmployeeData(newVal);
+        }
       }
     }
-  }
-},
+  },
+
   methods: {
     emptyForm() {
-      return { jobStatus: JobStatus.Appointment, jobTitleId: null, departmentId: null, subDepartmentId: null, sectionId: null, startWorkDate: "", workLocationId: null, jobGradeId: null, leaveBalance: 0, appointmentDate: "", contractStartDate: "", contractEndDate: "", transferFromEntityId: null, transferType: "", transferStartDate: "", transferEndDate: "", secondmentToEntityId: null, secondmentStartDate: "", secondmentEndDate: "" };
+      return {
+        jobStatus: JobStatus.Appointment,
+        jobTitleId: null,
+        departmentId: null,
+        subDepartmentId: null,
+        sectionId: null,
+        startWorkDate: "",
+        workLocationId: null,
+        jobGradeId: null,
+        leaveBalance: 0,
+        appointmentDate: "",
+        contractStartDate: "",
+        contractEndDate: "",
+        transferFromEntityId: null,
+        transferType: "",
+        transferStartDate: "",
+        transferEndDate: "",
+        secondmentToEntityId: null,
+        secondmentStartDate: "",
+        secondmentEndDate: ""
+      };
+    },
+
+    onTransferTypeChange() {
+      this.form.transferType = this.transferTypeSelection.join(",");
     },
 
     async loadEmployeeData(publicId) {
       try {
-        const res = await api.get(`/Employee/details/${publicId}`);
-        console.log("Response Admin Data:", res.data);
-        this.employeePublicIdInternal = res.data.publicId;
-        this.employeeName = res.data.fullName;
-        this.employeeNumber = res.data.employeeNumber;
+        const employeeRes = await api.get(`/Employee/details/${publicId}`);
+        this.employeeName = employeeRes.data.fullName;
+        this.employeeNumber = employeeRes.data.employeeNumber;
 
-        // ملء البيانات الإدارية
-        if (res.data.departmentId) this.form.departmentId = res.data.departmentId;
-        if (res.data.jobTitleId) this.form.jobTitleId = res.data.jobTitleId;
-        if (res.data.jobGradeId) this.form.jobGradeId = res.data.jobGradeId;
-        if (res.data.workLocationId) this.form.workLocationId = res.data.workLocationId;
-        if (res.data.startWorkDate) this.form.startWorkDate = res.data.startWorkDate;
-        if (res.data.leaveBalance) this.form.leaveBalance = res.data.leaveBalance;
-        if (res.data.jobStatus) this.form.jobStatus = res.data.jobStatus;
+        const adminRes = await api.get(`/EmployeeAdministrative/by-publicid/${publicId}`);
+        const data = adminRes.data;
 
+        if (data) {
+          this.isEdit = true;
+
+          // تحويل النصوص إلى IDs
+          const jobTitle = this.jobTitles.find(j => j.name === data.jobTitle);
+          const department = this.departments.find(d => d.name === data.department);
+          const subDepartment = this.subDepartments.find(s => s.name === data.subDepartment);
+          const section = this.sections.find(s => s.name === data.section);
+          const jobGrade = this.jobGrades.find(g => g.name === data.jobGrade);
+          const workLocation = this.workLocations.find(w => w.name === data.workLocation);
+
+          this.form.jobStatus = Number(data.jobStatus) || this.JobStatus.Appointment;
+          this.form.jobTitleId = jobTitle ? jobTitle.id : null;
+          this.form.departmentId = department ? department.id : null;
+          this.form.subDepartmentId = subDepartment ? subDepartment.id : null;
+          this.form.sectionId = section ? section.id : null;
+          this.form.startWorkDate = data.startWorkDate ? data.startWorkDate.split('T')[0] : "";
+          this.form.workLocationId = workLocation ? workLocation.id : null;
+          this.form.jobGradeId = jobGrade ? jobGrade.id : null;
+          this.form.leaveBalance = Number(data.leaveBalance) || 0;
+          this.form.appointmentDate = data.appointmentDate ? data.appointmentDate.split('T')[0] : this.form.startWorkDate;
+          this.form.contractStartDate = data.contractStartDate ? data.contractStartDate.split('T')[0] : "";
+          this.form.contractEndDate = data.contractEndDate ? data.contractEndDate.split('T')[0] : "";
+          this.form.transferType = data.transferType || "";
+          this.transferTypeSelection = this.form.transferType ? this.form.transferType.split(",") : [];
+          this.form.transferFromEntityId = data.transferFromEntity ? Number(data.transferFromEntity.id) : null;
+          this.form.transferStartDate = data.transferStartDate ? data.transferStartDate.split('T')[0] : "";
+          this.form.transferEndDate = data.transferEndDate ? data.transferEndDate.split('T')[0] : "";
+          this.form.secondmentToEntityId = data.secondmentToEntity ? Number(data.secondmentToEntity.id) : null;
+          this.form.secondmentStartDate = data.secondmentStartDate ? data.secondmentStartDate.split('T')[0] : "";
+          this.form.secondmentEndDate = data.secondmentEndDate ? data.secondmentEndDate.split('T')[0] : "";
+        } else {
+          this.isEdit = false;
+          Object.assign(this.form, this.emptyForm());
+          this.transferTypeSelection = [];
+        }
       } catch (err) {
         console.error(err);
         this.showToast("❌ فشل تحميل بيانات الموظف", "error");
       }
     },
 
-async save() {
-  if (!this.employeePublicIdInternal) return this.showToast("❌ لم يتم تحديد الموظف", "error");
+    async save() {
+      if (!this.employeePublicIdInternal) {
+        return this.showToast("❌ لم يتم تحديد الموظف", "error");
+      }
 
-  const payload = {
-    employeePublicId: this.employeePublicIdInternal,
-    jobStatus: this.form.jobStatus,
-    jobTitleId: this.form.jobTitleId || 0,
-    departmentId: this.form.departmentId || 0,
-    subDepartmentId: this.form.subDepartmentId || null,
-    sectionId: this.form.sectionId || null,
-    startWorkDate: this.form.startWorkDate,
-    workLocationId: this.form.workLocationId || 0,
-    jobGradeId: this.form.jobGradeId || 0,
-    leaveBalance: this.form.leaveBalance || 0,
-    contractStartDate: this.form.contractStartDate || null,
-    contractEndDate: this.form.contractEndDate || null,
-    appointmentDate: this.form.appointmentDate || this.form.startWorkDate,
-    transferType: this.form.transferType || null,
-    transferFromEntityId: this.form.transferFromEntityId || null,
-    transferStartDate: this.form.transferStartDate || null,
-    transferEndDate: this.form.transferEndDate || null,
-    secondmentToEntityId: this.form.secondmentToEntityId || null,
-    secondmentStartDate: this.form.secondmentStartDate || null,
-    secondmentEndDate: this.form.secondmentEndDate || null
-  };
+      const payload = {
+        employeePublicId: this.employeePublicIdInternal,
+        jobStatus: this.form.jobStatus,
+        jobTitleId: this.form.jobTitleId || 0,
+        departmentId: this.form.departmentId || 0,
+        subDepartmentId: this.form.subDepartmentId || null,
+        sectionId: this.form.sectionId || null,
+        startWorkDate: this.form.startWorkDate,
+        workLocationId: this.form.workLocationId || 0,
+        jobGradeId: this.form.jobGradeId || 0,
+        leaveBalance: this.form.leaveBalance || 0,
+        contractStartDate: this.form.contractStartDate || null,
+        contractEndDate: this.form.contractEndDate || null,
+        appointmentDate: this.form.appointmentDate || this.form.startWorkDate,
+        transferType: this.form.jobStatus === JobStatus.Transfer ? (this.form.transferType || "") : null,
+        transferFromEntityId: this.form.jobStatus === JobStatus.Transfer ? (this.form.transferFromEntityId || null) : null,
+        transferStartDate: this.form.jobStatus === JobStatus.Transfer ? (this.form.transferStartDate || null) : null,
+        transferEndDate: this.form.jobStatus === JobStatus.Transfer ? (this.form.transferEndDate || null) : null,
+        secondmentToEntityId: this.form.jobStatus === JobStatus.Secondment ? (this.form.secondmentToEntityId || null) : null,
+        secondmentStartDate: this.form.jobStatus === JobStatus.Secondment ? (this.form.secondmentStartDate || null) : null,
+        secondmentEndDate: this.form.jobStatus === JobStatus.Secondment ? (this.form.secondmentEndDate || null) : null
+      };
 
-  try {
-    await api.post("/EmployeeAdministrative", payload); // هنا عرفنا المتغير response
-    this.showToast("✅ تم حفظ البيانات الإدارية بنجاح", "success");
+      try {
+        if (this.isEdit) {
+          await api.put(`/EmployeeAdministrative/${this.employeePublicIdInternal}`, payload);
+        } else {
+          await api.post(`/EmployeeAdministrative`, payload);
+          this.isEdit = true;
+        }
 
-    // توجيه للصفحة المالية مع الاسم والرقم
-  this.$router.push({
-  name: "EmployeeFinancial",
-  params: { publicId: this.employeePublicIdInternal }, 
-  query: { name: this.employeeName, number: this.employeeNumber } // الاسم والرقم للعرض فقط
-});
-  } catch (err) {
-    console.error(err);
-    this.showToast("❌ فشل الحفظ – تأكد من البيانات", "error");
-  }
-},
+        this.showToast("✅ تم حفظ البيانات الإدارية بنجاح", "success");
 
-    showToast(message, type = "success") { this.toast = { visible: true, message, type, onConfirm: null }; }
+        this.$router.push({
+          name: "EmployeeFinancial",
+          params: { publicId: this.employeePublicIdInternal },
+          query: { name: this.employeeName, number: this.employeeNumber }
+        });
+      } catch (err) {
+        console.error(err);
+        this.showToast("❌ فشل الحفظ – تأكد من البيانات", "error");
+      }
+    },
+
+    showToast(message, type = "success") {
+      this.toast = { visible: true, message, type, onConfirm: null };
+    }
   }
 };
 </script>
