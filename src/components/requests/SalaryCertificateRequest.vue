@@ -4,75 +4,27 @@
     <!-- عنوان الصفحة -->
     <h2 class="text-2xl font-bold text-blue-800">طلب شهادة راتب</h2>
 
-    <!-- بيانات الموظف الحالية -->
-    <div class="bg-white shadow rounded-xl p-4">
-      <h3 class="font-bold text-lg mb-2">بياناتك الحالية</h3>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-gray-700">
-        <p><span class="font-semibold">الاسم الكامل:</span> {{ employee?.FullName || '-' }}</p>
-        <p><span class="font-semibold">رقم الهوية:</span> {{ employee?.NationalId || '-' }}</p>
-        <p><span class="font-semibold">تاريخ الميلاد:</span> {{ employee?.BirthDate || '-' }}</p>
-        <p><span class="font-semibold">الإدارة:</span> {{ employee?.Department || '-' }}</p>
-        <p><span class="font-semibold">المسمى الوظيفي:</span> {{ employee?.JobTitle || '-' }}</p>
-      </div>
+    <!-- الفورم -->
+    <div class="bg-white shadow-xl rounded-xl p-6 max-w-lg mx-auto flex flex-col gap-4">
+      <h3 class="font-bold text-lg text-gray-800 mb-2">إرسال طلب شهادة راتب</h3>
+
+      <textarea v-model="note" placeholder="الغرض من الشهادة" 
+                class="border rounded-lg p-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none w-full h-28"></textarea>
+
+      <button @click="submitRequest" 
+              class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition w-full">
+        إرسال الطلب
+      </button>
     </div>
 
-    <!-- فورم طلب الشهادة + جدول سابق -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-      <!-- الفورم -->
-      <div class="bg-white shadow rounded-xl p-4 flex flex-col gap-4">
-        <h3 class="font-bold text-lg mb-2">إرسال طلب شهادة راتب</h3>
-
-        <textarea v-model="note" placeholder="الغرض من الشهادة" class="border rounded-lg p-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none w-full sm:w-3/4"></textarea>
-
-        <!-- الزر في الوسط -->
-        <div class="flex justify-center mt-2">
-          <button @click="submitRequest" class="bg-primary hover:bg-primaryDark text-white py-2 px-6 rounded-lg transition w-full max-w-xs">
-            إرسال الطلب
-          </button>
-        </div>
-      </div>
-
-      <!-- جدول الطلبات السابقة -->
-      <div class="bg-white shadow rounded-xl p-4 overflow-x-auto">
-        <h3 class="font-bold text-lg mb-4">طلباتك السابقة</h3>
-
-        <table class="min-w-full divide-y divide-gray-200 text-right">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="px-4 py-2 text-sm font-medium text-gray-700">رقم الطلب</th>
-              <th class="px-4 py-2 text-sm font-medium text-gray-700">التاريخ</th>
-              <th class="px-4 py-2 text-sm font-medium text-gray-700">الغرض</th>
-              <th class="px-4 py-2 text-sm font-medium text-gray-700">الحالة</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-200">
-            <tr v-for="req in requests" :key="req.id" class="hover:bg-gray-50">
-              <td class="px-4 py-2 text-sm text-gray-700">{{ req.id }}</td>
-              <td class="px-4 py-2 text-sm text-gray-700">{{ req.date }}</td>
-              <td class="px-4 py-2 text-sm text-gray-700">{{ req.note }}</td>
-              <td class="px-4 py-2 text-sm" 
-                  :class="{
-                    'text-green-600': req.status==='مقبول',
-                    'text-red-600': req.status==='مرفوض',
-                    'text-yellow-600': req.status==='تحت المراجعة'
-                  }">
-                {{ req.status }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-    </div>
-
-    <!-- Toast -->
+    <!-- Toast للإشعارات -->
     <Toast v-if="toastMessage" :message="toastMessage" :type="toastType" />
-
+    
   </div>
 </template>
 
 <script>
+import axios from "axios";
 import Toast from '../Toast.vue';
 
 export default {
@@ -82,37 +34,50 @@ export default {
   data() {
     return {
       note: "",
-      requests: [
-        { id: 1, date: "2026-01-05", note: "للمصرف", status: "مقبول" },
-        { id: 2, date: "2026-01-06", note: "لشراء سيارة", status: "تحت المراجعة" }
-      ],
       toastMessage: "",
       toastType: "success"
     };
   },
   methods: {
-    submitRequest() {
-      if (!this.note) {
+    async submitRequest() {
+      if (!this.note.trim()) {
         this.toastMessage = "الرجاء إدخال الغرض من الشهادة";
         this.toastType = "error";
-        setTimeout(() => this.toastMessage = "", 2000);
+        setTimeout(() => this.toastMessage = "", 3000);
         return;
       }
 
-      const newRequest = {
-        id: this.requests.length + 1,
-        date: new Date().toISOString().split("T")[0],
-        note: this.note,
-        status: "تحت المراجعة"
-      };
+      try {
+        const payload = { purpose: this.note };
 
-      this.requests.unshift(newRequest);
-      this.note = "";
+        const res = await axios.post("/api/SalaryCertificate/submit", payload);
 
-      this.toastMessage = "تم إرسال طلب شهادة الراتب ✅";
-      this.toastType = "success";
-      setTimeout(() => this.toastMessage = "", 2000);
+        this.toastMessage = res.data?.Message || "تم إرسال الطلب بنجاح ✅";
+        this.toastType = "success";
+
+        this.note = "";
+
+      } catch (error) {
+        console.error("خطأ في إرسال الطلب:", error);
+        this.toastMessage = "فشل إرسال الطلب";
+        this.toastType = "error";
+        setTimeout(() => this.toastMessage = "", 3000);
+      }
     }
   }
 };
 </script>
+
+<style scoped>
+textarea {
+  transition: all 0.2s ease-in-out;
+}
+
+button {
+  transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+button:hover {
+  transform: translateY(-2px);
+}
+</style>

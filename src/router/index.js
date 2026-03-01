@@ -17,7 +17,7 @@ import DepartmentsManagement from "../views/DepartmentsManagement.vue";
 import ManagerComplaints from "../views/ManagerComplaints.vue";
 import AnnouncementsPage from "../views/Announcements.vue";
 import FAQManagement from "../views/FAQManagement.vue";
-
+import RequestSettingsPage from '@/views/RequestSettingsPage.vue';
 import AdminInfo from '../views/AdminInfoPage.vue';  // صفحة مستقلة للإدارية
 import EmployeeFinancialPage from '../views/EmployeeFinancialPage.vue'; // صفحة مستقلة للمالية
 import BasicInfoPage from "@/views/BasicInfoPage.vue";
@@ -32,6 +32,15 @@ const routes = [
     component: BasicInfoPage
   },
  
+  {
+    path: '/request-settings',
+    name: 'RequestSettings',
+    component: RequestSettingsPage,
+    meta: {
+      title: 'إعدادات توجيه الطلبات',
+      roles: [1] // فقط الأدمن (SuperAdmin)
+    }
+  },
 {
   path: "/financial-info/:publicId",
   name: "EmployeeFinancial",

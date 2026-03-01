@@ -219,9 +219,9 @@ export default {
 
   // تحديد الدور حسب النوع
   let roleId;
-  if (this.selectedType === "department") roleId = 2;
-  else if (this.selectedType === "subdepartment") roleId = 3;
-  else if (this.selectedType === "section") roleId = 4;
+  if (this.selectedType === "department") roleId = 3;
+  else if (this.selectedType === "subdepartment") roleId = 4;
+  else if (this.selectedType === "section") roleId = 5;
 
   try {
     await api.post("/Employee/assign-role-and-entity", {
