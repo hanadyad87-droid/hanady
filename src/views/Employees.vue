@@ -47,8 +47,8 @@
 
       <!-- جدول الموظفين -->
       <div class="bg-white rounded-xl shadow overflow-x-auto">
-        <table class="w-full text-right text-sm border-collapse">
-          <thead class="bg-gray-100">
+        <table class="min-w-full divide-y divide-gray-200 text-right">
+            <thead class="bg-navbar">
             <tr>
               <th class="p-3">رقم الموظف</th>
               <th class="p-3">الاسم</th>

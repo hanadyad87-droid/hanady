@@ -25,8 +25,8 @@
 
         <!-- جدول المديرين -->
         <div class="overflow-x-auto mt-12">
-          <table class="w-full border rounded-lg text-right">
-            <thead class="bg-gray-100">
+          <table class="min-w-full divide-y divide-gray-200 text-right">
+            <thead class="bg-navbar">
               <tr>
                 <th class="p-2 border font-bold">النوع</th>
                 <th class="p-2 border font-bold">الاسم</th>

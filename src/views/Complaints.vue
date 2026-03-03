@@ -20,8 +20,8 @@
       <div class="bg-white rounded-xl shadow-md p-6" dir="rtl">
         <h3 class="text-xl font-bold text-right mb-4 text-primaryDark">شكاويك</h3>
 
-        <table class="min-w-full divide-y divide-gray-200 text-sm table-auto">
-          <thead class="bg-gray-50">
+       <table class="min-w-full divide-y divide-gray-200 text-right">
+            <thead class="bg-navbar">
             <tr>
               <th class="px-3 py-2 text-right font-medium text-gray-700">الموظف</th>
               <th class="px-3 py-2 text-right font-medium text-gray-700">المحتوى</th>

@@ -23,15 +23,15 @@
           <button
             @click="openModal"
             class="bg-primary hover:bg-primaryDark text-white px-6 py-2 rounded-lg font-semibold transition shadow-md">
-          >
+         
             إضافة توجيه جديد
           </button>
         </div>
 
         <!-- جدول الطلبات -->
         <div class="overflow-x-auto">
-          <table class="w-full border-collapse border border-gray-300">
-            <thead class="bg-green-100">
+       <table class="min-w-full divide-y divide-gray-200 text-right">
+            <thead class="bg-navbar">
               <tr>
                 <th class="border p-2">نوع الطلب</th>
                 <th class="border p-2">الإدارة المرتبطة</th>

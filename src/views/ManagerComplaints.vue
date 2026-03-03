@@ -7,8 +7,8 @@
       <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
         <h2 class="text-2xl font-bold mb-6 text-right text-primaryDark">إدارة الشكاوى</h2>
 
-        <table class="min-w-full divide-y divide-gray-200 text-sm table-fixed">
-          <thead class="bg-gray-50">
+        <table class="min-w-full divide-y divide-gray-200 text-right">
+            <thead class="bg-navbar">
             <tr>
               <th class="px-3 py-2 text-right font-medium text-gray-700">الموظف</th>
               <th class="px-3 py-2 text-right font-medium text-gray-700">المحتوى</th>

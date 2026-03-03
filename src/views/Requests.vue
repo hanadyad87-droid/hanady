@@ -10,7 +10,7 @@
       <!-- Navbar -->
       <Navbar />
 
-      <!-- كارد -->
+      <!-- كارد الطلبات -->
       <div class="card p-6 bg-white rounded-xl shadow-lg mt-4">
         <h3 class="text-xl font-bold text-bg-primary mb-4 text-right">الطلبات الخاصة بي</h3>
 
@@ -24,35 +24,45 @@
 
         <!-- جدول الطلبات -->
         <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200 text-right">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-4 py-2 text-sm font-medium text-gray-700">نوع الطلب</th>
-                <th class="px-4 py-2 text-sm font-medium text-gray-700">التاريخ</th>
-                <th class="px-4 py-2 text-sm font-medium text-gray-700">الحالة</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-              <tr v-for="req in displayedRequests" :key="req.id" class="hover:bg-gray-50">
-                <td class="px-4 py-2 text-sm text-gray-700">{{ req.typeName }}</td>
-                <td class="px-4 py-2 text-sm text-gray-700">{{ req.date || req.createdAt }}</td>
-                <td class="px-4 py-2 text-sm"
-                    :class="{
-                      'text-green-600': ['مقبول','جاهزة','تمت_الموافقة','تم_الإصلاح'].includes(req.status),
-                      'text-red-600': req.status==='مرفوض',
-                      'text-yellow-600': ['قيد_الانتظار','تحت المراجعة'].includes(req.status)
-                    }">
-                  {{ req.status }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
+         <table class="min-w-full divide-y divide-gray-200 text-right">
+  <thead class="bg-navbar">
+    <tr>
+      <th class="px-4 py-2 text-sm font-medium text-gray-700">نوع الطلب</th>
+      <th class="px-4 py-2 text-sm font-medium text-gray-700">التاريخ</th>
+      <th class="px-4 py-2 text-sm font-medium text-gray-700">الحالة</th>
+      <th class="px-4 py-2 text-sm font-medium text-gray-700">الإجراءات</th>
+    </tr>
+  </thead>
+  <tbody class="divide-y divide-gray-200">
+    <tr v-for="req in displayedRequests" :key="req.id" class="hover:bg-gray-50">
+      <td class="px-4 py-2 text-sm text-gray-700">{{ req.typeName }}</td>
+      <td class="px-4 py-2 text-sm text-gray-700">{{ req.date || req.createdAt }}</td>
+      <td class="px-4 py-2 text-sm"
+          :class="{
+            'text-green-600': ['مقبول','جاهزة','تمت_الموافقة','تم_الإصلاح'].includes(req.status),
+            'text-red-600': req.status==='مرفوض',
+            'text-yellow-600': ['قيد_الانتظار','تحت المراجعة'].includes(req.status)
+          }">
+        {{ req.status }}
+      </td>
+      <td class="px-4 py-2 text-sm">
+       <button
+    @click="openDetails(req)"
+    title="عرض التفاصيل"
+    class="text-blue-500 hover:text-blue-700"
+  >
+    <EyeIcon class="w-6 h-6" />
+  </button>
+      </td>
+    </tr>
+  </tbody>
+</table>
         </div>
 
       </div>
     </div>
 
-    <!-- مودال الطلبات -->
+    <!-- مودال تقديم طلب جديد -->
     <div v-if="showModal" class="fixed inset-0 bg-black/40 flex items-start justify-center z-50 p-4 pt-20">
       <div class="bg-white p-6 rounded-xl w-full max-w-lg shadow-lg space-y-4">
 
@@ -124,6 +134,38 @@
       </div>
     </div>
 
+   <!-- مودال عرض تفاصيل الطلب -->
+<div v-if="showDetailModal" class="fixed inset-0 bg-black/40 flex items-start justify-center z-50 p-4 pt-20">
+  <div class="bg-white p-6 rounded-xl w-full max-w-lg shadow-lg space-y-4 relative">
+    
+    <!-- زر الإغلاق X أعلى المودال -->
+    <button @click="showDetailModal = false" 
+            class="absolute top-3 left-3 text-gray-500 hover:text-gray-700 text-lg">
+      ✖
+    </button>
+
+    <h2 class="text-lg font-bold text-green-900">تفاصيل الطلب</h2>
+
+    <div v-if="detailRequest" class="space-y-2">
+      <p><strong>نوع الطلب:</strong> {{ detailRequest.typeName }}</p>
+      <p v-if="detailRequest.status"><strong>الحالة:</strong> {{ detailRequest.status }}</p>
+      <p v-if="detailRequest.reason"><strong>السبب:</strong> {{ detailRequest.reason }}</p>
+      <p v-if="detailRequest.newValue"><strong>القيمة الجديدة:</strong> {{ detailRequest.newValue }}</p>
+      <p v-if="detailRequest.purpose"><strong>الغرض:</strong> {{ detailRequest.purpose }}</p>
+      <p v-if="detailRequest.permitType"><strong>نوع الإذن:</strong> {{ detailRequest.permitType }}</p>
+      <p v-if="detailRequest.permitDate"><strong>التاريخ:</strong> {{ detailRequest.permitDate }}</p>
+      <p v-if="detailRequest.permitTime"><strong>الوقت:</strong> {{ detailRequest.permitTime }}</p>
+      <p v-if="detailRequest.equipmentName"><strong>اسم الجهاز:</strong> {{ detailRequest.equipmentName }}</p>
+      <p v-if="detailRequest.problemDescription"><strong>وصف المشكلة:</strong> {{ detailRequest.problemDescription }}</p>
+      <p v-if="detailRequest.imagePath">
+        <strong>الصورة:</strong>
+        <img :src="detailRequest.imagePath" class="mt-2 rounded-lg max-h-60 w-full object-contain" />
+      </p>
+    </div>
+
+  </div>
+</div>
+
     <!-- Toast -->
     <transition name="fade">
       <div v-if="toastMessage" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
@@ -141,10 +183,10 @@ import { ref, onMounted } from "vue";
 import axios from "axios";
 import SidebarPage from "../components/Sidebar.vue";
 import Navbar from "../components/Navbar.vue";
-
+import { EyeIcon } from '@heroicons/vue/24/outline';
 export default {
   name: "EmployeeRequestsPage",
-  components: { SidebarPage, Navbar },
+  components: { SidebarPage, Navbar,EyeIcon},
   setup() {
     const showModal = ref(false);
     const selectedRequestType = ref("");
@@ -169,6 +211,14 @@ export default {
       toastMessage.value = msg;
       toastType.value = type;
       setTimeout(() => toastMessage.value = '', 3000);
+    };
+
+    // المودال عرض التفاصيل
+    const showDetailModal = ref(false);
+    const detailRequest = ref(null);
+    const openDetails = (req) => {
+      detailRequest.value = req;
+      showDetailModal.value = true;
     };
 
     // ضبط الـ baseURL
@@ -251,7 +301,8 @@ export default {
     return {
       showModal, selectedRequestType, displayedRequests, form,
       submitRequest, onFileChange,
-      toastMessage, toastType
+      toastMessage, toastType,
+      showDetailModal, detailRequest, openDetails
     };
   }
 };

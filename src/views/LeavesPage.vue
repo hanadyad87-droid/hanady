@@ -22,8 +22,8 @@
     رصيد الإجازات المتبقي: {{ balance }} يوم
   </p>
 
-  <table class="w-full border text-sm text-center">
-    <thead class="bg-gray-100">
+<table class="min-w-full divide-y divide-gray-200 text-right">
+            <thead class="bg-navbar">
       <tr>
         <th class="border p-1">النوع</th>
         <th class="border p-1">من</th>

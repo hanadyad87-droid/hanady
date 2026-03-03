@@ -21,7 +21,7 @@ import RequestSettingsPage from '@/views/RequestSettingsPage.vue';
 import AdminInfo from '../views/AdminInfoPage.vue';  // صفحة مستقلة للإدارية
 import EmployeeFinancialPage from '../views/EmployeeFinancialPage.vue'; // صفحة مستقلة للمالية
 import BasicInfoPage from "@/views/BasicInfoPage.vue";
-
+import DepartmentRequestsPage from "@/views/DepartmentRequestsPage.vue";
 const routes = [
   { path: '/', name: 'LoginPage', component: LoginPage },
   { path: '/dashboard', name: 'Dashboard', component: Dashboard },
@@ -31,7 +31,12 @@ const routes = [
     name: "CreateEmployee",
     component: BasicInfoPage
   },
- 
+ {
+  path: "/department-requests",
+  name: "DepartmentRequests",
+  component: DepartmentRequestsPage,
+  meta: { role: ['2','6','4'] } // فقط الإدارات / المدراء الذين لهم صلاحية رؤية الطلبات
+},
   {
     path: '/request-settings',
     name: 'RequestSettings',

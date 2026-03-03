@@ -24,8 +24,8 @@
 
       <!-- جدول الإعلانات -->
       <div class="bg-white rounded-xl shadow overflow-x-auto">
-        <table class="w-full text-right text-sm border-collapse">
-          <thead class="bg-gray-50">
+       <table class="min-w-full divide-y divide-gray-200 text-right">
+            <thead class="bg-navbar">
             <tr>
               <th class="p-3">#</th>
               <th class="p-3">العنوان</th>

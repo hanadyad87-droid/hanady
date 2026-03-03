@@ -16,8 +16,8 @@
           </button>
         </div>
 
-        <table class="min-w-full divide-y divide-gray-200 text-sm">
-          <thead class="bg-gray-50">
+     <table class="min-w-full divide-y divide-gray-200 text-right">
+            <thead class="bg-navbar">
             <tr class="text-right">
               <th class="px-3 py-2 font-medium text-gray-700">السؤال</th>
               <th class="px-3 py-2 font-medium text-gray-700">الإجابة</th>
