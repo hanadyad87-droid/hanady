@@ -71,7 +71,7 @@ export default {
         { name: "الشكاوى", path: "/complaints", icon: "📝", roles: [3,4,5,6] },
         { name: "ادارة الشكاوي", path: "/manager/complaints", icon: "📝", roles: [3,4,5] },
         { name: "الإعلانات", path: "/announcements", icon: "📢", roles: [1] },
-      { name: "طلبات الإدارة", path: "/department-requests", icon: "📋", roles: [2,3,6] },
+      { name: "طلبات الإدارة", path: "/department-requests", icon: "📋", roles: [2,5,6] },
          { name: "إعدادات توجيه الطلبات", path: "/request-settings", icon: "⚙️", roles: [1] },
         { name: "التكليفات", path: "/tasks", icon: "💼", roles: [1,2,3,4,5,6] },
         { name: "النماذج", path: "/templates", icon: "📑", roles: [1] },

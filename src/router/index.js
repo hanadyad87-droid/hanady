@@ -35,7 +35,7 @@ const routes = [
   path: "/department-requests",
   name: "DepartmentRequests",
   component: DepartmentRequestsPage,
-  meta: { role: ['2','6','4'] } // فقط الإدارات / المدراء الذين لهم صلاحية رؤية الطلبات
+  meta: { role: ['2','6','5'] } // فقط الإدارات / المدراء الذين لهم صلاحية رؤية الطلبات
 },
   {
     path: '/request-settings',

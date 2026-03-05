@@ -4,30 +4,21 @@
     <div class="flex-1 p-6 min-h-screen mr-24 md:mr-64">
       <Navbar />
 
-      <!-- التابات -->
-      <div class="flex flex-nowrap gap-2 mb-4 overflow-x-auto justify-start sticky top-16 bg-gray-100 z-40">
-        <button
-          v-for="tab in tabs"
-          :key="tab.name"
-          @click="switchTab(tab.name)"
-          :class="[
-            'flex-shrink-0 rounded-lg transition text-sm md:text-base px-3 md:px-4 py-2',
-            currentTab === tab.name ? 'bg-primary text-white' : 'bg-gray-200 text-gray-700 hover:bg-primaryDark'
-          ]"
-        >
-          {{ tab.name }}
-        </button>
-      </div>
-
-      <keep-alive>
-        <component 
-          :is="currentComponent"
-          :employee-id="employeeId"
-          @saved-basic="afterBasicSaved"
-          @saved-admin="afterAdminSaved"
-          @saved-financial="afterFinancialSaved"
-        />
-      </keep-alive>
+      <!-- الصفحات متسلسلة -->
+      <BasicInfoPage 
+        v-if="currentStep === 1" 
+        @saved-basic="afterBasicSaved" 
+      />
+      <AdminInfoPage 
+        v-if="currentStep === 2" 
+        :employee-id="employeeId" 
+        @saved-admin="afterAdminSaved" 
+      />
+      <EmployeeFinancialPage 
+        v-if="currentStep === 3" 
+        :employee-id="employeeId" 
+        @saved-financial="afterFinancialSaved" 
+      />
     </div>
   </div>
 </template>
@@ -46,33 +37,20 @@ export default {
   data() {
     return {
       employeeId: null,
-      currentTab: "البيانات الأساسية",
-      tabs: [
-        { name: "البيانات الأساسية", component: BasicInfoPage },
-        { name: "البيانات الإدارية", component: AdminInfoPage },
-        { name: "البيانات المالية", component: EmployeeFinancialPage },
-      ],
+      currentStep: 1, // 1=Basic, 2=Admin, 3=Financial
     };
   },
-  computed: {
-    currentComponent() {
-      const tab = this.tabs.find(t => t.name === this.currentTab);
-      return tab ? tab.component : null;
-    },
-  },
   methods: {
-    switchTab(name) {
-      this.currentTab = name;
-    },
     afterBasicSaved(id) {
       this.employeeId = id;
-      this.currentTab = "البيانات الإدارية"; // الانتقال تلقائي للإدارية
+      this.currentStep = 2; // الانتقال تلقائي للإدارية
     },
     afterAdminSaved() {
-      this.currentTab = "البيانات المالية"; // الانتقال تلقائي للمالية
+      this.currentStep = 3; // الانتقال تلقائي للمالية
     },
     afterFinancialSaved() {
       console.log("تم حفظ البيانات المالية بنجاح ✅");
+      this.currentStep = 1; // اختياري: الرجوع للبداية أو إبقاء المالية ظاهرة
     }
   }
 };

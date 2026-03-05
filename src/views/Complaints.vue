@@ -216,10 +216,15 @@ export default {
       return map[status] || "bg-gray-400";
     },
     handleFileUpload(e) { this.attachedFile = e.target.files[0] || null; },
-    async fetchDepartments() { 
-      try { this.departments = (await api.get("/Department")).data; } 
-      catch(err){ console.error(err); } 
-    },
+   async fetchDepartments() { 
+  try { 
+    const response = await api.get("/Organization/Departments");
+    console.log("Departments API Response:", response.data); // ← راقب في Console
+    this.departments = response.data;
+  } catch(err){ 
+    console.error("Error fetching departments:", err); 
+  } 
+},
     async fetchComplaints() {
       try {
         const data = (await api.get("/complaints/my")).data;

@@ -8,7 +8,7 @@
         <h2 class="text-2xl font-bold mb-6 text-right text-primaryDark">إدارة الشكاوى</h2>
 
         <table class="min-w-full divide-y divide-gray-200 text-right">
-            <thead class="bg-navbar">
+          <thead class="bg-navbar">
             <tr>
               <th class="px-3 py-2 text-right font-medium text-gray-700">الموظف</th>
               <th class="px-3 py-2 text-right font-medium text-gray-700">المحتوى</th>
@@ -28,8 +28,12 @@
               <td class="px-3 py-2">{{ formatDate(c.createdAt) }}</td>
               <td class="px-3 py-2 truncate" :title="c.notes">{{ c.notes || '-' }}</td>
               <td class="px-3 py-2">
-                <a v-if="c.attachmentPath" :href="c.attachmentPath" target="_blank" class="text-blue-600 hover:underline">
-                  تحميل النموذج
+                <a v-if="c.attachmentPath"
+                   :href="attachmentUrl(c.attachmentPath)"
+                   target="_blank"
+                   class="text-blue-600 hover:text-blue-800 flex items-center gap-1">
+                   <ArrowDownTrayIcon class="w-5 h-5" />
+                   <span>تحميل</span>
                 </a>
                 <span v-else>-</span>
               </td>
@@ -46,11 +50,10 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7s-8.268-2.943-9.542-7z"/>
                 </svg>
-                <button
-                  class="bg-primary hover:bg-primaryDark text-white px-2 py-1 rounded text-xs"
-                  @click="openModal(c)">
-                  تحديث الحالة
-                </button>
+                <PencilIcon
+                  class="w-5 h-5 text-primary hover:text-primaryDark cursor-pointer"
+                  @click="openModal(c)"
+                  title="تحديث الحالة" />
               </td>
             </tr>
 
@@ -79,7 +82,9 @@
             <p v-if="selectedComplaint.notes"><span class="font-semibold">الملاحظات:</span> {{ selectedComplaint.notes }}</p>
             <p v-if="selectedComplaint.attachmentPath">
               <span class="font-semibold">المرفق:</span>
-              <a :href="selectedComplaint.attachmentPath" target="_blank" class="text-blue-600 hover:underline">عرض الملف</a>
+              <a :href="attachmentUrl(selectedComplaint.attachmentPath)" target="_blank" class="text-blue-600 hover:underline">
+                عرض الملف
+              </a>
             </p>
           </div>
           <div class="mt-4 text-center">
@@ -123,9 +128,10 @@ import Sidebar from "@/components/Sidebar.vue";
 import Navbar from "@/components/Navbar.vue";
 import Toast from "@/components/Toast.vue";
 import axios from "axios";
+import { PencilIcon ,ArrowDownTrayIcon  } from '@heroicons/vue/24/outline';
 
 export default {
-  components: { Sidebar, Navbar, Toast },
+  components: { Sidebar, Navbar, Toast ,PencilIcon, ArrowDownTrayIcon},
   data() {
     return {
       complaints: [],
@@ -148,17 +154,33 @@ export default {
       const date = new Date(dateStr);
       return date.toLocaleString("en-GB", { year: "numeric", month: "2-digit", day: "2-digit", timeZone: "Africa/Tripoli" });
     },
+    attachmentUrl(path) {
+      if (!path) return "#";
+      return `${import.meta.env.VITE_API_URL || "http://localhost:5205"}${path}`;
+    },
     statusText(status) {
-      const map = {0:"تحت المراجعة",1:"تم التحويل للقسم",2:"قيد التحقيق",3:"تم الرد",4:"معلقة"};
+      const map = {
+        "تحت_المراجعة": "تحت المراجعة",
+        "تم_التحويل_للقسم": "تم التحويل للقسم",
+        "قيد_التحقيق": "قيد التحقيق",
+        "تم_الرد": "تم الرد",
+        "معلقة": "معلقة"
+      };
       return map[status] ?? "-";
     },
     statusClass(status) {
-      const map = {0:"bg-gray-400",1:"bg-purple-500",2:"bg-yellow-500",3:"bg-green-500",4:"bg-red-500"};
+      const map = {
+        "تحت_المراجعة":"bg-gray-400",
+        "تم_التحويل_للقسم":"bg-purple-500",
+        "قيد_التحقيق":"bg-yellow-500",
+        "تم_الرد":"bg-green-500",
+        "معلقة":"bg-red-500"
+      };
       return map[status] || "bg-gray-400";
     },
     async fetchComplaints() {
       try {
-        const res = await axios.get("http://localhost:5205/api/complaints/all", {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || "http://localhost:5205"}/api/complaints/all`, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
         });
         this.complaints = res.data;
@@ -192,13 +214,12 @@ export default {
       }
 
       try {
-
-const numericStatus = parseInt(this.updateStatus.status); // فعلياً هنا صار redundant لو select يرسل number
-await axios.post(
-  `http://localhost:5205/api/complaints/${this.selectedComplaintUpdate.id}/manager-decision`,
-  { status: numericStatus, notes: this.updateStatus.notes || "" },
-  { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
-);
+        const numericStatus = parseInt(this.updateStatus.status);
+        await axios.post(
+          `${import.meta.env.VITE_API_URL || "http://localhost:5205"}/api/complaints/${this.selectedComplaintUpdate.id}/manager-decision`,
+          { status: numericStatus, notes: this.updateStatus.notes || "" },
+          { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+        );
 
         this.toastMessage = "تم تحديث الحالة بنجاح ✅";
         this.toastType = "success";

@@ -1,124 +1,107 @@
 <template>
-  <div class="flex min-h-screen bg-gray-100">
+  <div class="flex min-h-screen bg-gray-100" dir="rtl">
+    <!-- Sidebar -->
     <Sidebar class="fixed top-0 right-0 h-screen w-24 md:w-64 z-50" />
 
     <div class="flex-1 p-6 min-h-screen mr-24 md:mr-64">
+      <!-- Navbar -->
       <Navbar />
 
       <div class="bg-white p-6 rounded-xl shadow max-w-4xl mx-auto mt-6">
-        <h3 class="text-xl font-bold">البيانات المالية</h3>
+        <h3 class="text-xl font-bold">البيانات الأساسية</h3>
 
-        <!-- معلومات الموظف -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-          <div>
-            <label class="label">اسم الموظف</label>
-            <input type="text" v-model="employeeName" class="input bg-gray-100" readonly />
-          </div>
-          <div>
-            <label class="label">رقم الموظف</label>
-            <input type="text" v-model="employeeNumber" class="input bg-gray-100" readonly />
-          </div>
-        </div>
-
-        <!-- البيانات المالية -->
+        <!-- الفورم -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
 
           <div>
-            <label class="label">البنك</label>
-            <select v-model.number="form.bankId" class="input">
-              <option :value="null">اختر</option>
-              <option v-for="b in banks" :key="b.id" :value="b.id">{{ b.name }}</option>
+            <label class="label">اسم المستخدم</label>
+            <input v-model="form.Username" class="input" placeholder="اسم المستخدم" />
+          </div>
+
+          <div>
+            <label class="label">البريد الإلكتروني</label>
+            <input v-model="form.Email" type="email" class="input" placeholder="example@mail.com" @blur="validateEmail" />
+          </div>
+
+          <div>
+            <label class="label">الاسم الكامل</label>
+            <input v-model="form.FullName" @keypress="allowArabic($event, 'FullName')" class="input" placeholder="اكتب بالعربية فقط" />
+          </div>
+
+          <div>
+            <label class="label">اسم الأم</label>
+            <input v-model="form.MotherName" @keypress="allowArabic($event, 'MotherName')" class="input" placeholder="اكتب بالعربية فقط" />
+          </div>
+
+          <div>
+            <label class="label">الرقم الوطني</label>
+            <input v-model="form.NationalId" @input="validateNationalId" @keypress="allowDigits($event)" class="input" />
+          </div>
+
+          <div>
+            <label class="label">رقم الهاتف 1</label>
+            <input v-model="form.Phone1" @input="validatePhone('Phone1')" @keypress="allowDigits($event)" class="input" placeholder="091xxxxxxx" />
+          </div>
+
+          <div>
+            <label class="label">رقم الهاتف 2 (اختياري)</label>
+            <input v-model="form.Phone2" @input="validatePhone('Phone2')" @keypress="allowDigits($event)" class="input" placeholder="092xxxxxxx" />
+          </div>
+
+          <div>
+            <label class="label">تاريخ الميلاد</label>
+            <input type="date" v-model="form.BirthDate" class="input" />
+          </div>
+
+          <div>
+            <label class="label">الجنس</label>
+            <div class="flex gap-4">
+              <label class="inline-flex items-center gap-2">
+                <input type="radio" value="ذكر" v-model="form.Gender" />
+                ذكر
+              </label>
+              <label class="inline-flex items-center gap-2">
+                <input type="radio" value="أنثى" v-model="form.Gender" />
+                أنثى
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label class="label">الحالة الاجتماعية</label>
+            <select v-model.number="form.MaritalStatusId" class="input">
+              <option :value="1">أعزب</option>
+              <option :value="2">متزوج</option>
+              <option :value="3">مطلق</option>
+              <option :value="4">أرمل</option>
             </select>
           </div>
 
           <div>
-            <label class="label">فرع البنك</label>
-            <select v-model.number="form.bankBranchId" class="input">
-              <option :value="null">اختر</option>
-              <option v-for="br in bankBranches" :key="br.id" :value="br.id">{{ br.name }}</option>
-            </select>
+            <label class="label">رفع صورة الموظف</label>
+            <input ref="photoInput" type="file" @change="handleFile" accept=".png,.jpeg,.jpg" class="input" />
           </div>
 
-          <div>
-            <label class="label">رقم الحساب</label>
-            <input type="text" v-model="form.accountNumber" class="input" />
-          </div>
-
-          <div>
-            <label class="label">رقم الحساب الجديد</label>
-            <input type="text" v-model="form.newAccountNumber" class="input" />
-          </div>
-
-          <div>
-            <label class="label">الرقم الإداري</label>
-            <input type="text" v-model="form.administrativeNumber" class="input" />
-          </div>
-
-          <div>
-            <label class="label">الراتب الأساسي</label>
-            <input type="number" v-model.number="form.basicSalary" class="input" />
-          </div>
-
-          <div>
-            <label class="label">الدرجة الوظيفية</label>
-            <select v-model.number="form.jobGradeId" class="input">
-              <option :value="null">اختر</option>
-              <option v-for="g in jobGrades" :key="g.id" :value="g.id">{{ g.name }}</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="label">تاريخ الدرجة</label>
-            <input type="date" v-model="form.jobGradeDate" class="input" />
-          </div>
-
-          <div>
-            <label class="label">العلاوة</label>
-            <input type="number" v-model.number="form.allowance" class="input" />
-          </div>
-
-          <div>
-            <label class="label">تاريخ الحصول عليها</label>
-            <input type="date" v-model="form.allowanceDate" class="input" />
-          </div>
-
-          <div>
-            <label class="label"> المربوط الحالي</label>
-            <input type="number" v-model.number="form.currentLinkedSalary" class="input" />
-          </div>
-
-          <div>
-            <label class="label">تاريخ الحصول عليه</label>
-            <input type="date" v-model="form.currentLinkedSalaryDate" class="input" />
-          </div>
-
-          <div>
-            <label class="label">الدرجة المنتدب اليها</label>
-            <select v-model.number="form.delegatedGradeId" class="input">
-              <option :value="null">اختر</option>
-              <option v-for="g in jobGrades" :key="g.id" :value="g.id">{{ g.name }}</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="label">تاريخ الحصول عليها</label>
-            <input type="date" v-model="form.delegatedGradeDate" class="input" />
+          <div class="flex flex-col gap-2 mt-2">
+            <label class="inline-flex items-center gap-2">
+              <input type="checkbox" v-model="form.IsHR" />
+              HR
+            </label>
+            <label class="inline-flex items-center gap-2">
+              <input type="checkbox" v-model="form.IsSuperAdmin" />
+              SuperAdmin
+            </label>
           </div>
 
         </div>
 
-        <div class="flex justify-center mt-8">
+        <div class="flex justify-center mt-6">
           <button @click="save" class="bg-primary text-white py-2 px-6 rounded-lg">
-            حفظ البيانات المالية
+            حفظ البيانات الأساسية
           </button>
         </div>
 
-        <Toast
-          v-if="toast.visible"
-          :message="toast.message"
-          :type="toast.type"
-          @onConfirm="toast.visible = false"
-        />
+        <Toast v-if="toast.visible" :message="toast.message" :type="toast.type" @onConfirm="toast.visible = false" />
       </div>
     </div>
   </div>

@@ -209,19 +209,33 @@ export default {
 
         const requests = [];
 
-        // Exit Permit
-        try {
-          const permits = await axios.get("/api/ExitPermit/pending-for-manager");
-          requests.push(
-            ...permits.data.map((r) => ({
-              ...r,
-              typeName: "إذن خروج",
-              type: "ExitPermit",
-            }))
-          );
-        } catch (err) {
-          if (err.response?.status !== 403) throw err;
-        }
+         // 1️⃣ طلبات Exit Permit للمدير
+    try {
+      const permits = await axios.get("/api/ExitPermit/pending-for-manager");
+      requests.push(
+        ...permits.data.map(r => ({
+          ...r,
+          typeName: "إذن خروج",
+          type: "ExitPermit",
+        }))
+      );
+    } catch (err) {
+      if (err.response?.status !== 403) throw err;
+    }
+
+    // 2️⃣ طلبات Exit Permit للـ HR
+    try {
+      const hrPermits = await axios.get("/api/ExitPermit/hr-view");
+      requests.push(
+        ...hrPermits.data.map(r => ({
+          ...r,
+          typeName: "إذن خروج",
+          type: "ExitPermit",
+        }))
+      );
+    } catch (err) {
+      if (err.response?.status !== 403) throw err;
+    }
 
         // Data Update
         try {
