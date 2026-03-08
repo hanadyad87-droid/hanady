@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* استيراد خط Cairo */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
+
+/* تطبيق خط Cairo على كل الصفحة */
+body, input, select, textarea, button {
+  font-family: 'Cairo', sans-serif;
+}
+
 /* ستايل موحد لكل input و select */
 .input {
   @apply border rounded-lg text-right;
@@ -37,8 +45,8 @@ select.input {
 select.input option {
   direction: rtl;
 }
+
 body {
   direction: rtl;
   text-align: right;
 }
-

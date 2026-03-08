@@ -11,10 +11,12 @@ module.exports = {
         secondary: "#f97316", 
         background: "#f5f5f5",
         primaryDark: "#051F20",
-        navbar:"#E9F5DB"
+        navbar: "#E9F5DB"
+      },
+      fontFamily: {
+        sans: ['Cairo', 'ui-sans-serif', 'system-ui'], // كل النصوص الافتراضية
       },
     },
   },
   plugins: [],
 }
-

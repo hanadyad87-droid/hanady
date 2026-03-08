@@ -22,6 +22,8 @@ import AdminInfo from '../views/AdminInfoPage.vue';  // صفحة مستقلة ل
 import EmployeeFinancialPage from '../views/EmployeeFinancialPage.vue'; // صفحة مستقلة للمالية
 import BasicInfoPage from "@/views/BasicInfoPage.vue";
 import DepartmentRequestsPage from "@/views/DepartmentRequestsPage.vue";
+import ManagerTasksPage from "../views/ManagerTasksPage.vue";
+import EmployeeTasksPage from "../views/EmployeeTasksPage.vue";
 const routes = [
   { path: '/', name: 'LoginPage', component: LoginPage },
   { path: '/dashboard', name: 'Dashboard', component: Dashboard },
@@ -31,6 +33,19 @@ const routes = [
     name: "CreateEmployee",
     component: BasicInfoPage
   },
+  {
+  path: "/manager-tasks",
+  name: "ManagerTasks",
+  component: ManagerTasksPage,
+  meta: { role: ['5'] } // المدراء
+},
+
+{
+  path: "/my-tasks",
+  name: "EmployeeTasks",
+  component: EmployeeTasksPage,
+  meta: { role: ['6'] } // الموظفين
+},
  {
   path: "/department-requests",
   name: "DepartmentRequests",
