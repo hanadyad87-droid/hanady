@@ -50,3 +50,12 @@ body {
   direction: rtl;
   text-align: right;
 }
+/* يمكن وضعه في App.vue أو ملف CSS عام */
+.highlight {
+  animation: highlightRow 3s ease forwards;
+}
+
+@keyframes highlightRow {
+  0% { background-color: #fff59d; } /* أصفر فاتح */
+  100% { background-color: transparent; }
+}

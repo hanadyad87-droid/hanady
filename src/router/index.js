@@ -10,7 +10,7 @@ import ManagerLeavesPage from '../views/ManagerLeavesPage.vue';
 import NotificationsPage from '../views/NotificationsPage.vue';
 import ComplaintsPage from "../views/Complaints.vue";
 import TasksPage from "../views/Tasks.vue";
-import TemplatesPage from "../views/Templates.vue";
+
 import EvaluationPage from "../views/Evaluation.vue";
 import KnowledgePage from "../views/Knowledge.vue";
 import DepartmentsManagement from "../views/DepartmentsManagement.vue";
@@ -24,6 +24,11 @@ import BasicInfoPage from "@/views/BasicInfoPage.vue";
 import DepartmentRequestsPage from "@/views/DepartmentRequestsPage.vue";
 import ManagerTasksPage from "../views/ManagerTasksPage.vue";
 import EmployeeTasksPage from "../views/EmployeeTasksPage.vue";
+import ReportsPage from "../views/ReportsPage.vue";
+import DelegationPage from "../views/DelegationPage.vue";
+import CompanyFormsManager from "../views/UploadCompanyForm.vue"
+import EmployeeCompanyForms from "../views/EmployeeCompanyForms.vue"
+import AuditLogsPage from "../views/AuditLogs.vue";
 const routes = [
   { path: '/', name: 'LoginPage', component: LoginPage },
   { path: '/dashboard', name: 'Dashboard', component: Dashboard },
@@ -39,7 +44,18 @@ const routes = [
   component: ManagerTasksPage,
   meta: { role: ['5'] } // المدراء
 },
-
+{
+  path: "/audit-logs",
+  name: "AuditLogs",
+  component: AuditLogsPage,
+  meta: { role: ['1'] } // فقط SuperAdmin
+},
+{
+  path: "/delegation",
+  name: "Delegation",
+  component: DelegationPage,
+  meta: { role: ['5','3','4'] }
+},
 {
   path: "/my-tasks",
   name: "EmployeeTasks",
@@ -61,6 +77,25 @@ const routes = [
       roles: [1] // فقط الأدمن (SuperAdmin)
     }
   },
+  {
+  path: "/reports",
+  name: "Reports",
+  component: ReportsPage,
+  meta: { role: ['3','4','5'] }
+},
+  {
+  path: "/company-forms/manage",
+  name: "CompanyFormsManager",
+  component: CompanyFormsManager,
+  meta: { role: ['1','2','3','4','5'] } // المسؤولين
+},
+
+{
+  path: "/company-forms",
+  name: "EmployeeCompanyForms",
+  component: EmployeeCompanyForms,
+  meta: { role: ['6'] } // الموظفين
+},
 {
   path: "/financial-info/:publicId",
   name: "EmployeeFinancial",
@@ -126,7 +161,7 @@ const routes = [
 
   { path: "/tasks", component: TasksPage, meta: { role: ['1','2','3','4','5','6'] } },
 
-  { path: "/templates", component: TemplatesPage, meta: { role: ['1'] } },
+
 
   { path: "/evaluation", component: EvaluationPage, meta: { role: ['1','2','3','4','5','6'] } },
 

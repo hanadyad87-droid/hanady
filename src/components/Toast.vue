@@ -2,12 +2,12 @@
   <transition name="fade">
     <div v-if="visible" 
          class="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-      <div :class="bgClass + ' text-white px-6 py-3 rounded-lg shadow-lg pointer-events-auto text-center flex flex-col items-center gap-2'">
+      <div class="bg-white text-black px-6 py-3 rounded-lg shadow-lg pointer-events-auto text-center flex flex-col items-center gap-2">
         <span>{{ message }}</span>
 
-        <!-- زر التأكيد يظهر إذا تم تمرير callback -->
+        <!-- زر التأكيد فقط -->
         <button v-if="onConfirm" @click="handleConfirm"
-                class="bg-white text-black px-4 py-1 rounded hover:bg-gray-200 mt-1">
+                class="bg-black text-white px-4 py-1 rounded hover:bg-gray-800 mt-2">
           تأكيد
         </button>
       </div>
@@ -20,20 +20,11 @@ export default {
   name: "ToastPage",
   props: {
     message: { type: String, required: true },
-    type: { type: String, default: 'success' }, // success / error / info
+    type: { type: String, default: 'success' }, // نوع التوست لم يتغير، فقط للتصنيف
     duration: { type: Number, default: 3000 },
-    onConfirm: { type: Function, default: null } // callback عند الضغط على زر التأكيد
+    onConfirm: { type: Function, default: null }
   },
   data() { return { visible: false }; },
-  computed: {
-    bgClass() {
-      switch(this.type){
-        case 'error': return 'bg-red-600';
-        case 'info': return 'bg-blue-600';
-        default: return 'bg-green-600';
-      }
-    }
-  },
   methods: {
     show() { 
       this.visible = true; 

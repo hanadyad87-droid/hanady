@@ -1,5 +1,5 @@
 <template>
-  <div class="flex min-h-screen bg-gray-100 font-cairo" dir="rtl">
+  <div class="flex min-h-screen bg-white font-cairo" dir="rtl">
 
     <!-- Sidebar -->
     <SidebarPage class="fixed top-0 right-0 h-screen w-24 md:w-64 z-50"/>
@@ -34,6 +34,7 @@
                 <th class="px-4 py-2 text-sm">البداية</th>
                 <th class="px-4 py-2 text-sm">النهاية</th>
                 <th class="px-4 py-2 text-sm">الحالة</th>
+                <th class="px-4 py-2 text-sm">قرار المدير</th>
                 <th class="px-4 py-2 text-sm">الإجراءات</th>
               </tr>
             </thead>
@@ -45,27 +46,65 @@
               <td class="px-4 py-2">{{ formatDate(task.startDate) }}</td>
 <td class="px-4 py-2">{{ formatDate(task.endDate) }}</td>
 
-                <td class="px-4 py-2"
-                    :class="{
-                      'text-red-600': task.color==='red',
-                      'text-orange-500': task.color==='orange',
-                      'text-green-600': task.color==='green'
-                    }">
-                  {{ statusArabic(task.status) }}
-                </td>
+               <td class="px-4 py-2"
+    :class="{
+      'text-red-600': task.status === 'Rejected' || task.status === 'Cancelled',
+      'text-orange-500': task.status === 'Pending' || task.status === 'InProgress',
+      'text-green-600': task.status === 'Completed' || task.status === 'Approved'
+    }">
+  {{ statusArabic(task.status) }}
+   
+</td>
+<td class="px-4 py-2"
+    :class="{
+      'text-green-600': task.managerDecision === 'Approved',
+      'text-red-600': task.managerDecision === 'Rejected',
+      'text-gray-500': task.managerDecision === 'Pending'
+    }">
 
-                <td class="px-4 py-2 flex gap-2">
-                  <button
-                    @click="openDetails(task)"
-                      class="text-gray-600 hover:text-gray-900">
-                    <EyeIcon class="w-6 h-6"/>
-                  </button>
-                  <button
-                    @click="openComments(task)"
-                    class="text-gray-600 hover:text-gray-900">
-                    <ChatBubbleLeftRightIcon class="w-6 h-6"/>
-                  </button>
-                </td>
+  {{
+    task.managerDecision === 'Approved'
+      ? 'موافق'
+      : task.managerDecision === 'Rejected'
+      ? 'مرفوض'
+      : task.managerDecision === 'Pending'
+      ? 'لم يقرر'
+      : 'لم يقرر'
+  }}
+
+</td>
+
+              <td class="px-4 py-2 flex gap-2 items-center">
+
+<!-- عرض التفاصيل -->
+<button
+  @click="openDetails(task)"
+  class="text-gray-600 hover:text-gray-900">
+  <EyeIcon class="w-6 h-6"/>
+</button>
+
+<!-- التعليقات -->
+<button
+  @click="openComments(task)"
+  class="text-gray-600 hover:text-gray-900">
+  <ChatBubbleLeftRightIcon class="w-6 h-6"/>
+</button>
+
+<!-- قبول -->
+<button
+  @click="managerDecision('Approved',task)"
+  class="text-green-600 hover:text-green-800">
+  <CheckCircleIcon class="w-6 h-6"/>
+</button>
+
+<!-- رفض -->
+<button
+  @click="managerDecision('Rejected',task)"
+  class="text-red-600 hover:text-red-800">
+  <XCircleIcon class="w-6 h-6"/>
+</button>
+
+</td>
               </tr>
             </tbody>
 
@@ -155,17 +194,7 @@
           <p><strong>الحالة:</strong> {{ statusArabic(detailTask.status) }}</p>
         </div>
 
-        <div class="flex justify-end gap-2 mt-4">
-          <button @click="managerDecision('Approved')"
-                  class="bg-green-600 text-white px-4 py-2 rounded-xl">
-            قبول
-          </button>
-
-          <button @click="managerDecision('Rejected')"
-                  class="bg-red-600 text-white px-4 py-2 rounded-xl">
-            رفض
-          </button>
-        </div>
+      
 
       </div>
     </div>
@@ -181,15 +210,29 @@
           <button @click="showCommentModal=false" class="text-gray-600 hover:text-gray-900 font-bold text-xl">&times;</button>
         </h2>
 
-       <ul>
-  <li v-for="c in comments" :key="c.id" class="mb-2 p-2 rounded-lg bg-gray-100 break-words">
-    <strong>{{ c.userName }}:</strong>
-    <span>{{ c.comment }}</span>
-    <a v-if="c.attachmentUrl" :href="c.attachmentUrl" target="_blank" class="text-blue-500 underline ml-2">
+   <ul>
+  <li v-for="c in comments" :key="c.id" class="mb-2">
+    <!-- اسم المستخدم فوق الصندوق -->
+    <div class="text-sm font-semibold text-gray-700 mb-1">
+      {{ c.userName || 'مجهول' }}
+    </div>
+
+    <!-- صندوق التعليق -->
+    <div 
+      class="bg-gray-100 p-2 rounded-lg break-words text-sm"
+      style="max-height: 3rem; overflow-y: auto; white-space: pre-line;"
+    >
+      {{ c.comment }}
+    </div>
+
+    <!-- رابط المرفق إذا موجود -->
+    <a v-if="c.attachmentUrl" :href="c.attachmentUrl" target="_blank" 
+       class="text-blue-500 underline ml-1 text-sm mt-1 inline-block">
       مرفق
     </a>
   </li>
 </ul>
+
 <!-- إضافة تعليق جديد -->
 <div class="mt-2 flex flex-col gap-2">
   <textarea
@@ -210,7 +253,11 @@
 
       </div>
     </div>
-
+<ToastPage
+  v-if="showToast"
+  :message="toastMessage"
+  :type="toastType"
+/>
   </div>
 </template>
 
@@ -219,10 +266,16 @@ import axios from "axios"
 import { ref, onMounted } from "vue"
 import SidebarPage from "../components/Sidebar.vue"
 import Navbar from "../components/Navbar.vue"
-import { EyeIcon, ChatBubbleLeftRightIcon } from "@heroicons/vue/24/outline"
-
+import { 
+EyeIcon, 
+ChatBubbleLeftRightIcon,
+CheckCircleIcon,
+XCircleIcon
+} from "@heroicons/vue/24/outline"
+import ToastPage from "@/components/Toast.vue";
 export default {
-  components: { SidebarPage, Navbar, EyeIcon, ChatBubbleLeftRightIcon },
+  components: { SidebarPage, Navbar, EyeIcon, ChatBubbleLeftRightIcon ,  ToastPage,CheckCircleIcon,
+XCircleIcon},
 
   setup() {
 
@@ -236,7 +289,9 @@ export default {
     const comments = ref([])
     const newComment = ref("")
     const commentAttachment = ref(null)
-
+const toastMessage = ref("")
+const toastType = ref("success")
+const showToast = ref(false)
     const form = ref({
       employeeId: "",
       title: "",
@@ -252,6 +307,7 @@ export default {
     const fetchTasks = async () => {
       const res = await axios.get("/Task/manager-tasks")
       tasks.value = res.data
+      .reverse()
     }
 const autoResize = (e) => {
   e.target.style.height = 'auto';
@@ -261,29 +317,62 @@ const autoResize = (e) => {
       const res = await axios.get("/Task/section-employees")
       employees.value = res.data
     }
+const triggerToast = (msg, type="success") => {
+  toastMessage.value = msg
+  toastType.value = type
+  showToast.value = true
 
-    const assignTask = async () => {
-      const data = new FormData()
-      data.append("EmployeeId", form.value.employeeId)
-      data.append("Title", form.value.title)
-      data.append("Description", form.value.description)
-      data.append("StartDate", form.value.startDate)
-      data.append("EndDate", form.value.endDate)
-      if (form.value.attachment) data.append("Attachment", form.value.attachment)
+  setTimeout(()=>{
+    showToast.value = false
+  },3000)
+}
+  const assignTask = async () => {
+  try {
+    const data = new FormData()
+    data.append("EmployeeId", form.value.employeeId)
+    data.append("Title", form.value.title)
+    data.append("Description", form.value.description)
+    data.append("StartDate", form.value.startDate)
+    data.append("EndDate", form.value.endDate)
 
-      await axios.post("/Task/assign", data)
-      showAssignModal.value = false
-      fetchTasks()
-    }
+    if (form.value.attachment)
+      data.append("Attachment", form.value.attachment)
+
+    await axios.post("/Task/assign", data)
+
+    showAssignModal.value = false
+    fetchTasks()
+
+    triggerToast("تم إرسال التكليف بنجاح")
+
+  } catch {
+    triggerToast("فشل إرسال التكليف", "error")
+  }
+}
 const formatDate = (dateStr) => {
   if (!dateStr) return ''
   return dateStr.split('T')[0]  // تاخذ فقط الجزء قبل "T"
 }
-    const managerDecision = async (decision) => {
-      await axios.put(`/Task/manager-decision/${detailTask.value.id}?decision=${decision}`)
-      showDetailModal.value = false
-      fetchTasks()
-    }
+    const managerDecision = async (decision,task) => {
+
+  try {
+
+    await axios.put(`/Task/manager-decision/${task.id}?decision=${decision}`)
+
+    fetchTasks()
+
+    if(decision === "Approved")
+      triggerToast("تم قبول المهمة")
+    else
+      triggerToast("تم رفض المهمة","error")
+
+  } catch {
+
+    triggerToast("فشل تحديث القرار","error")
+
+  }
+
+}
 
     const fetchComments = async (taskId) => {
       try {
@@ -355,7 +444,9 @@ const formatDate = (dateStr) => {
       tasks, employees, showAssignModal, showDetailModal, showCommentModal,
       form, assignTask, openDetails, openComments, detailTask,
       managerDecision, onFileChange, comments, newComment,  formatDate,
-      sendComment, onCommentFileChange, statusArabic,autoResize
+      sendComment, onCommentFileChange, statusArabic,autoResize,toastMessage,
+toastType,
+showToast
     }
   }
 }

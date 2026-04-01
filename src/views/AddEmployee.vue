@@ -1,24 +1,31 @@
 <template>
-  <div class="flex min-h-screen bg-gray-100">
+  <div class="flex min-h-screen bg-white">
+
+    <!-- Sidebar -->
     <Sidebar class="fixed top-0 right-0 h-screen w-24 md:w-64 z-50" />
-    <div class="flex-1 p-6 min-h-screen mr-24 md:mr-64">
+
+    <!-- المحتوى -->
+    <div class="flex-1 p-6 mr-24 md:mr-64 flex flex-col">
+
       <Navbar />
 
-      <!-- الصفحات متسلسلة -->
-      <BasicInfoPage 
-        v-if="currentStep === 1" 
-        @saved-basic="afterBasicSaved" 
-      />
-      <AdminInfoPage 
-        v-if="currentStep === 2" 
-        :employee-id="employeeId" 
-        @saved-admin="afterAdminSaved" 
-      />
-      <EmployeeFinancialPage 
-        v-if="currentStep === 3" 
-        :employee-id="employeeId" 
-        @saved-financial="afterFinancialSaved" 
-      />
+      <!-- الصفحات المتسلسلة -->
+      <div class="flex-1 flex items-start md:items-center justify-center">
+        <BasicInfoPage 
+          v-if="currentStep === 1" 
+          @saved-basic="afterBasicSaved" 
+        />
+        <AdminInfoPage 
+          v-if="currentStep === 2" 
+          :employee-id="employeeId" 
+          @saved-admin="afterAdminSaved" 
+        />
+        <EmployeeFinancialPage 
+          v-if="currentStep === 3" 
+          :employee-id="employeeId" 
+          @saved-financial="afterFinancialSaved" 
+        />
+      </div>
     </div>
   </div>
 </template>

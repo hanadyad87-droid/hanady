@@ -1,5 +1,5 @@
 <template>
-  <div class="flex min-h-screen bg-gray-100" dir="rtl" style="font-family: 'Cairo', sans-serif;">
+  <div class="flex min-h-screen bg-white" dir="rtl" style="font-family: 'Cairo', sans-serif;">
 
     <!-- Sidebar -->
     <SidebarPage class="fixed top-0 right-0 h-screen w-24 md:w-64 z-50"/>
@@ -30,7 +30,7 @@
 </thead>
 
 <tbody class="divide-y divide-gray-200">
-  <tr v-for="task in tasks" :key="task.id" class="hover:bg-gray-50">
+  <tr v-for="task in tasks" :key="task.id" :id="`row-${task.id}`" class="hover:bg-gray-50">
     <td class="px-4 py-2 text-sm whitespace-pre-wrap">{{task.title}}</td>
     <td class="px-4 py-2 text-sm">{{task.manager}}</td>
     <td class="px-4 py-2 text-sm">{{ task.startDate.split('T')[0] }}</td>
@@ -77,12 +77,15 @@
     <div v-if="detailTask">
       <p><strong>المهمة:</strong> {{detailTask.title}}</p>
 
-      <!-- الوصف القابل للتمدد -->
-     <div class="whitespace-pre-wrap overflow-auto p-2 border rounded-lg bg-gray-50 text-base leading-relaxed">
-  <strong>الوصف:</strong>
-  <p>{{detailTask.description}}</p>
-</div>
+<!-- الوصف مع عنوان خارجي + 3 أسطر وسكرول عمودي -->
+<div class="mb-1 font-semibold text-black-700">الوصف:</div>
 
+<div 
+  class="bg-gray-50 p-2 border rounded-lg overflow-y-auto overflow-x-hidden break-words whitespace-pre-line text-right leading-relaxed"
+  style="max-height: 7rem;" 
+>
+  <p>{{ detailTask.description }}</p>
+</div>
       <p><strong>المدير:</strong> {{detailTask.manager}}</p>
       <p><strong>القسم:</strong> {{detailTask.section}}</p>
 
@@ -108,14 +111,26 @@
     </h2>
 
     <ul>
-      <li v-for="c in comments" :key="c.id" class="mb-1 p-1.5 rounded-lg bg-gray-100 break-words text-sm">
-        <strong>{{ c.employeeName || 'مجهول' }}:</strong>
-        <span>{{ c.comment }}</span>
-        <a v-if="c.attachmentUrl" :href="c.attachmentUrl" target="_blank" class="text-blue-500 underline ml-1 text-sm">
-          مرفق
-        </a>
-      </li>
-    </ul>
+  <li v-for="c in comments" :key="c.id" class="mb-2">
+    <!-- اسم الموظف فوق الصندوق -->
+    <div class="text-sm font-semibold text-gray-700 mb-1">
+      {{ c.employeeName || 'مجهول' }}
+    </div>
+
+    <!-- صندوق التعليق -->
+    <div 
+      class="bg-gray-100 p-2 rounded-lg break-words text-sm"
+      style="max-height: 6rem; overflow-y: auto; white-space: pre-line;"
+    >
+      {{ c.comment }}
+    </div>
+
+    <!-- رابط المرفق إذا موجود -->
+    <a v-if="c.attachmentUrl" :href="c.attachmentUrl" target="_blank" class="text-blue-500 underline ml-1 text-sm mt-1 inline-block">
+      مرفق
+    </a>
+  </li>
+</ul>
 
     <div class="mt-2 flex flex-col gap-1.5">
       <textarea
@@ -153,7 +168,7 @@ import axios from "axios"
 import SidebarPage from "../components/Sidebar.vue"
 import Navbar from "../components/Navbar.vue"
 import { EyeIcon, ChatBubbleLeftRightIcon } from "@heroicons/vue/24/outline"
-
+import { useHighlightRow } from "@/composables/useHighlightRow";
 export default {
 components:{SidebarPage,Navbar,EyeIcon,ChatBubbleLeftRightIcon},
 setup(){
@@ -166,7 +181,7 @@ setup(){
   const toastMessage = ref("")
   const toastType = ref("success")
   const showType = ref('details') // "details" أو "comments"
-
+ useHighlightRow(tasks);
   axios.defaults.baseURL = "http://localhost:5205/api"
   axios.defaults.headers.common["Authorization"] = `Bearer ${localStorage.getItem("token")}`
 
@@ -176,20 +191,22 @@ setup(){
     setTimeout(()=>toastMessage.value="",3000)
   }
 
-  const fetchTasks = async () => {
-    try {
-      const res = await axios.get("/Task/my-tasks")
-      tasks.value = res.data.map(t => ({
+ const fetchTasks = async () => {
+  try {
+    const res = await axios.get("/Task/my-tasks")
+    tasks.value = res.data
+      .reverse()
+      .map(t => ({
         ...t,
         status: t.status==='New'?'جديدة': t.status==='InProgress'?'قيد التنفيذ':'مكتملة',
         managerDecision: t.managerDecision === 'Approved' ? 'موافق' :
                          t.managerDecision === 'Rejected' ? 'مرفوض' : 'لم يقرر',
         commentsCount: t.commentsCount || 0
       }))
-    } catch {
-      showToast("فشل تحميل المهام","error")
-    }
+  } catch {
+    showToast("فشل تحميل المهام","error")
   }
+}
 
   const updateStatus = async(task)=>{
     try{

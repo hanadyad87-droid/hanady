@@ -1,151 +1,125 @@
 <template>
-  <div class="flex min-h-screen bg-background" dir="rtl">
+  <div class="flex min-h-screen bg-white" dir="rtl">
 
     <!-- Sidebar -->
     <Sidebar class="fixed top-0 right-0 h-screen w-24 md:w-64 bg-primary text-white p-4 z-50" />
 
     <!-- المحتوى -->
-    <div class="flex-1 min-h-screen p-6 mr-24 md:mr-64">
+    <div class="flex-1 p-4 sm:p-6 mr-24 md:mr-64">
 
-      <!-- Navbar -->
       <Navbar />
 
+      <!-- البوكس الأبيض الرئيسي -->
+      <div class="bg-white rounded-xl shadow p-4 sm:p-5 md:p-6 w-full sm:max-w-xl md:max-w-3xl mx-auto space-y-4">
 
+        <!-- الإعلانات -->
+        <div>
+          <div
+            v-if="announcements.length"
+            class="announcement-bar overflow-hidden rounded-md h-10 flex items-center px-2 sm:px-3 md:px-4"
+            style="background: linear-gradient(90deg,#1D4736,#165a40,#1D4736);"
+          >
+            <div
+              class="announcement-track flex items-center gap-12 sm:gap-16 md:gap-20"
+              :style="{ animationDuration: scrollDuration + 's' }"
+            >
+              <div
+                v-for="ann in announcements"
+                :key="ann.id"
+                class="text-white text-xs sm:text-sm flex gap-1 sm:gap-2 whitespace-nowrap"
+              >
+                <span class="font-semibold">{{ ann.title }}</span>
+                <span class="opacity-70">—</span>
+                <span class="opacity-90">{{ ann.message }}</span>
+              </div>
+            </div>
+          </div>
 
-<!-- شريط الإعلانات -->
-<div class="max-w-5xl mx-auto mb-6">
-
-  <!-- في حالة وجود إعلانات -->
-  <div
-    v-if="announcements && announcements.length"
-    class="announcement-bar overflow-hidden rounded-md h-12 flex items-center px-4 shadow-sm relative"
-    style="background: linear-gradient(90deg, #1D4736 0%, #165a40 50%, #1D4736 100%);"
-  >
-    <div
-      class="announcement-track flex items-center gap-24"
-      :style="{ animationDuration: scrollDuration + 's' }"
-    >
-      <!-- الإعلان -->
-      <div
-        v-for="ann in announcements"
-        :key="ann.id"
-        class="relative group announcement-text flex items-center gap-2 text-sm
-               px-2 py-1 rounded-md hover:bg-white/10 transition"
-      >
-        <!-- العنوان -->
-        <span class="text-white font-semibold group-hover:underline">
-          {{ ann.title }}
-        </span>
-
-        <span class="text-white/60">—</span>
-
-        <!-- نص الإعلان -->
-        <span class="text-white/80 truncate max-w-[280px]">
-          {{ ann.message }}
-        </span>
-
-        <!-- التاريخ -->
-        <span class="text-white/50 text-xs font-medium mr-2">
-          {{ formatDate(ann.createdAt) }}
-        </span>
-      </div>
-
-      <!-- تكرار -->
-      <div
-        v-for="ann in announcements"
-        :key="'dup-' + ann.id"
-        class="announcement-text flex items-center gap-2 text-sm"
-      >
-        <span class="text-white font-semibold">
-          {{ ann.title }}
-        </span>
-        <span class="text-white/60">—</span>
-        <span class="text-white/80">
-          {{ ann.message }}
-        </span>
-        <span class="text-white/50 text-xs font-medium mr-2">
-          {{ formatDate(ann.createdAt) }}
-        </span>
-      </div>
-    </div>
-  </div>
-
-  <!-- في حالة عدم وجود إعلانات -->
-  <div
-    v-else
-    class="h-12 flex items-center justify-center rounded-md text-white/50 text-sm"
-    style="background: linear-gradient(90deg, #1D4736 0%, #165a40 50%, #1D4736 100%);"
-  >
-    لا توجد إعلانات حالياً
-  </div>
-
-</div>
-
-
-
-
-
-
-
-
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto mb-6">
-
-  <!-- الإجازات خلال السنة -->
-  <div class="bg-white rounded-xl shadow p-6">
-    <h3 class="font-bold mb-4 text-right">الإجازات خلال السنة</h3>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div v-for="(count, type) in leaveTypeCounts" :key="type" 
-           class="bg-gray-50 hover:bg-gray-100 transition-colors p-4 rounded-xl flex justify-between items-center border border-gray-200">
-        <span class="font-bold text-right text-gray-800">{{ type }}</span>
-        <div class="flex items-center gap-3">
-          <div class="relative w-12 h-12">
-            <svg class="w-12 h-12 transform -rotate-90" viewBox="0 0 36 36">
-              <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    fill="none" stroke="#E5E7EB" stroke-width="3"/>
-              <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    fill="none" stroke="#3B82F6" :stroke-width="3" 
-                    :stroke-dasharray="`${getLeavePercentage(type)} 100`"/>
-            </svg>
-            <span class="absolute inset-0 flex items-center justify-center text-sm font-bold text-primary">
-              {{ getLeavePercentage(type).toFixed(0) }}%
-            </span>
+          <div
+            v-else
+            class="h-10 flex items-center justify-center rounded-md text-white/60 text-xs sm:text-sm"
+            style="background: linear-gradient(90deg,#1D4736,#165a40,#1D4736);"
+          >
+            لا توجد إعلانات حالياً
           </div>
         </div>
+
+        <!-- الإجازات -->
+        <div>
+          <h3 class="font-bold mb-2 text-sm sm:text-base md:text-lg text-gray-800">الإجازات خلال السنة</h3>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+            <div
+              v-for="(count,type) in leaveTypeCounts"
+              :key="type"
+              class="bg-gray-50 hover:bg-gray-100 transition p-2 sm:p-3 rounded-lg border flex justify-between items-center"
+            >
+              <span class="font-semibold text-xs sm:text-sm">{{ type }}</span>
+
+              <div class="relative w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10">
+                <svg class="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 transform -rotate-90" viewBox="0 0 36 36">
+                  <path
+                    d="M18 2.0845a15.9155 15.9155 0 010 31.831a15.9155 15.9155 0 010-31.831"
+                    fill="none"
+                    stroke="#E5E7EB"
+                    stroke-width="3"
+                  />
+                  <path
+                    d="M18 2.0845a15.9155 15.9155 0 010 31.831a15.9155 15.9155 0 010-31.831"
+                    fill="none"
+                    :stroke="getColor(type)"
+                    stroke-width="3"
+                    :stroke-dasharray="`${getLeavePercentage(type)} 100`"
+                  />
+                </svg>
+
+                <span class="absolute inset-0 flex items-center justify-center text-[10px] sm:text-xs md:text-sm font-bold text-primary">
+                  {{ getLeavePercentage(type).toFixed(0) }}%
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- الطلبات -->
+        <div>
+          <h3 class="font-bold mb-2 text-sm sm:text-base md:text-lg text-gray-800">طلبات الموظف</h3>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
+
+            <div class="request-card flex flex-col items-center p-2 sm:p-3">
+              <div class="text-lg sm:text-xl">🏖</div>
+              <div class="text-xs sm:text-sm font-semibold">طلبات الاستئدان</div>
+              <div class="count">{{ leaveRequests.length }}</div>
+            </div>
+
+            <div class="request-card flex flex-col items-center p-2 sm:p-3">
+              <div class="text-lg sm:text-xl">📝</div>
+              <div class="text-xs sm:text-sm font-semibold">تعديل البيانات</div>
+              <div class="count">{{ dataUpdateRequests.length }}</div>
+            </div>
+
+            <div class="request-card flex flex-col items-center p-2 sm:p-3">
+              <div class="text-lg sm:text-xl">🚪</div>
+              <div class="text-xs sm:text-sm font-semibold">إذن خروج</div>
+              <div class="count">{{ exitPermitRequests.length }}</div>
+            </div>
+
+            <div class="request-card flex flex-col items-center p-2 sm:p-3">
+              <div class="text-lg sm:text-xl">💰</div>
+              <div class="text-xs sm:text-sm font-semibold">شهادة مرتب</div>
+              <div class="count">{{ salaryRequests.length }}</div>
+            </div>
+
+          </div>
+        </div>
+
       </div>
     </div>
-  </div>
 
-  <!-- الطلبات -->
-  <div class="bg-white rounded-xl shadow p-6">
-    <h3 class="font-bold mb-4 text-right">ملخص الطلبات</h3>
-    <div class="grid grid-cols-3 md:grid-cols-1 lg:grid-cols-3 gap-6 text-center">
-      <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-2xl border-2 border-blue-200 hover:shadow-lg transition-shadow">
-        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <span class="text-2xl font-bold text-blue-700">{{ leaveSummary.new }}</span>
-        </div>
-        <p class="text-sm text-blue-600 font-medium">طلبات جديدة</p>
-      </div>
-      <div class="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-2xl border-2 border-green-200 hover:shadow-lg transition-shadow">
-        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <span class="text-2xl font-bold text-green-700">{{ leaveSummary.approved }}</span>
-        </div>
-        <p class="text-sm text-green-600 font-medium">طلبات مقبولة</p>
-      </div>
-      <div class="bg-gradient-to-br from-red-50 to-red-100 p-6 rounded-2xl border-2 border-red-200 hover:shadow-lg transition-shadow">
-        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <span class="text-2xl font-bold text-red-700">{{ leaveSummary.rejected }}</span>
-        </div>
-        <p class="text-sm text-red-600 font-medium">طلبات مرفوضة</p>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-
-    </div>
   </div>
 </template>
+
 <script>
 import Sidebar from "../components/Sidebar.vue";
 import Navbar from "../components/Navbar.vue";
@@ -162,113 +136,89 @@ export default {
       leaveSummary: { new: 0, approved: 0, rejected: 0 },
       leaveTypeCounts: {},
       totalLeaves: 0,
-
-      // بيانات الإعلانات
-         announcements: [],
-    scrollDuration: 35 // كل ما كبر الرقم = أبطأ
+      announcements: [],
+      scrollDuration: 35,
+      leaveRequests: [],
+      dataUpdateRequests: [],
+      exitPermitRequests: [],
+      salaryRequests: [],
     };
   },
   async mounted() {
     await this.fetchUserData();
     await this.fetchAnnouncements();
-    // تم حذف this.startAutoScroll();
+    await this.fetchRequests();
   },
   methods: {
     async fetchUserData() {
       try {
         const resProfile = await api.get("/Employee/my-profile");
-        this.user = {
-          fullName: resProfile.data.fullName,
-          jobTitle: resProfile.data.jobTitle,
-          jobGrade: resProfile.data.jobGrade,
-          profileImage: resProfile.data.profileImage,
-          departmentId: resProfile.data.departmentId,
-          departmentName: resProfile.data.departmentName 
-        };
-
+        this.user = resProfile.data;
         const resLeaves = await api.get("/leave-requests/my-requests");
-
         const requests = resLeaves.data.requests || [];
-
         this.leaveSummary.new = requests.filter(r => r.status === "قيد_الانتظار").length;
         this.leaveSummary.approved = requests.filter(r => r.status === "مقبولة").length;
         this.leaveSummary.rejected = requests.filter(r => r.status === "مرفوضة").length;
-
         const counts = {};
         requests.forEach(r => {
           const typeName = r.leaveTypeName?.اسم_الاجازة || r.leaveTypeName || "غير معروف";
           counts[typeName] = (counts[typeName] || 0) + 1;
         });
-
         this.leaveTypeCounts = counts;
         this.totalLeaves = requests.length;
-      } catch (err) {
-        console.error("خطأ في جلب بيانات الداشبورد:", err);
-      }
+      } catch (err) { console.error(err); }
     },
-
     async fetchAnnouncements() {
-  try {
-    const response = await api.get("/Announcements/my-announcements");
-    this.announcements = response.data || [];
-  } catch (err) {
-    console.error("خطأ في جلب الإعلانات:", err);
-  }
-}
-,
-
-    formatDate(dateString) {
-      if (!dateString) return 'بدون تاريخ';
-      const date = new Date(dateString);
-      const options = { 
-        day: 'numeric', 
-        month: 'short', 
-        year: 'numeric'
-      };
-      return date.toLocaleDateString('ar-SA', options);
+      try {
+        const res = await api.get("/Announcements/my-announcements");
+        this.announcements = res.data || [];
+      } catch (err) { console.error(err); }
     },
-
+    async fetchRequests() {
+      try {
+        this.leaveRequests = (await api.get("/leave-requests/my-requests")).data.requests || [];
+        this.dataUpdateRequests = (await api.get("/DataUpdate/my-requests")).data || [];
+        this.exitPermitRequests = (await api.get("/ExitPermit/my-requests")).data || [];
+        this.salaryRequests = (await api.get("/SalaryCertificate/my-requests")).data || [];
+      } catch (err) { console.error(err); }
+    },
     getLeavePercentage(type) {
       if (this.totalLeaves === 0) return 0;
       return ((this.leaveTypeCounts[type] || 0) / this.totalLeaves) * 100;
     },
+    getColor(type) {
+      const colors = { "سنوية": "#3B82F6", "مرضية": "#F59E0B", "طارئة": "#EF4444" };
+      return colors[type] || "#10B981";
+    }
   }
 };
 </script>
 
 <style scoped>
-/* شريط الأخبار */
-.announcement-bar {
-  direction: rtl;
-  font-size: 0.875rem;
-}
+.announcement-bar { direction: rtl; font-size: 0.75rem; }
+.announcement-track { display: flex; width: max-content; animation: marquee linear infinite; }
+.announcement-bar:hover .announcement-track { animation-play-state: paused; }
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
-/* المسار المتحرك */
-.announcement-track {
+.request-card {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
   display: flex;
-  width: max-content;
-  animation: marquee linear infinite;
+  flex-direction: column;
+  align-items: center;
+  transition: all 0.2s;
+  cursor: pointer;
 }
 
-/* إيقاف عند المرور */
-.announcement-bar:hover .announcement-track {
-  animation-play-state: paused;
+.request-card:hover {
+  background: #f3f4f6;
+  transform: translateY(-2px);
 }
 
-/* حركة ناعمة */
-@keyframes marquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
+.count {
+  font-size: 14px;
+  font-weight: bold;
+  color: #1D4736;
 }
-
-/* نص الإعلان */
-.announcement-text {
-  white-space: nowrap;
-}
-
-
 </style>

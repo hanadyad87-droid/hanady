@@ -113,13 +113,7 @@
     </div>
 
     <!-- Toast Notification -->
-    <div v-if="toastMessage" class="fixed top-16 left-1/2 transform -translate-x-1/2 z-50">
-      <div :class="toastType === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'"
-           class="px-4 py-2 rounded-lg border shadow-lg flex items-center gap-2">
-        <span>{{ toastType === 'success' ? '✅' : '❌' }}</span>
-        <span>{{ toastMessage }}</span>
-      </div>
-    </div>
+  <Toast v-if="toastMessage" :message="toastMessage" :type="toastType" />
 
   </div>
 </template>
@@ -127,10 +121,10 @@
 <script>
 import api from "../services/api";
 import userImg from "../assets/user.png";
-
+import Toast from "../components/Toast.vue";
 export default {
   name: "NavbarPage",
-
+components: { Toast },
   data() {
     return {
       showMenu: false,
@@ -170,18 +164,47 @@ export default {
       this.confirmPassword = "";
     },
 
-    savePassword() {
-      if (!this.currentPassword || !this.newPassword || !this.confirmPassword) {
-        this.showToast("الرجاء تعبئة جميع الحقول ❗", "error");
-        return;
+ async savePassword() {
+  if (!this.currentPassword || !this.newPassword || !this.confirmPassword) {
+    this.showToast("الرجاء تعبئة جميع الحقول ❗", "error");
+    return;
+  }
+
+  if (this.newPassword !== this.confirmPassword) {
+    this.showToast("كلمتا المرور غير متطابقتين ❌", "error");
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem("token");
+
+    await api.post(
+      "/Employee/change-password",
+      {
+        currentPassword: this.currentPassword,
+        newPassword: this.newPassword,
+        confirmPassword: this.confirmPassword
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       }
-      if (this.newPassword !== this.confirmPassword) {
-        this.showToast("كلمتا المرور غير متطابقتين ❌", "error");
-        return;
-      }
-      this.showToast("تم تغيير كلمة المرور بنجاح ✅", "success");
-      this.closePasswordModal();
-    },
+    );
+
+    this.showToast("تم تغيير كلمة المرور بنجاح ✅", "success");
+    this.closePasswordModal();
+
+  } catch (error) {
+    console.error(error);
+
+    if (error.response?.data) {
+      this.showToast(error.response.data, "error");
+    } else {
+      this.showToast("حدث خطأ أثناء تغيير كلمة المرور ❌", "error");
+    }
+  }
+},
 
     logout() {
       this.showMenu = false;

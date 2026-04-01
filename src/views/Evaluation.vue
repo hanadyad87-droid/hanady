@@ -1,5 +1,5 @@
 <template>
-  <div class="flex min-h-screen bg-background" dir="rtl">
+  <div class="flex min-h-screen bg-white" dir="rtl">
     <Sidebar class="fixed top-0 right-0 h-screen w-24 md:w-64 bg-primary text-white p-4 z-50" />
 
     <div class="flex-1 p-6 mr-24 md:mr-64">

@@ -1,131 +1,133 @@
 <template>
-  <div class="flex min-h-screen bg-gray-100" dir="rtl">
-    <!-- Sidebar -->
+  <div class="flex min-h-screen bg-white">
+    <!-- Sidebar ثابتة على اليمين -->
     <Sidebar class="fixed top-0 right-0 h-screen w-24 md:w-64 z-50" />
 
     <!-- المحتوى الرئيسي -->
     <div class="flex-1 p-6 min-h-screen mr-24 md:mr-64">
-      <!-- Navbar -->
       <Navbar />
 
-      <!-- صندوق البيانات الأساسي -->
+      <!-- محتوى الصفحة -->
       <div class="bg-white p-6 rounded-xl shadow max-w-4xl mx-auto mt-6">
-        <h2 class="text-xl font-bold mb-6 text-right">إضافة موظف - البيانات الأساسية</h2>
 
-        <!-- الفورم -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <!-- اسم المستخدم -->
-          <div class="flex flex-col relative">
-            <label class="label">اسم المستخدم</label>
-            <input v-model="form.Username" class="input" placeholder="اسم المستخدم" />
-            <span v-if="errors.Username" class="text-red-600 text-xs mt-1 absolute top-full right-0">{{ errors.Username }}</span>
-          </div>
 
-          <!-- البريد الإلكتروني -->
-          <div class="flex flex-col relative">
-            <label class="label">البريد الإلكتروني</label>
-            <input v-model="form.Email" type="email" class="input" placeholder="example@mail.com" @blur="validateEmail" />
-            <span v-if="errors.Email" class="text-red-600 text-xs mt-1 absolute top-full right-0">{{ errors.Email }}</span>
-          </div>
+      <h2 class="text-xl font-bold mb-6 text-right">إضافة موظف - البيانات الأساسية</h2>
 
-          <!-- الاسم الكامل -->
-          <div class="flex flex-col relative">
-            <label class="label">الاسم الكامل</label>
-            <input v-model="form.FullName" @keypress="allowArabic($event, 'FullName')" class="input" placeholder="اكتب بالعربية فقط" />
-            <span v-if="errors.FullName" class="text-red-600 text-xs mt-1 absolute top-full right-0">{{ errors.FullName }}</span>
-          </div>
+      <!-- الفورم -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-          <!-- اسم الأم -->
-          <div class="flex flex-col relative">
-            <label class="label">اسم الأم</label>
-            <input v-model="form.MotherName" @keypress="allowArabic($event, 'MotherName')" class="input" placeholder="اكتب بالعربية فقط" />
-            <span v-if="errors.MotherName" class="text-red-600 text-xs mt-1 absolute top-full right-0">{{ errors.MotherName }}</span>
-          </div>
+        <!-- اسم المستخدم -->
+        <div class="flex flex-col relative">
+          <label class="label">اسم المستخدم</label>
+          <input v-model="form.Username" class="input" placeholder="اسم المستخدم" />
+          <span v-if="errors.Username" class="text-red-600 text-xs mt-1 absolute top-full right-0">{{ errors.Username }}</span>
+        </div>
 
-          <!-- الرقم الوطني -->
-          <div class="flex flex-col relative">
-            <label class="label">الرقم الوطني</label>
-            <input v-model="form.NationalId" @input="validateNationalId" @keypress="allowDigits($event)" class="input" />
-            <span v-if="errors.NationalId" class="text-red-600 text-xs mt-1 absolute top-full right-0">{{ errors.NationalId }}</span>
-          </div>
+        <!-- البريد الإلكتروني -->
+        <div class="flex flex-col relative">
+          <label class="label">البريد الإلكتروني</label>
+          <input v-model="form.Email" type="email" class="input" placeholder="example@mail.com" @blur="validateEmail" />
+          <span v-if="errors.Email" class="text-red-600 text-xs mt-1 absolute top-full right-0">{{ errors.Email }}</span>
+        </div>
 
-          <!-- الهاتف 1 -->
-          <div class="flex flex-col relative">
-            <label class="label">رقم الهاتف 1</label>
-            <input v-model="form.Phone1" @input="validatePhone('Phone1')" @keypress="allowDigits($event)" class="input" placeholder="091xxxxxxx" />
-            <span v-if="errors.Phone1" class="text-red-600 text-xs mt-1 absolute top-full right-0">{{ errors.Phone1 }}</span>
-          </div>
+        <!-- الاسم الكامل -->
+        <div class="flex flex-col relative">
+          <label class="label">الاسم الكامل</label>
+          <input v-model="form.FullName" @keypress="allowArabic($event, 'FullName')" class="input" placeholder="اكتب بالعربية فقط" />
+          <span v-if="errors.FullName" class="text-red-600 text-xs mt-1 absolute top-full right-0">{{ errors.FullName }}</span>
+        </div>
 
-          <!-- الهاتف 2 -->
-          <div class="flex flex-col relative">
-            <label class="label">رقم الهاتف 2 (اختياري)</label>
-            <input v-model="form.Phone2" @input="validatePhone('Phone2')" @keypress="allowDigits($event)" class="input" placeholder="092xxxxxxx" />
-            <span v-if="errors.Phone2" class="text-red-600 text-xs mt-1 absolute top-full right-0">{{ errors.Phone2 }}</span>
-          </div>
+        <!-- اسم الأم -->
+        <div class="flex flex-col relative">
+          <label class="label">اسم الأم</label>
+          <input v-model="form.MotherName" @keypress="allowArabic($event, 'MotherName')" class="input" placeholder="اكتب بالعربية فقط" />
+          <span v-if="errors.MotherName" class="text-red-600 text-xs mt-1 absolute top-full right-0">{{ errors.MotherName }}</span>
+        </div>
 
-          <!-- تاريخ الميلاد -->
-          <div class="flex flex-col">
-            <label class="label">تاريخ الميلاد</label>
-            <input type="date" v-model="form.BirthDate" class="input" />
-          </div>
+        <!-- الرقم الوطني -->
+        <div class="flex flex-col relative">
+          <label class="label">الرقم الوطني</label>
+          <input v-model="form.NationalId" @input="validateNationalId" @keypress="allowDigits($event)" class="input" />
+          <span v-if="errors.NationalId" class="text-red-600 text-xs mt-1 absolute top-full right-0">{{ errors.NationalId }}</span>
+        </div>
 
-          <!-- الجنس -->
-          <div class="flex flex-col">
-            <label class="label">الجنس</label>
-            <div class="flex gap-4">
-              <label class="inline-flex items-center gap-2">
-                <input type="radio" value="ذكر" v-model="form.Gender" />
-                ذكر
-              </label>
-              <label class="inline-flex items-center gap-2">
-                <input type="radio" value="أنثى" v-model="form.Gender" />
-                أنثى
-              </label>
-            </div>
-          </div>
+        <!-- الهاتف 1 -->
+        <div class="flex flex-col relative">
+          <label class="label">رقم الهاتف 1</label>
+          <input v-model="form.Phone1" @input="validatePhone('Phone1')" @keypress="allowDigits($event)" class="input" placeholder="091xxxxxxx" />
+          <span v-if="errors.Phone1" class="text-red-600 text-xs mt-1 absolute top-full right-0">{{ errors.Phone1 }}</span>
+        </div>
 
-          <!-- الحالة الاجتماعية -->
-          <div class="flex flex-col">
-            <label class="label">الحالة الاجتماعية</label>
-            <select v-model.number="form.MaritalStatusId" class="input">
-              <option :value="1">أعزب</option>
-              <option :value="2">متزوج</option>
-              <option :value="3">مطلق</option>
-              <option :value="4">أرمل</option>
-            </select>
-          </div>
+        <!-- الهاتف 2 -->
+        <div class="flex flex-col relative">
+          <label class="label">رقم الهاتف 2 (اختياري)</label>
+          <input v-model="form.Phone2" @input="validatePhone('Phone2')" @keypress="allowDigits($event)" class="input" placeholder="092xxxxxxx" />
+          <span v-if="errors.Phone2" class="text-red-600 text-xs mt-1 absolute top-full right-0">{{ errors.Phone2 }}</span>
+        </div>
 
-          <!-- رفع صورة الموظف -->
-          <div class="flex flex-col relative">
-            <label class="label">رفع صورة الموظف (PNG/JPEG/JPG)</label>
-            <input ref="photoInput" type="file" @change="handleFile" accept=".png,.jpeg,.jpg" class="input" />
-            <span v-if="errors.Photo" class="text-red-600 text-xs mt-1 absolute top-full right-0">{{ errors.Photo }}</span>
-          </div>
+        <!-- تاريخ الميلاد -->
+        <div class="flex flex-col">
+          <label class="label">تاريخ الميلاد</label>
+          <input type="date" v-model="form.BirthDate" class="input" />
+        </div>
 
-          <!-- HR & SuperAdmin -->
-          <div class="flex flex-col gap-2 mt-4">
+        <!-- الجنس -->
+        <div class="flex flex-col">
+          <label class="label">الجنس</label>
+          <div class="flex gap-4">
             <label class="inline-flex items-center gap-2">
-              <input type="checkbox" v-model="form.IsHR" />
-              HR
+              <input type="radio" value="ذكر" v-model="form.Gender" />
+              ذكر
             </label>
             <label class="inline-flex items-center gap-2">
-              <input type="checkbox" v-model="form.IsSuperAdmin" />
-              SuperAdmin
+              <input type="radio" value="أنثى" v-model="form.Gender" />
+              أنثى
             </label>
           </div>
         </div>
 
-        <!-- زر الحفظ -->
-        <div class="flex justify-center mt-8">
-          <button @click="save" class="bg-primary hover:bg-primaryDark text-white py-2 px-6 rounded-lg transition w-full max-w-xs">
-            حفظ البيانات الأساسية
-          </button>
+        <!-- الحالة الاجتماعية -->
+        <div class="flex flex-col">
+          <label class="label">الحالة الاجتماعية</label>
+          <select v-model.number="form.MaritalStatusId" class="input">
+            <option :value="1">أعزب</option>
+            <option :value="2">متزوج</option>
+            <option :value="3">مطلق</option>
+            <option :value="4">أرمل</option>
+          </select>
         </div>
 
-        <!-- Toast -->
-        <Toast v-if="toastMessage" :message="toastMessage" :type="toastType" />
+        <!-- رفع صورة الموظف -->
+        <div class="flex flex-col relative">
+          <label class="label">رفع صورة الموظف (PNG/JPEG/JPG)</label>
+          <input ref="photoInput" type="file" @change="handleFile" accept=".png,.jpeg,.jpg" class="input" />
+          <span v-if="errors.Photo" class="text-red-600 text-xs mt-1 absolute top-full right-0">{{ errors.Photo }}</span>
+        </div>
+
+        <!-- HR & SuperAdmin -->
+        <div class="flex flex-col gap-2 mt-4">
+          <label class="inline-flex items-center gap-2">
+            <input type="checkbox" v-model="form.IsHR" />
+            HR
+          </label>
+          <label class="inline-flex items-center gap-2">
+            <input type="checkbox" v-model="form.IsSuperAdmin" />
+            SuperAdmin
+          </label>
+        </div>
       </div>
+
+      <!-- زر الحفظ -->
+      <div class="flex justify-center mt-8">
+        <button @click="save" class="bg-primary hover:bg-primaryDark text-white py-2 px-6 rounded-lg transition w-full max-w-xs">
+          حفظ البيانات الأساسية
+        </button>
+      </div>
+
+      <!-- Toast -->
+      <Toast v-if="toastMessage" :message="toastMessage" :type="toastType" />
     </div>
+  </div>
   </div>
 </template>
 

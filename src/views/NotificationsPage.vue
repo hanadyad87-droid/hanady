@@ -1,5 +1,5 @@
 <template>
-  <div class="flex min-h-screen bg-gray-100">
+  <div class="flex min-h-screen bg-white">
     <!-- Sidebar ثابت -->
     <Sidebar class="fixed top-0 right-0 h-screen w-24 md:w-64 z-50" />
 
@@ -86,27 +86,38 @@ export default {
           notification.isRead = true;
         }
 
-        const text = `${notification.title} ${notification.message}`;
+    const text = `${notification.title} ${notification.message}`;
 
-        // إشعارات الشكاوى
-        if (text.includes("شكوى") || text.includes("الشكاوى")) {
-          if (!notification.complaintId) return;
-          this.$router.push({ path: "/complaints", query: { highlightId: notification.complaintId } });
-          return;
-        }
+// إشعارات المهام
+if (text.includes("مهمتك") || text.includes("تكليف")) {
+  // حاول استخراج رقم المهمة من الـ message لو متوفر
+  const match = notification.message.match(/: (\S+)/);
+  const taskId = match ? match[1] : null;
+  this.$router.push({
+    path: "/my-tasks",
+    query: { highlightId: taskId || "" } 
+  });
+  return;
+}
 
-        // إشعارات الإجازات
-        if (text.includes("إجازة") || text.includes("الإجازة")) {
-          if (['1','2','3','4'].includes(roleId)) {
-            this.$router.push("/manager/leaves");
-            return;
-          }
-          this.$router.push("/leaves");
-          return;
-        }
+// إشعارات الشكاوى
+if (text.includes("شكوى")) {
+  // لا يوجد complaintId في البيانات الحالية
+  this.$router.push({ path: "/complaints" });
+  return;
+}
 
-        console.log("🔕 إشعار بدون توجيه");
+// إشعارات الإجازات
+if (text.includes("إجازة")) {
+  if (['1','2','3','4'].includes(roleId)) {
+    this.$router.push("/manager/leaves");
+    return;
+  }
+  this.$router.push("/leaves");
+  return;
+}
 
+console.log("🔕 إشعار بدون توجيه");
       } catch (err) {
         console.error("خطأ أثناء التفاعل مع الإشعار", err);
       }

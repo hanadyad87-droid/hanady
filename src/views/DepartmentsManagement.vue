@@ -1,5 +1,5 @@
 <template>
-  <div dir="rtl" class="flex min-h-screen bg-gray-100">
+  <div dir="rtl" class="flex min-h-screen bg-white">
 
     <Sidebar class="fixed top-0 right-0 h-screen w-24 sm:w-28 md:w-60 z-40" />
     <div class="flex-1 mr-24 sm:mr-28 md:mr-60 p-4 sm:p-6">
@@ -304,10 +304,12 @@ export default {
         departmentId: this.selectedParentId
       });
     } else if (this.addType === "section") {
-      await api.post(`/Organization/AddSection`, {
-        name: this.addName,
-        subDeptId: this.selectedParentId
-      });
+      await api.post(`/Organization/AddSection`, null, {
+  params: {
+    name: this.addName,
+    subDeptId: this.selectedParentId
+  }
+});
     }
 
     this.showToast("تمت الإضافة بنجاح ✅", "success");
