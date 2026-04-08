@@ -1,376 +1,243 @@
 <template>
-  <div class="flex min-h-screen bg-white" dir="rtl">
-
+  <div class="flex min-h-screen bg-gray-100 font-cairo" dir="rtl">
     <!-- Sidebar -->
-    <Sidebar class="fixed top-0 right-0 h-screen w-24 sm:w-28 md:w-60 z-50" />
+    <Sidebar class="fixed top-0 right-0 h-screen w-24 md:w-64 z-50" />
 
-    <!-- المحتوى -->
-    <div class="flex-1 mr-24 sm:mr-28 md:mr-60 p-4 sm:p-6">
-
-      <!-- Navbar -->
+    <!-- Main content -->
+    <div class="flex-1 p-6 mr-24 md:mr-64">
       <Navbar />
 
-      <!-- الكارد -->
-      <div class="bg-white rounded-xl shadow p-6 max-w-6xl mx-auto mt-4">
+      <!-- Card -->
+      <div class="bg-white rounded-2xl shadow-lg p-6 mt-4">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+          <h2 class="text-xl font-bold text-gray-800">الطلبات المعلقة للإدارة</h2>
+        </div>
 
-        <h3 class="text-xl font-bold mb-6 text-right text-green-900">
-          الطلبات المعلقة للإدارة
-        </h3>
+        <!-- Search Table (Optional but matches style) -->
+        <input
+          v-model="searchTable"
+          placeholder="بحث في الطلبات (اسم الموظف، نوع الطلب)..."
+          class="input w-full mb-4 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none"
+        />
 
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200 text-right">
+        <!-- Table -->
+        <div class="overflow-x-auto rounded-lg border border-gray-200">
+          <table class="min-w-full text-right divide-y divide-gray-200">
             <thead class="bg-navbar">
               <tr>
-                <th class="border p-2">نوع الطلب</th>
-                <th class="border p-2">الموظف</th>
-                <th class="border p-2">الحالة</th>
-                <th class="border p-2">الاجراءات</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">نوع الطلب</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">الموظف</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">الحالة</th>
+                <th class="p-3 text-sm font-semibold text-gray-600 text-center">الإجراءات</th>
               </tr>
             </thead>
-
-            <tbody>
-              <tr
-                v-for="req in displayedRequests"
-                :key="req.id + '-' + req.type"
-                class="hover:bg-green-50"
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr 
+                v-for="req in filteredRequests" 
+                :key="req.id + '-' + req.type" 
+                class="hover:bg-gray-50 transition"
               >
-                <td class="border p-2">{{ req.typeName }}</td>
-                <td class="border p-2">
-                  {{ req.employee?.fullName || "—" }}
+                <td class="p-3 text-sm font-medium">{{ req.typeName }}</td>
+                <td class="p-3 text-sm text-gray-700">{{ req.employee?.fullName || "—" }}</td>
+                <td class="p-3 text-sm">
+                  <span :class="statusClass(req.status)" class="font-bold">
+                    {{ req.status }}
+                  </span>
                 </td>
-                <td class="border p-2" :class="statusClass(req.status)">
-                  {{ req.status }}
+                <td class="p-3 text-sm flex gap-4 justify-center">
+                  <!-- أيقونة عرض التفاصيل -->
+                  <button @click="openDetails(req)" class="text-blue-600 hover:scale-110 transition" title="عرض التفاصيل">
+                    <EyeIcon class="w-6 h-6" />
+                  </button>
+
+                  <!-- أيقونة الموافقة -->
+                  <button @click="takeDecision(req, true)" class="text-green-600 hover:scale-110 transition" title="موافقة">
+                    <CheckCircleIcon class="w-6 h-6" />
+                  </button>
+
+                  <!-- أيقونة الرفض -->
+                  <button @click="takeDecision(req, false)" class="text-red-600 hover:scale-110 transition" title="رفض">
+                    <XCircleIcon class="w-6 h-6" />
+                  </button>
                 </td>
-             <td class="border p-2 flex gap-2 justify-center">
-
-  <!-- أيقونة عرض التفاصيل -->
-  <button
-    @click="openDetails(req)"
-    title="عرض التفاصيل"
-    class="text-blue-500 hover:text-blue-700"
-  >
-    <EyeIcon class="w-6 h-6" />
-  </button>
-
-  <!-- أيقونة الموافقة -->
-  <button
-    @click="takeDecision(req, true)"
-    title="موافقة"
-    class="text-green-500 hover:text-green-700"
-  >
-    <CheckCircleIcon class="w-6 h-6" />
-  </button>
-
-  <!-- أيقونة الرفض -->
-  <button
-    @click="takeDecision(req, false)"
-    title="رفض"
-    class="text-red-500 hover:text-red-700"
-  >
-    <XCircleIcon class="w-6 h-6" />
-  </button>
-
-</td>
               </tr>
-
-              <tr v-if="displayedRequests.length === 0">
-                <td class="border p-2 text-center" colspan="4">
-                  لا توجد طلبات حالياً
-                </td>
+              <tr v-if="filteredRequests.length === 0">
+                <td colspan="4" class="text-center py-10 text-gray-400 italic">لا توجد طلبات معلقة حالياً</td>
               </tr>
             </tbody>
           </table>
         </div>
-
       </div>
     </div>
 
-    <!-- Toast -->
-    <transition name="fade">
-      <div
-        v-if="toastMessage"
-        class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-               px-6 py-3 rounded-lg shadow-lg text-white text-center z-[999]"
-        :class="toastType === 'success' ? 'bg-green-600' : 'bg-red-600'"
-      >
-        {{ toastMessage }}
-      </div>
-    </transition>
-
-    <!-- Details Modal -->
-    <div
-      v-if="selectedRequest"
-      class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-[1000]"
-    >
-      <div class="bg-white w-full max-w-xl rounded-xl p-6 relative">
-
-        <button
-          @click="selectedRequest = null"
-          class="absolute top-2 left-2 text-red-600 text-lg"
-        >
-          ✖
+    <!-- Details Modal (Modified to match Qualification style) -->
+    <div v-if="selectedRequest" class="fixed inset-0 bg-black/50 flex justify-center items-center z-[60] p-4">
+      <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl relative">
+        <button @click="selectedRequest = null" class="absolute top-4 left-4 text-gray-400 hover:text-red-600 text-xl font-bold">
+          &times;
         </button>
-
-        <h3 class="text-lg font-bold mb-4 text-green-900">
-          تفاصيل الطلب - {{ selectedRequest.typeName }}
+        
+        <h3 class="font-bold text-xl mb-6 text-gray-800 border-b pb-2">
+          تفاصيل {{ selectedRequest.typeName }}
         </h3>
 
-        <!-- إذن خروج -->
-        <div v-if="selectedRequest.type === 'ExitPermit'">
-          <p><strong>نوع الاذن:</strong> {{ selectedRequest.permitType }}</p>
-          <p><strong>التاريخ:</strong> {{ selectedRequest.permitDate }}</p>
-          <p><strong>الوقت:</strong> {{ selectedRequest.permitTime }}</p>
-          <p><strong>السبب:</strong> {{ selectedRequest.reason }}</p>
+        <div class="space-y-4 text-sm text-gray-700">
+          <!-- إذن خروج -->
+          <template v-if="selectedRequest.type === 'ExitPermit'">
+            <div class="bg-gray-50 p-3 rounded-lg border">
+              <p class="mb-2"><strong>نوع الإذن:</strong> {{ selectedRequest.permitType }}</p>
+              <p class="mb-2"><strong>التاريخ:</strong> {{ selectedRequest.permitDate }}</p>
+              <p class="mb-2"><strong>الوقت:</strong> {{ selectedRequest.permitTime }}</p>
+              <p><strong>السبب:</strong> {{ selectedRequest.reason }}</p>
+            </div>
+          </template>
+
+          <!-- تعديل بيانات -->
+          <template v-else-if="selectedRequest.type === 'DataUpdate'">
+            <div class="bg-gray-50 p-3 rounded-lg border">
+              <p class="mb-2"><strong>نوع التعديل:</strong> {{ selectedRequest.updateType }}</p>
+              <p class="mb-2"><strong>القيمة الجديدة:</strong> {{ selectedRequest.newValue }}</p>
+              <p><strong>السبب:</strong> {{ selectedRequest.reason }}</p>
+            </div>
+          </template>
+
+          <!-- صيانة -->
+          <template v-else-if="selectedRequest.type === 'Maintenance'">
+            <div class="bg-gray-50 p-3 rounded-lg border">
+              <p class="mb-2"><strong>الجهاز:</strong> {{ selectedRequest.equipmentName }}</p>
+              <p class="mb-2"><strong>المشكلة:</strong> {{ selectedRequest.problemDescription }}</p>
+              <div v-if="selectedRequest.imagePath" class="mt-3">
+                <img :src="baseURL + selectedRequest.imagePath" class="w-full rounded-lg shadow-sm border" />
+              </div>
+            </div>
+          </template>
+
+          <!-- شهادة راتب -->
+          <template v-else-if="selectedRequest.type === 'SalaryCertificate'">
+             <div class="bg-gray-50 p-3 rounded-lg border">
+               <p><strong>الغرض:</strong> {{ selectedRequest.purpose }}</p>
+             </div>
+          </template>
         </div>
 
-        <!-- تعديل بيانات -->
-        <div v-else-if="selectedRequest.type === 'DataUpdate'">
-          <p><strong>نوع التعديل:</strong> {{ selectedRequest.updateType }}</p>
-          <p><strong>القيمة الجديدة:</strong> {{ selectedRequest.newValue }}</p>
-          <p><strong>السبب:</strong> {{ selectedRequest.reason }}</p>
+        <div class="flex justify-end mt-8">
+          <button @click="selectedRequest = null" class="bg-primary text-white px-8 py-2 rounded-xl font-bold hover:shadow-lg transition">
+            إغلاق
+          </button>
         </div>
-
-        <!-- شهادة راتب -->
-        <div v-else-if="selectedRequest.type === 'SalaryCertificate'">
-          <p><strong>الغرض:</strong> {{ selectedRequest.purpose }}</p>
-          <p><strong>الحالة:</strong> {{ selectedRequest.status }}</p>
-        </div>
-
-        <!-- صيانة -->
-        <div v-else-if="selectedRequest.type === 'Maintenance'">
-          <p><strong>اسم الجهاز:</strong> {{ selectedRequest.equipmentName }}</p>
-          <p><strong>وصف المشكلة:</strong> {{ selectedRequest.problemDescription }}</p>
-
-          <div v-if="selectedRequest.imagePath" class="mt-3">
-            <img
-              :src="baseURL + selectedRequest.imagePath"
-              class="w-40 rounded shadow"
-            />
-          </div>
-        </div>
-
       </div>
     </div>
 
+    <!-- Toast Notification -->
+    <ToastPage v-if="showToast" :message="toastMessage" :type="toastType" />
   </div>
 </template>
 
 <script>
-import Sidebar from "../components/Sidebar.vue";
-import Navbar from "../components/Navbar.vue";
+import { ref, onMounted, computed } from "vue";
+import Sidebar from "@/components/Sidebar.vue";
+import Navbar from "@/components/Navbar.vue";
+import ToastPage from "@/components/Toast.vue";
 import axios from "axios";
-import { ref, onMounted } from "vue";
 import { EyeIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/vue/24/outline';
+
 export default {
   name: "DepartmentRequestsPage",
-  components: { Sidebar, Navbar,EyeIcon,CheckCircleIcon, XCircleIcon},
+  components: { Sidebar, Navbar, ToastPage, EyeIcon, CheckCircleIcon, XCircleIcon },
 
   setup() {
-
     const displayedRequests = ref([]);
+    const searchTable = ref("");
+    const selectedRequest = ref(null);
+    const showToast = ref(false);
     const toastMessage = ref("");
     const toastType = ref("success");
-    const selectedRequest = ref(null);
 
-    // إعداد axios
+    // Axios Config
     axios.defaults.baseURL = "http://localhost:5205";
+    const baseURL = axios.defaults.baseURL;
     const token = localStorage.getItem("token");
-    if (token)
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    if (token) axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-    const baseURL = axios.defaults.baseURL; // ✅ هنا عرفنا baseURL لاستخدامه في template
-
-    const showToast = (msg, type = "success") => {
+    const triggerToast = (msg, type = "success") => {
       toastMessage.value = msg;
       toastType.value = type;
-      setTimeout(() => (toastMessage.value = ""), 3000);
-    };
-
-    const statusClass = (status) => {
-      if (
-        [
-          "مقبول",
-          "جاهزة",
-          "تمت_الموافقة",
-          "تمت-الموافقة",
-          "تم_الإصلاح"
-        ].includes(status)
-      )
-        return "text-green-600";
-
-      if (status === "مرفوض")
-        return "text-red-600";
-
-      return "text-yellow-600";
+      showToast.value = true;
+      setTimeout(() => (showToast.value = false), 3000);
     };
 
     const fetchPendingRequests = async () => {
       try {
-
         const requests = [];
+        const endpoints = [
+          { url: "/api/ExitPermit/pending-for-manager", name: "إذن خروج", type: "ExitPermit" },
+          { url: "/api/ExitPermit/hr-view", name: "إذن خروج", type: "ExitPermit" },
+          { url: "/api/DataUpdate/pending-for-my-dept", name: "تعديل بيانات", type: "DataUpdate" },
+          { url: "/api/SalaryCertificate/pending-for-my-dept", name: "شهادة راتب", type: "SalaryCertificate" },
+          { url: "/api/Maintenance/pending-for-my-dept", name: "صيانة", type: "Maintenance" }
+        ];
 
-         // 1️⃣ طلبات Exit Permit للمدير
-    try {
-      const permits = await axios.get("/api/ExitPermit/pending-for-manager");
-      requests.push(
-        ...permits.data.map(r => ({
-          ...r,
-          typeName: "إذن خروج",
-          type: "ExitPermit",
-        }))
-      );
-    } catch (err) {
-      if (err.response?.status !== 403) throw err;
-    }
-
-    // 2️⃣ طلبات Exit Permit للـ HR
-    try {
-      const hrPermits = await axios.get("/api/ExitPermit/hr-view");
-      requests.push(
-        ...hrPermits.data.map(r => ({
-          ...r,
-          typeName: "إذن خروج",
-          type: "ExitPermit",
-        }))
-      );
-    } catch (err) {
-      if (err.response?.status !== 403) throw err;
-    }
-
-        // Data Update
-        try {
-          const updates = await axios.get("/api/DataUpdate/pending-for-my-dept");
-          requests.push(
-            ...updates.data.map((r) => ({
-              ...r,
-              typeName: "تعديل بيانات",
-              type: "DataUpdate",
-            }))
-          );
-        } catch (err) {
-          if (err.response?.status !== 403) throw err;
+        for (const endpoint of endpoints) {
+          try {
+            const res = await axios.get(endpoint.url);
+            requests.push(...res.data.map(r => ({ ...r, typeName: endpoint.name, type: endpoint.type })));
+          } catch (err) {
+            if (err.response?.status !== 403) console.error(`Error fetching ${endpoint.name}`, err);
+          }
         }
-
-        // Salary Certificate
-        try {
-          const salaries = await axios.get("/api/SalaryCertificate/pending-for-my-dept");
-          requests.push(
-            ...salaries.data.map((r) => ({
-              ...r,
-              typeName: "شهادة راتب",
-              type: "SalaryCertificate",
-            }))
-          );
-        } catch (err) {
-          if (err.response?.status !== 403) throw err;
-        }
-
-        // Maintenance
-        try {
-          const maintenance = await axios.get("/api/Maintenance/pending-for-my-dept");
-          requests.push(
-            ...maintenance.data.map((r) => ({
-              ...r,
-              typeName: "صيانة",
-              type: "Maintenance",
-            }))
-          );
-        } catch (err) {
-          if (err.response?.status !== 403) throw err;
-        }
-
         displayedRequests.value = requests;
-
-        if (requests.length === 0) {
-          showToast("لا توجد طلبات حالياً أو لا توجد صلاحية عرضها", "error");
-        }
-
       } catch (err) {
-        console.error(err);
-        showToast("تعذر تحميل الطلبات ❌", "error");
+        triggerToast("تعذر تحميل الطلبات", "error");
       }
+    };
+
+    const filteredRequests = computed(() => {
+      const s = searchTable.value.toLowerCase();
+      return displayedRequests.value.filter(r => 
+        (r.employee?.fullName || "").toLowerCase().includes(s) ||
+        (r.typeName || "").toLowerCase().includes(s)
+      );
+    });
+
+    const statusClass = (status) => {
+      const successStates = ["مقبول", "جاهزة", "تمت_الموافقة", "تمت-الموافقة", "تم_الإصلاح"];
+      if (successStates.includes(status)) return "text-green-600";
+      if (status === "مرفوض") return "text-red-600";
+      return "text-yellow-600";
     };
 
     const takeDecision = async (req, approve) => {
       try {
-
         let url = "";
-
         switch (req.type) {
-
-          case "ExitPermit":
-            url = `/api/ExitPermit/manager-decision/${req.id}?approve=${approve}`;
-            break;
-
-          case "DataUpdate":
-            url = `/api/DataUpdate/decision/${req.id}?approve=${approve}`;
-            break;
-
-          case "SalaryCertificate":
-            url = `/api/SalaryCertificate/decision/${req.id}?isReady=${approve}`;
-            break;
-
-          case "Maintenance":
-            url = `/api/Maintenance/decision/${req.id}?fixedStatus=${approve}`;
-            break;
-
-          default:
-            showToast("نوع الطلب غير معروف", "error");
-            return;
+          case "ExitPermit": url = `/api/ExitPermit/manager-decision/${req.id}?approve=${approve}`; break;
+          case "DataUpdate": url = `/api/DataUpdate/decision/${req.id}?approve=${approve}`; break;
+          case "SalaryCertificate": url = `/api/SalaryCertificate/decision/${req.id}?isReady=${approve}`; break;
+          case "Maintenance": url = `/api/Maintenance/decision/${req.id}?fixedStatus=${approve}`; break;
         }
 
         await axios.post(url);
-
-        showToast("تم تنفيذ القرار بنجاح");
-
-        displayedRequests.value =
-          displayedRequests.value.filter(
-            (r) => !(r.id === req.id && r.type === req.type)
-          );
-
+        triggerToast("تم تنفيذ القرار بنجاح");
+        displayedRequests.value = displayedRequests.value.filter(r => !(r.id === req.id && r.type === req.type));
       } catch (err) {
-        console.error(err);
-
-        if (err.response?.status === 403)
-          showToast("ليس لديك صلاحية لاتخاذ هذا القرار", "error");
-        else if (err.response?.status === 401)
-          showToast("انتهت الجلسة، الرجاء تسجيل الدخول من جديد", "error");
-        else if (err.response?.status === 404)
-          showToast("الطلب غير موجود", "error");
-        else
-          showToast("فشل في تنفيذ القرار", "error");
+        triggerToast("فشل في تنفيذ القرار", "error");
       }
     };
 
-    const openDetails = (req) => {
-      selectedRequest.value = req;
-    };
+    const openDetails = (req) => { selectedRequest.value = req; };
 
-    onMounted(() => {
-      fetchPendingRequests();
-    });
+    onMounted(fetchPendingRequests);
 
     return {
-      displayedRequests,
-      statusClass,
-      takeDecision,
-      toastMessage,
-      toastType,
-      selectedRequest,
-      openDetails,
-      baseURL // ✅ رجعناه هنا لاستخدامه في template
+      displayedRequests, filteredRequests, searchTable,
+      statusClass, takeDecision, showToast, toastMessage, toastType,
+      selectedRequest, openDetails, baseURL
     };
-  },
+  }
 };
 </script>
 
 <style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
+.input { @apply bg-gray-50; }
 </style>

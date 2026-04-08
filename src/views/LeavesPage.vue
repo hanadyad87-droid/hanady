@@ -1,149 +1,171 @@
 <template>
-  <div class="flex min-h-screen bg-white" dir="rtl">
+  <div class="flex min-h-screen bg-gray-100 font-cairo" dir="rtl">
     <!-- Sidebar -->
-    <Sidebar class="fixed top-0 right-0 h-screen w-24 md:w-64 bg-primary text-white p-4 z-50" />
+    <Sidebar class="fixed top-0 right-0 h-screen w-24 md:w-64 z-50" />
 
-    <!-- المحتوى -->
-    <div class="flex-1 p-4 md:p-6 mr-24 md:mr-64">
+    <!-- Main Content -->
+    <div class="flex-1 p-6 mr-24 md:mr-64">
       <Navbar />
 
-      <!-- رأس الصفحة -->
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
-        <h3 class="text-lg font-bold">إجازاتي</h3>
-        <button 
-          @click="showLeaveModal = true"
-          class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition"
-        >
-          طلب إجازة 📤
-        </button>
-      </div>
-
-      <!-- جدول الإجازات -->
-      <div class="card p-4 md:p-6 bg-white rounded-xl shadow-lg overflow-x-auto">
-        <p class="text-right text-gray-600 mb-2">
-          رصيد الإجازات المتبقي: {{ balance }} يوم
-        </p>
-
-        <table class="min-w-full divide-y divide-gray-200 text-right">
-          <thead class="bg-navbar">
-            <tr>
-              <th class="border p-1">النوع</th>
-              <th class="border p-1">من</th>
-              <th class="border p-1">إلى</th>
-              <th class="border p-1">الأيام</th>
-              <th class="border p-1">الحالة</th>
-              <th class="border p-1">رصيد بعد الطلب</th>
-              <th class="border p-1">ملاحظات المدير</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="l in previousLeaves" :key="l.id">
-              <td class="border p-1">{{ l.leaveTypeName }}</td>
-              <td class="border p-1">{{ l.fromDate.slice(0,10) }}</td>
-              <td class="border p-1">{{ l.toDate.slice(0,10) }}</td>
-              <td class="border p-1">{{ l.totalDays }}</td>
-              <td class="border p-1">{{ l.status.replace('_',' ') }}</td>
-              <td class="border p-1">{{ l.remainingAfter }}</td>
-              <td class="border p-1">{{ l.managerNote || "-" }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Modal طلب إجازة -->
-      <div
-        v-if="showLeaveModal"
-        class="fixed inset-0 bg-black/50 flex justify-center items-center z-50 p-4 overflow-y-auto"
-      >
-        <div class="bg-white rounded-xl shadow-lg w-full max-w-2xl p-6 relative">
-          <button 
-            @click="showLeaveModal = false"
-            class="absolute top-3 left-3 text-gray-500 hover:text-gray-700 text-lg"
+      <!-- Card -->
+      <div class="bg-white rounded-2xl shadow-lg p-6 mt-4">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+          <div>
+            <h2 class="text-xl font-bold text-gray-800">إجازاتي</h2>
+            <p class="text-sm text-gray-500 mt-1">
+              رصيد الإجازات المتبقي: 
+              <span class="font-bold text-primary">{{ balance }} يوم</span>
+            </p>
+          </div>
+          <button
+            @click="openAddModal"
+            class="bg-primary hover:bg-green-700 text-white px-5 py-2 rounded-xl shadow transition-all flex items-center gap-2"
           >
-            ✖
+            <span>+</span> طلب إجازة جديد
           </button>
+        </div>
 
-          <h3 class="text-lg font-bold text-right mb-4">طلب إجازة</h3>
+        <!-- Table -->
+        <div class="overflow-x-auto rounded-lg border border-gray-200">
+          <table class="min-w-full text-right divide-y divide-gray-200">
+            <thead class="bg-navbar">
+              <tr>
+                <th class="p-3 text-sm font-semibold text-gray-600">النوع</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">من</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">إلى</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">الأيام</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">الحالة</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">الرصيد المتبقي</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">ملاحظات المدير</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr v-for="l in previousLeaves" :key="l.id" class="hover:bg-gray-50 transition">
+                <td class="p-3 text-sm font-medium text-gray-700">{{ l.leaveType }}</td>
+                <td class="p-3 text-sm text-gray-600">{{ formatDate(l.fromDate) }}</td>
+                <td class="p-3 text-sm text-gray-600">{{ formatDate(l.toDate) }}</td>
+                <td class="p-3 text-sm font-bold text-primary">{{ l.totalDays }}</td>
+                <td class="p-3 text-sm">
+                  <span 
+                    :class="statusClass(l.status)"
+                    class="px-2 py-1 rounded-md text-xs font-bold"
+                  >
+                    {{ formatStatus(l.status) }}
+                  </span>
+                </td>
+                <td class="p-3 text-sm text-gray-500">{{ l.remainingAfter }}</td>
+                <td class="p-3 text-sm text-gray-400 italic">{{ l.managerNote || "-" }}</td>
+              </tr>
+              <tr v-if="!previousLeaves.length">
+                <td colspan="7" class="text-center py-10 text-gray-400 italic">لا توجد طلبات سابقة</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
 
-          <form class="grid grid-cols-1 md:grid-cols-2 gap-3" @submit.prevent="submitLeave">
-            <!-- من تاريخ -->
+    <!-- Modal طلب إجازة -->
+    <div v-if="showLeaveModal" class="fixed inset-0 bg-black/50 flex justify-center items-center z-[60] p-4">
+      <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl relative">
+        <h3 class="font-bold text-xl mb-6 text-gray-800 border-b pb-2">تقديم طلب إجازة</h3>
+
+        <form @submit.prevent="submitLeave" class="space-y-4">
+          <!-- نوع الإجازة -->
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-700">نوع الإجازة*</label>
+            <select 
+              v-model="leaveForm.typeId"
+              class="w-full p-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-primary bg-gray-50"
+              required
+            >
+              <option disabled value="">اختر النوع...</option>
+              <option v-for="t in leaveTypes" :key="t.Id" :value="t.Id">{{ t.Name }}</option>
+            </select>
+          </div>
+
+          <!-- التواريخ -->
+          <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-right text-xs mb-1">من تاريخ*</label>
+              <label class="block text-sm font-medium mb-1 text-gray-700">من تاريخ*</label>
               <input 
                 type="date" 
                 v-model="leaveForm.fromDate" 
                 @change="calculateDays"
                 :min="currentYearStart"
-                :max="currentYearEnd"
-                class="w-full p-1.5 border rounded-lg text-right text-sm" 
+                class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none bg-gray-50"
+                required
               />
             </div>
-
-            <!-- نوع الإجازة -->
             <div>
-              <label class="block text-right text-xs mb-1">نوع الإجازة*</label>
-              <select v-model="leaveForm.typeId"
-                class="w-full p-1.5 border rounded-lg text-right text-sm">
-                <option disabled value="">اختر نوع الإجازة</option>
-                <option v-for="t in leaveTypes" :key="t.Id" :value="t.Id">
-                  {{ t.Name }}
-                </option>
-              </select>
-            </div>
-
-            <!-- إلى تاريخ -->
-            <div>
-              <label class="block text-right text-xs mb-1">إلى تاريخ*</label>
+              <label class="block text-sm font-medium mb-1 text-gray-700">إلى تاريخ*</label>
               <input 
                 type="date" 
                 v-model="leaveForm.toDate" 
                 @change="calculateDays"
                 :min="leaveForm.fromDate || currentYearStart"
-                :max="currentYearEnd"
-                class="w-full p-1.5 border rounded-lg text-right text-sm" 
+                class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none bg-gray-50"
+                required
               />
             </div>
+          </div>
 
-            <!-- عدد الأيام -->
-            <div>
-              <label class="block text-right text-xs mb-1">عدد الأيام</label>
-              <input type="number" readonly v-model.number="leaveForm.days"
-                class="w-full p-1.5 border rounded-lg bg-gray-100 text-right text-sm" />
-            </div>
+          <!-- عدد الأيام (عرض فقط) -->
+          <div class="bg-blue-50 p-3 rounded-lg flex justify-between items-center">
+            <span class="text-sm text-blue-700 font-medium">إجمالي الأيام المحسوبة:</span>
+            <span class="text-lg font-bold text-blue-800">{{ leaveForm.days }} يوم</span>
+          </div>
 
-            <!-- إرفاق النموذج -->
-            <div v-if="selectedLeaveType?.needsForm" class="md:col-span-2">
-              <label class="block text-right text-xs mb-1">إرفاق النموذج*</label>
-              <input type="file" @change="onFileChange"
-                class="w-full p-1.5 border rounded-lg text-sm" />
-            </div>
+          <!-- إرفاق ملف -->
+          <div v-if="selectedLeaveType?.needsForm">
+            <label class="block text-sm font-medium mb-1 text-gray-700">إرفاق الشهادة/النموذج*</label>
+            <input 
+              type="file" 
+              @change="onFileChange"
+              class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-primary file:text-white cursor-pointer"
+              required
+            />
+          </div>
 
-            <!-- ملاحظات -->
-            <div class="md:col-span-2">
-              <label class="block text-right text-xs mb-1">ملاحظات</label>
-              <textarea v-model="leaveForm.notes"
-                class="w-full p-1.5 border rounded-lg text-right text-sm"></textarea>
-            </div>
+          <!-- ملاحظات -->
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-700">ملاحظات إضافية</label>
+            <textarea 
+              v-model="leaveForm.notes"
+              rows="2"
+              class="w-full p-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-primary bg-gray-50"
+            ></textarea>
+          </div>
 
-            <div class="md:col-span-2 text-center">
-              <button 
-                :disabled="leaveForm.days > balance || !leaveForm.typeId || !leaveForm.fromDate || !leaveForm.toDate"
-                class="bg-primary disabled:opacity-50 text-white px-6 py-2 rounded-xl font-semibold shadow-md transition"
-              >
-                إرسال الطلب
-              </button>
-            </div>
-          </form>
-
-          <p v-if="leaveForm.days > balance && leaveForm.days > 0"
-            class="text-red-600 text-right mt-1 font-bold text-sm">
-            عدد الأيام أكبر من الرصيد المتاح ({{ balance }} يوم متبقي)
+          <!-- تنبيه الرصيد -->
+          <p v-if="leaveForm.days > balance" class="text-red-500 text-xs font-bold bg-red-50 p-2 rounded border border-red-100">
+             ⚠️ الرصيد غير كافٍ (المتاح: {{ balance }} يوم)
           </p>
-        </div>
-      </div>
 
-      <Toast v-if="toastMessage" :message="toastMessage" :type="toastType" />
+          <!-- الأزرار -->
+          <div class="flex justify-end gap-3 mt-6">
+            <button 
+              type="button" 
+              @click="closeModal" 
+              class="bg-gray-200 px-5 py-2 rounded-lg font-medium hover:bg-gray-300 transition"
+            >
+              إلغاء
+            </button>
+            <button 
+              type="submit"
+              :disabled="leaveForm.days > balance || !leaveForm.typeId || leaveForm.days <= 0"
+              class="bg-primary text-white px-8 py-2 rounded-lg font-bold hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              إرسال الطلب
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
+
+    <!-- Toast -->
+    <Toast v-if="toastMessage" :message="toastMessage" :type="toastType" />
   </div>
 </template>
 
@@ -157,8 +179,7 @@ export default {
   components: { Sidebar, Navbar, Toast },
 
   data() {
-    const now = new Date();
-    const year = now.getFullYear();
+    const year = new Date().getFullYear();
     return {
       leaveTypes: [],
       previousLeaves: [],
@@ -169,7 +190,6 @@ export default {
       toastType: "success",
       showLeaveModal: false,
       currentYearStart: `${year}-01-01`,
-      currentYearEnd: `${year}-12-31`
     };
   },
 
@@ -185,27 +205,48 @@ export default {
   },
 
   methods: {
+    formatDate(d) {
+      return d ? d.slice(0, 10) : "---";
+    },
+
+    formatStatus(status) {
+      return status ? status.replace(/_/g, " ") : "قيد الانتظار";
+    },
+
+    statusClass(status) {
+      switch (status) {
+        case "Approved": return "bg-green-100 text-green-700";
+        case "Rejected": return "bg-red-100 text-red-700";
+        case "Pending": return "bg-yellow-100 text-yellow-700";
+        default: return "bg-gray-100 text-gray-700";
+      }
+    },
+
+    openAddModal() {
+      this.showLeaveModal = true;
+    },
+
+    closeModal() {
+      this.showLeaveModal = false;
+      this.resetForm();
+    },
+
+    resetForm() {
+      this.leaveForm = { typeId: "", fromDate: "", toDate: "", days: 0, notes: "" };
+      this.attachedFile = null;
+    },
+
     onFileChange(e) {
       const file = e.target.files[0];
-      if (!file) return;
-      const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "application/pdf"];
-      if (!allowedTypes.includes(file.type)) {
-        this.toastMessage = "نوع الملف غير مسموح. استخدم صورة أو PDF فقط.";
-        this.toastType = "error";
-        this.attachedFile = null;
-        return;
-      }
-      this.attachedFile = file;
-      this.toastMessage = "";
+      if (file) this.attachedFile = file;
     },
 
     calculateDays() {
       if (this.leaveForm.fromDate && this.leaveForm.toDate) {
         const from = new Date(this.leaveForm.fromDate);
         const to = new Date(this.leaveForm.toDate);
-        this.leaveForm.days = Math.ceil((to - from) / 86400000) + 1;
-      } else {
-        this.leaveForm.days = 0;
+        const diff = Math.ceil((to - from) / 86400000) + 1;
+        this.leaveForm.days = diff > 0 ? diff : 0;
       }
     },
 
@@ -215,58 +256,27 @@ export default {
         this.leaveTypes = res.data.map(t => ({
           Id: Number(t.id),
           Name: t.اسم_الاجازة,
-          needsForm: t.تحتاج_نموذج,
-          deductFromBalance: t.مخصومة_من_الرصيد
+          needsForm: t.تحتاج_نموذج
         }));
       } catch (err) {
-        this.toastMessage = "خطأ في جلب أنواع الإجازة";
-        this.toastType = "error";
+        this.showToast("خطأ في تحميل أنواع الإجازات", "error");
       }
     },
 
-async fetchPreviousLeaves() {
-  try {
-    const res = await api.get("/leave-requests/my-requests");
-    const requests = res.data.requests;
-
-    // ترتيب حسب ID من الأكبر (آخر طلب) إلى الأصغر
-    const sortedRequests = requests.sort((a, b) => b.id - a.id);
-
-    this.previousLeaves = sortedRequests.map(l => ({
-      id: l.id,
-      leaveTypeName: l.leaveType || "غير محدد",
-      fromDate: l.fromDate,
-      toDate: l.toDate,
-      totalDays: l.totalDays ?? 0, // حتى لو صفر
-      status: l.status,
-      managerNote: l.managerNote || "-",
-      // الرصيد الحالي يظهر كما هو من الباكند
-      remainingAfter: res.data.balance
-    }));
-
-    this.balance = res.data.balance;
-  } catch (err) {
-    this.toastMessage = "خطأ في جلب الإجازات السابقة";
-    this.toastType = "error";
-  }
-},
+    async fetchPreviousLeaves() {
+      try {
+        const res = await api.get("/leave-requests/my-requests");
+        this.previousLeaves = res.data.requests.sort((a, b) => b.id - a.id);
+        this.balance = res.data.balance;
+      } catch (err) {
+        this.showToast("فشل في تحديث قائمة الطلبات", "error");
+      }
+    },
 
     async submitLeave() {
-      const type = this.selectedLeaveType;
-      if (!type || !this.leaveForm.fromDate || !this.leaveForm.toDate) {
-        this.toastMessage = "الرجاء إكمال جميع الحقول المطلوبة";
-        this.toastType = "error";
-        return;
-      }
-      if (type.needsForm && !this.attachedFile) {
-        this.toastMessage = "هذا النوع يتطلب إرفاق نموذج";
-        this.toastType = "error";
-        return;
-      }
-
       try {
         const formData = new FormData();
-        formData.append("LeaveTypeId", type.Id);
+        formData.append("LeaveTypeId", this.leaveForm.typeId);
         formData.append("FromDate", this.leaveForm.fromDate);
         formData.append("ToDate", this.leaveForm.toDate);
         formData.append("Notes", this.leaveForm.notes || "");
@@ -276,19 +286,23 @@ async fetchPreviousLeaves() {
           headers: { "Content-Type": "multipart/form-data" }
         });
 
-        this.toastMessage = "تم إرسال الطلب بنجاح ✅";
-        this.toastType = "success";
-        this.showLeaveModal = false;
-        this.leaveForm = { typeId: "", fromDate: "", toDate: "", days: 0, notes: "" };
-        this.attachedFile = null;
-
+        this.showToast("تم إرسال طلبك بنجاح");
+        this.closeModal();
         await this.fetchPreviousLeaves();
       } catch (err) {
-        console.error(err);
-        this.toastMessage = err.response?.data || "حدث خطأ أثناء الإرسال ❌";
-        this.toastType = "error";
+        this.showToast(err.response?.data || "حدث خطأ أثناء الإرسال", "error");
       }
+    },
+
+    showToast(msg, type = "success") {
+      this.toastMessage = msg;
+      this.toastType = type;
+      setTimeout(() => (this.toastMessage = ""), 3000);
     }
   }
 };
 </script>
+
+<style scoped>
+.font-cairo { font-family: 'Cairo', sans-serif; }
+</style>

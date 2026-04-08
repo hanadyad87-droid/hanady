@@ -1,180 +1,181 @@
 <template>
-  <div class="flex min-h-screen bg-white" dir="rtl">
-
+  <div class="flex min-h-screen bg-gray-100 font-cairo" dir="rtl">
     <!-- Sidebar -->
     <SidebarPage class="fixed top-0 right-0 h-screen w-24 md:w-64 z-50" />
 
-    <!-- المحتوى الرئيسي -->
+    <!-- Main content -->
     <div class="flex-1 p-6 mr-24 md:mr-64">
-
-      <!-- Navbar -->
       <Navbar />
 
-      <!-- كارد الطلبات -->
-      <div class="card p-6 bg-white rounded-xl shadow-lg mt-4">
-        <h3 class="text-xl font-bold text-bg-primary mb-4 text-right">الطلبات الخاصة بي</h3>
-
-        <!-- زر فتح المودال -->
-        <div class="flex justify-end mb-4">
-          <button @click="showModal = true"
-                  class="bg-primary hover:bg-green-700 text-white px-4 py-2 rounded-xl font-semibold shadow-md">
-            تقديم طلب جديد
+      <!-- Card -->
+      <div class="bg-white rounded-2xl shadow-lg p-6 mt-4">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+          <h2 class="text-xl font-bold text-gray-800">الطلبات الخاصة بي</h2>
+          <button
+            @click="showModal = true"
+            class="bg-primary hover:bg-green-700 text-white px-4 py-2 rounded-xl shadow transition-all flex items-center gap-2"
+          >
+            <span>+</span> تقديم طلب جديد
           </button>
         </div>
 
-        <!-- جدول الطلبات -->
-        <div class="overflow-x-auto">
-         <table class="min-w-full divide-y divide-gray-200 text-right">
-  <thead class="bg-navbar">
-    <tr>
-      <th class="px-4 py-2 text-sm font-medium text-gray-700">نوع الطلب</th>
-      <th class="px-4 py-2 text-sm font-medium text-gray-700">التاريخ</th>
-      <th class="px-4 py-2 text-sm font-medium text-gray-700">الحالة</th>
-      <th class="px-4 py-2 text-sm font-medium text-gray-700">الإجراءات</th>
-    </tr>
-  </thead>
-  <tbody class="divide-y divide-gray-200">
-    <tr v-for="req in displayedRequests" :key="req.id" class="hover:bg-gray-50">
-      <td class="px-4 py-2 text-sm text-gray-700">{{ req.typeName }}</td>
-      <td class="px-4 py-2 text-sm text-gray-700">{{ req.date || req.createdAt }}</td>
-      <td class="px-4 py-2 text-sm"
-          :class="{
-            'text-green-600': ['مقبول','جاهزة','تمت_الموافقة','تم_الإصلاح'].includes(req.status),
-            'text-red-600': req.status==='مرفوض',
-            'text-yellow-600': ['قيد_الانتظار','تحت المراجعة'].includes(req.status)
-          }">
-        {{ req.status }}
-      </td>
-      <td class="px-4 py-2 text-sm">
-       <button
-    @click="openDetails(req)"
-    title="عرض التفاصيل"
-    class="text-blue-500 hover:text-blue-700"
-  >
-    <EyeIcon class="w-6 h-6" />
-  </button>
-      </td>
-    </tr>
-  </tbody>
-</table>
+        <!-- Table -->
+        <div class="overflow-x-auto rounded-lg border border-gray-200">
+          <table class="min-w-full text-right divide-y divide-gray-200">
+            <thead class="bg-navbar">
+              <tr>
+                <th class="p-3 text-sm font-semibold text-gray-600">نوع الطلب</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">التاريخ</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">الحالة</th>
+                <th class="p-3 text-sm font-semibold text-gray-600 text-center">الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr v-for="req in displayedRequests" :key="req.id" class="hover:bg-gray-50 transition">
+                <td class="p-3 text-sm font-medium">{{ req.typeName }}</td>
+                <td class="p-3 text-sm text-gray-500">{{ formatDate(req.date || req.createdAt) }}</td>
+                <td class="p-3 text-sm">
+                  <span :class="statusBadgeClass(req.status)" class="px-2 py-1 rounded-md text-xs font-bold">
+                    {{ req.status }}
+                  </span>
+                </td>
+                <td class="p-3 text-sm text-center">
+                  <button @click="openDetails(req)" class="text-blue-600 hover:scale-110 transition inline-block">
+                    <EyeIcon class="w-5 h-5" />
+                  </button>
+                </td>
+              </tr>
+              <tr v-if="!displayedRequests.length">
+                <td colspan="4" class="text-center py-10 text-gray-400 italic">لا توجد طلبات متاحة حالياً</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-
       </div>
     </div>
 
-    <!-- مودال تقديم طلب جديد -->
-    <div v-if="showModal" class="fixed inset-0 bg-black/40 flex items-start justify-center z-50 p-4 pt-20">
-      <div class="bg-white p-6 rounded-xl w-full max-w-lg shadow-lg space-y-4">
+    <!-- Modal تقديم طلب جديد -->
+    <div v-if="showModal" class="fixed inset-0 bg-black/50 flex justify-center items-center z-[60] p-4">
+      <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl overflow-y-auto max-h-[90vh]">
+        <h3 class="font-bold text-xl mb-4 text-gray-800 border-b pb-2">تقديم طلب جديد</h3>
 
-        <h2 class="text-lg font-bold text-green-900">تقديم طلب جديد</h2>
+        <div class="space-y-4">
+          <!-- اختيار نوع الطلب -->
+          <div>
+            <label class="block text-sm font-medium mb-1">نوع الطلب</label>
+            <select v-model="selectedRequestType" class="input w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-primary">
+              <option value="">اختر نوع الطلب</option>
+              <option value="update">طلب تعديل بيانات</option>
+              <option value="salaryCertificate">طلب شهادة راتب</option>
+              <option value="permission">طلب إذن خروج</option>
+              <option value="maintenance">طلب صيانة</option>
+            </select>
+          </div>
 
-        <!-- اختيار نوع الطلب -->
-        <div class="flex flex-col">
-          <label class="text-sm text-gray-600 mb-1">نوع الطلب</label>
-          <select v-model="selectedRequestType" class="input">
-            <option value="">اختر نوع الطلب</option>
-            <option value="update">طلب تعديل بيانات</option>
-            <option value="salaryCertificate">طلب شهادة راتب</option>
-            <option value="permission">طلب إذن خروج</option>
-            <option value="maintenance">طلب صيانة</option>
-          </select>
+          <!-- نموذج تعديل البيانات -->
+          <div v-if="selectedRequestType === 'update'" class="space-y-3 p-3 bg-gray-50 rounded-lg">
+            <div>
+              <label class="block text-sm font-medium mb-1">نوع التعديل</label>
+              <select v-model="form.updateType" class="input w-full p-2 border rounded-lg bg-white">
+                <option value="الاسم_الكامل">الاسم الكامل</option>
+                <option value="الإدارة">الإدارة</option>
+                <option value="المسمى_الوظيفي">المسمى الوظيفي</option>
+                <option value="الرقم_الوطني">الرقم الوطني</option>
+                <option value="رقم_الهاتف_الأول">رقم الهاتف 1</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">القيمة الجديدة</label>
+              <input v-model="form.newValue" type="text" class="input w-full p-2 border rounded-lg bg-white" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">السبب</label>
+              <textarea v-model="form.reason" rows="2" class="input w-full p-2 border rounded-lg bg-white"></textarea>
+            </div>
+          </div>
+
+          <!-- شهادة راتب -->
+          <div v-if="selectedRequestType === 'salaryCertificate'" class="p-3 bg-gray-50 rounded-lg">
+            <label class="block text-sm font-medium mb-1">السبب</label>
+            <input v-model="form.purpose" type="text" class="input w-full p-2 border rounded-lg bg-white" placeholder="مثلاً: مصرف الوحدة" />
+          </div>
+
+          <!-- إذن خروج -->
+          <div v-if="selectedRequestType === 'permission'" class="space-y-3 p-3 bg-gray-50 rounded-lg">
+            <label class="block text-sm font-medium mb-1">نوع الإذن</label>
+            <div class="flex flex-wrap gap-2 mb-2">
+              <label class="flex items-center gap-1 text-xs">
+                <input type="radio" value="خروج_شخصي" v-model="form.permitType" class="accent-primary" /> شخصي
+              </label>
+              <label class="flex items-center gap-1 text-xs">
+                <input type="radio" value="خروج_عاجل" v-model="form.permitType" class="accent-primary" /> عاجل
+              </label>
+              <label class="flex items-center gap-1 text-xs">
+                <input type="radio" value="خروج_طبي" v-model="form.permitType" class="accent-primary" /> طبي
+              </label>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <input v-model="form.permitDate" type="date" class="input w-full p-2 border rounded-lg text-xs" />
+              <input v-model="form.permitTime" type="time" class="input w-full p-2 border rounded-lg text-xs" />
+            </div>
+            <textarea v-model="form.reason" placeholder="السبب..." rows="2" class="input w-full p-2 border rounded-lg bg-white"></textarea>
+          </div>
+
+          <!-- صيانة -->
+          <div v-if="selectedRequestType === 'maintenance'" class="space-y-3 p-3 bg-gray-50 rounded-lg">
+            <input v-model="form.equipmentName" placeholder="اسم الجهاز" class="input w-full p-2 border rounded-lg bg-white" />
+            <textarea v-model="form.problemDescription" placeholder="وصف المشكلة" rows="2" class="input w-full p-2 border rounded-lg bg-white"></textarea>
+            <input type="file" @change="onFileChange" class="w-full text-xs text-gray-500 file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-primary file:text-white" />
+          </div>
         </div>
 
-        <!-- نموذج حسب النوع -->
-        <div v-if="selectedRequestType==='update'" class="grid grid-cols-1 gap-2">
-          <label>نوع التعديل</label>
-          <select v-model="form.updateType" class="input">
-            <option value="الاسم_الكامل">الاسم الكامل</option>
-            <option value="الإدارة">الإدارة</option>
-            <option value="المسمى_الوظيفي">المسمى الوظيفي</option>
-            <option value="الرقم_الوطني">الرقم الوطني</option>
-            <option value="رقم_الهاتف_الأول">رقم الهاتف 1</option>
-            <option value="رقم_الهاتف_الثاني">رقم الهاتف 2</option>
-          </select>
-          <label>القيمة الجديدة</label>
-          <input v-model="form.newValue" type="text" class="input"/>
-          <label>السبب</label>
-          <textarea v-model="form.reason" rows="3" class="input"></textarea>
+        <div class="flex justify-end gap-3 mt-8">
+          <button @click="showModal = false" class="bg-gray-200 px-5 py-2 rounded-lg font-medium hover:bg-gray-300 transition">إلغاء</button>
+          <button @click="submitRequest" class="bg-primary text-white px-8 py-2 rounded-lg font-bold hover:shadow-lg transition">إرسال الطلب</button>
         </div>
-
-        <div v-if="selectedRequestType==='salaryCertificate'">
-          <label>الغرض</label>
-          <input v-model="form.purpose" type="text" class="input"/>
-        </div>
-
-        <div v-if="selectedRequestType==='permission'" class="grid grid-cols-1 gap-2">
-          <label>نوع الإذن</label>
-          <select v-model="form.permitType" class="input">
-            <option value="خروج_عاجل">خروج عاجل</option>
-            <option value="خروج_شخصي">خروج شخصي</option>
-            <option value="خروج_طبي">خروج طبي</option>
-          </select>
-          <label>التاريخ</label>
-          <input v-model="form.permitDate" type="date" class="input"/>
-          <label>الوقت</label>
-          <input v-model="form.permitTime" type="time" class="input"/>
-          <label>السبب</label>
-          <textarea v-model="form.reason" rows="2" class="input"></textarea>
-        </div>
-
-        <div v-if="selectedRequestType==='maintenance'" class="grid grid-cols-1 gap-2">
-          <label>اسم الجهاز</label>
-          <input v-model="form.equipmentName" type="text" class="input"/>
-          <label>وصف المشكلة</label>
-          <textarea v-model="form.problemDescription" rows="3" class="input"></textarea>
-          <label>رفع صورة (اختياري)</label>
-          <input type="file" @change="onFileChange" class="input"/>
-        </div>
-
-        <div class="flex justify-end gap-2 mt-2">
-          <button @click="submitRequest" class="bg-primary text-white px-4 py-2 rounded-xl hover:bg-green-700 font-semibold">إرسال</button>
-          <button @click="showModal=false" class="bg-gray-300 px-4 py-2 rounded-xl hover:bg-gray-400 font-semibold">إلغاء</button>
-        </div>
-
       </div>
     </div>
 
-   <!-- مودال عرض تفاصيل الطلب -->
-<div v-if="showDetailModal" class="fixed inset-0 bg-black/40 flex items-start justify-center z-50 p-4 pt-20">
-  <div class="bg-white p-6 rounded-xl w-full max-w-lg shadow-lg space-y-4 relative">
-    
-    <!-- زر الإغلاق X أعلى المودال -->
-    <button @click="showDetailModal = false" 
-            class="absolute top-3 left-3 text-gray-500 hover:text-gray-700 text-lg">
-      ✖
-    </button>
+    <!-- مودال عرض تفاصيل الطلب (نفس نمط التعديل) -->
+    <div v-if="showDetailModal" class="fixed inset-0 bg-black/50 flex justify-center items-center z-[70] p-4">
+      <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl relative">
+        <button @click="showDetailModal = false" class="absolute top-4 left-4 text-gray-400 hover:text-red-500 transition text-xl">✖</button>
+        <h3 class="font-bold text-xl mb-6 text-gray-800 border-b pb-2">تفاصيل الطلب</h3>
 
-    <h2 class="text-lg font-bold text-green-900">تفاصيل الطلب</h2>
-
-    <div v-if="detailRequest" class="space-y-2">
-      <p><strong>نوع الطلب:</strong> {{ detailRequest.typeName }}</p>
-      <p v-if="detailRequest.status"><strong>الحالة:</strong> {{ detailRequest.status }}</p>
-      <p v-if="detailRequest.reason"><strong>السبب:</strong> {{ detailRequest.reason }}</p>
-      <p v-if="detailRequest.newValue"><strong>القيمة الجديدة:</strong> {{ detailRequest.newValue }}</p>
-      <p v-if="detailRequest.purpose"><strong>الغرض:</strong> {{ detailRequest.purpose }}</p>
-      <p v-if="detailRequest.permitType"><strong>نوع الإذن:</strong> {{ detailRequest.permitType }}</p>
-      <p v-if="detailRequest.permitDate"><strong>التاريخ:</strong> {{ detailRequest.permitDate }}</p>
-      <p v-if="detailRequest.permitTime"><strong>الوقت:</strong> {{ detailRequest.permitTime }}</p>
-      <p v-if="detailRequest.equipmentName"><strong>اسم الجهاز:</strong> {{ detailRequest.equipmentName }}</p>
-      <p v-if="detailRequest.problemDescription"><strong>وصف المشكلة:</strong> {{ detailRequest.problemDescription }}</p>
-      <p v-if="detailRequest.imagePath">
-        <strong>الصورة:</strong>
-        <img :src="detailRequest.imagePath" class="mt-2 rounded-lg max-h-60 w-full object-contain" />
-      </p>
+        <div v-if="detailRequest" class="space-y-4">
+          <div class="grid grid-cols-2 border-b pb-2">
+            <span class="text-gray-500 text-sm">نوع الطلب:</span>
+            <span class="text-sm font-bold">{{ detailRequest.typeName }}</span>
+          </div>
+          <div class="grid grid-cols-2 border-b pb-2">
+            <span class="text-gray-500 text-sm">الحالة:</span>
+            <span :class="statusBadgeClass(detailRequest.status)" class="text-xs px-2 py-0.5 rounded w-fit font-bold">
+              {{ detailRequest.status }}
+            </span>
+          </div>
+          <div v-if="detailRequest.reason" class="border-b pb-2">
+            <span class="text-gray-500 text-sm block mb-1">السبب:</span>
+            <p class="text-sm bg-gray-50 p-2 rounded">{{ detailRequest.reason }}</p>
+          </div>
+          <!-- صور الصيانة -->
+          <div v-if="detailRequest.imagePath" class="pt-2">
+            <span class="text-gray-500 text-sm block mb-2">المرفقات:</span>
+            <img :src="detailRequest.imagePath" class="rounded-lg max-h-48 w-full object-cover shadow-sm border" />
+          </div>
+          <!-- بيانات أخرى بناءً على النوع -->
+          <div v-if="detailRequest.newValue" class="text-sm">
+             <span class="text-gray-500">القيمة الجديدة:</span> {{ detailRequest.newValue }}
+          </div>
+        </div>
+        <div class="mt-8">
+          <button @click="showDetailModal = false" class="w-full bg-gray-100 py-2 rounded-lg font-bold hover:bg-gray-200 transition">إغلاق</button>
+        </div>
+      </div>
     </div>
-
-  </div>
-</div>
 
     <!-- Toast -->
-    <transition name="fade">
-      <div v-if="toastMessage" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-               px-6 py-3 rounded-lg shadow-lg text-white text-center z-[999]"
-           :class="toastType === 'success' ? 'bg-green-600' : 'bg-red-600'">
-        {{ toastMessage }}
-      </div>
-    </transition>
-
+    <Toast v-if="toastMessage" :message="toastMessage" :type="toastType" />
   </div>
 </template>
 
@@ -183,21 +184,28 @@ import { ref, onMounted } from "vue";
 import axios from "axios";
 import SidebarPage from "../components/Sidebar.vue";
 import Navbar from "../components/Navbar.vue";
+import Toast from "../components/Toast.vue";
 import { EyeIcon } from '@heroicons/vue/24/outline';
+
 export default {
   name: "EmployeeRequestsPage",
-  components: { SidebarPage, Navbar,EyeIcon},
+  components: { SidebarPage, Navbar, EyeIcon, Toast },
   setup() {
     const showModal = ref(false);
+    const showDetailModal = ref(false);
+    const detailRequest = ref(null);
     const selectedRequestType = ref("");
     const displayedRequests = ref([]);
-    const allRequests = ref([]);
+    
+    const toastMessage = ref('');
+    const toastType = ref('success');
+
     const form = ref({
-      updateType: "",
+      updateType: "الاسم_الكامل",
       newValue: "",
       reason: "",
       purpose: "",
-      permitType: "",
+      permitType: "خروج_شخصي",
       permitDate: "",
       permitTime: "",
       equipmentName: "",
@@ -205,28 +213,25 @@ export default {
       imageFile: null
     });
 
-    const toastMessage = ref('');
-    const toastType = ref('success');
-    const showToast = (msg, type='success') => {
+    const showToast = (msg, type = 'success') => {
       toastMessage.value = msg;
       toastType.value = type;
       setTimeout(() => toastMessage.value = '', 3000);
     };
 
-    // المودال عرض التفاصيل
-    const showDetailModal = ref(false);
-    const detailRequest = ref(null);
-    const openDetails = (req) => {
-      detailRequest.value = req;
-      showDetailModal.value = true;
+    const statusBadgeClass = (status) => {
+      if (['مقبول', 'جاهزة', 'تمت_الموافقة', 'تم_الإصلاح'].includes(status)) return 'bg-green-100 text-green-700';
+      if (status === 'مرفوض') return 'bg-red-100 text-red-700';
+      return 'bg-yellow-100 text-yellow-700';
     };
 
-    // ضبط الـ baseURL
-    axios.defaults.baseURL = "http://localhost:5205/api";
-    axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem('token')}`;
+    const formatDate = (d) => d ? d.split("T")[0] : "---";
 
     const fetchAllRequests = async () => {
       try {
+        axios.defaults.baseURL = "http://localhost:5205/api";
+        axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem('token')}`;
+
         const [updates, salaries, permits, maintenance] = await Promise.all([
           axios.get("/DataUpdate/my-requests"),
           axios.get("/SalaryCertificate/my-requests"),
@@ -234,91 +239,75 @@ export default {
           axios.get("/Maintenance/my-requests")
         ]);
 
-        allRequests.value = [
-          ...updates.data.map(r => ({ ...r, typeName:"طلب تعديل بيانات", type:"update" })),
-          ...salaries.data.map(r => ({ ...r, typeName:"طلب شهادة راتب", type:"salaryCertificate" })),
-          ...permits.data.map(r => ({ ...r, typeName:"طلب إذن خروج", type:"permission" })),
-          ...maintenance.data.map(r => ({ ...r, typeName:"طلب صيانة", type:"maintenance" }))
-        ];
-        displayedRequests.value = allRequests.value;
-      } catch(err) {
-        console.error(err);
-        showToast('تعذر تحميل الطلبات ❌','error');
+        displayedRequests.value = [
+          ...updates.data.map(r => ({ ...r, typeName: "تعديل بيانات" })),
+          ...salaries.data.map(r => ({ ...r, typeName: "شهادة راتب" })),
+          ...permits.data.map(r => ({ ...r, typeName: "إذن خروج" })),
+          ...maintenance.data.map(r => ({ ...r, typeName: "طلب صيانة" }))
+        ].sort((a, b) => b.id - a.id);
+      } catch (err) {
+        showToast('تعذر تحميل البيانات', 'error');
       }
     };
 
     const submitRequest = async () => {
-      if(!selectedRequestType.value){
-        showToast('اختر نوع الطلب أولاً ❌','error');
-        return;
-      }
+      if (!selectedRequestType.value) return showToast('اختر نوع الطلب', 'error');
+      
       try {
-        let url="", payload=null;
-        switch(selectedRequestType.value){
-          case "update":
-            url="/DataUpdate/submit";
-            payload = new FormData();
-            payload.append("UpdateType", form.value.updateType);
-            payload.append("NewValue", form.value.newValue);
-            payload.append("Reason", form.value.reason);
-            break;
-          case "salaryCertificate":
-            url="/SalaryCertificate/submit";
-            payload = { Purpose: form.value.purpose };
-            break;
-          case "permission":
-            url="/ExitPermit/create";
-            payload = new FormData();
-            payload.append("PermitType", form.value.permitType);
-            payload.append("PermitDate", form.value.permitDate);
-            payload.append("PermitTime", form.value.permitTime);
-            payload.append("Reason", form.value.reason);
-            break;
-          case "maintenance":
-            url="/Maintenance/submit";
-            payload = new FormData();
-            payload.append("EquipmentName", form.value.equipmentName);
-            payload.append("ProblemDescription", form.value.problemDescription);
-            if(form.value.imageFile) payload.append("ImageFile", form.value.imageFile);
-            break;
+        let url = "", payload = null;
+        const config = { headers: { 'Content-Type': 'multipart/form-data' } };
+
+        if (selectedRequestType.value === 'update') {
+          url = "/DataUpdate/submit";
+          payload = new FormData();
+          payload.append("UpdateType", form.value.updateType);
+          payload.append("NewValue", form.value.newValue);
+          payload.append("Reason", form.value.reason);
+        } else if (selectedRequestType.value === 'salaryCertificate') {
+          url = "/SalaryCertificate/submit";
+          payload = { Purpose: form.value.purpose };
+        } else if (selectedRequestType.value === 'permission') {
+          url = "/ExitPermit/create";
+          payload = new FormData();
+          payload.append("PermitType", form.value.permitType);
+          payload.append("PermitDate", form.value.permitDate);
+          payload.append("PermitTime", form.value.permitTime);
+          payload.append("Reason", form.value.reason);
+        } else if (selectedRequestType.value === 'maintenance') {
+          url = "/Maintenance/submit";
+          payload = new FormData();
+          payload.append("EquipmentName", form.value.equipmentName);
+          payload.append("ProblemDescription", form.value.problemDescription);
+          if (form.value.imageFile) payload.append("ImageFile", form.value.imageFile);
         }
 
-        await axios.post(url, payload);
-        await fetchAllRequests();
+        await axios.post(url, payload, (selectedRequestType.value !== 'salaryCertificate' ? config : {}));
+        showToast('تم إرسال الطلب بنجاح');
         showModal.value = false;
-        showToast('تم إرسال الطلب بنجاح ✅','success');
-
-      } catch(err){
-        console.error(err);
-        showToast('حدث خطأ أثناء إرسال الطلب ❌','error');
+        fetchAllRequests();
+      } catch (err) {
+        showToast('فشل في إرسال الطلب', 'error');
       }
+    };
+
+    const openDetails = (req) => {
+      detailRequest.value = req;
+      showDetailModal.value = true;
     };
 
     const onFileChange = (e) => form.value.imageFile = e.target.files[0];
 
-    onMounted(() => fetchAllRequests());
+    onMounted(fetchAllRequests);
 
     return {
-      showModal, selectedRequestType, displayedRequests, form,
-      submitRequest, onFileChange,
-      toastMessage, toastType,
-      showDetailModal, detailRequest, openDetails
+      showModal, showDetailModal, detailRequest, selectedRequestType, displayedRequests, 
+      form, submitRequest, onFileChange, openDetails, formatDate, statusBadgeClass,
+      toastMessage, toastType
     };
   }
 };
 </script>
 
 <style scoped>
-.input {
-  @apply p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right;
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
+.input { @apply bg-gray-50 transition-all; }
 </style>

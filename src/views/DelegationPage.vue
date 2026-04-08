@@ -1,139 +1,179 @@
 <template>
-  <div dir="rtl" class="flex min-h-screen bg-white">
-
+  <div class="flex min-h-screen bg-gray-100 font-cairo" dir="rtl">
     <!-- Sidebar -->
-    <Sidebar class="fixed top-0 right-0 h-screen w-24 sm:w-28 md:w-60 z-40" />
+    <Sidebar class="fixed top-0 right-0 h-screen w-24 md:w-64 z-50" />
 
-    <div class="flex-1 mr-24 sm:mr-28 md:mr-60 p-6">
+    <!-- Main content -->
+    <div class="flex-1 p-6 mr-24 md:mr-64">
       <Navbar />
 
-      <!-- زر فتح مودال إضافة تكليف -->
-      <div class="flex justify-end mb-4">
-        <button @click="showDelegationModal = true"
-                class="bg-primary hover:bg-primaryDark text-white px-4 py-2 rounded-xl font-semibold shadow-md">
-          إضافة تكليف
-        </button>
-      </div>
-
-      <!-- مودال إضافة التكليف -->
-      <div v-if="showDelegationModal" class="fixed inset-0 bg-black/40 flex items-start justify-center z-50 p-4 pt-20">
-        <div class="bg-white p-6 rounded-xl w-full max-w-lg shadow-lg space-y-4">
-
-          <h2 class="text-lg font-bold text-green-900">🔄 التكليف الإداري</h2>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-            <!-- بحث الموظف -->
-            <div class="relative">
-              <label class="block mb-1 font-semibold text-gray-600">الموظف المكلف</label>
-              <input type="text" v-model="search" placeholder="ابحث عن الموظف..." class="input" />
-              <ul v-if="search && filteredEmployees.length"
-                  class="absolute top-full left-0 right-0 border rounded max-h-40 overflow-auto mt-1 bg-white z-50">
-                <li v-for="emp in filteredEmployees" :key="emp.id" @click="selectEmployee(emp)"
-                    class="p-2 hover:bg-gray-200 cursor-pointer">
-                  {{ emp.fullName }}
-                </li>
-              </ul>
-              <div v-if="form.actingManager" class="mt-2 text-gray-700">
-                الموظف المختار: <b>{{ form.actingManager.fullName }}</b>
-              </div>
-            </div>
-
-            <!-- تاريخ النهاية -->
-            <div>
-              <label class="block mb-1 font-semibold text-gray-600">تاريخ النهاية</label>
-              <input type="date" v-model="form.endDate" class="input" />
-            </div>
-
-            <!-- نوع الكيان -->
-            <div>
-              <label class="block mb-1 font-semibold text-gray-600">نوع الكيان</label>
-              <select v-model="form.targetEntityType" @change="onTypeChange" class="input">
-                <option :value="null">-- اختر نوع الكيان --</option>
-                <option value="Section">قسم</option>
-                <option value="SubDepartment">إدارة فرعية</option>
-              </select>
-            </div>
-
-            <!-- الكيان -->
-            <div>
-              <label class="block mb-1 font-semibold text-gray-600">الكيان</label>
-              <select v-model="form.targetEntityId" class="input">
-                <option :value="null">-- اختر الكيان --</option>
-                <option v-for="t in targets" :key="t.id" :value="t.id">{{ t.name }}</option>
-              </select>
-            </div>
-
+      <!-- Card -->
+      <div class="bg-white rounded-2xl shadow-lg p-6 mt-4">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+          <div>
+            <h2 class="text-xl font-bold text-gray-800">إدارة التكليفات الإدارية</h2>
+            <p class="text-sm text-gray-500 mt-1">تكليف الموظفين بمهام إدارية لفترات محددة</p>
           </div>
+          <button
+            @click="openAddModal"
+            class="bg-primary hover:bg-green-700 text-white px-6 py-2.5 rounded-xl shadow transition-all flex items-center gap-2 font-bold"
+          >
+            <PlusIcon class="w-5 h-5" />
+            إضافة تكليف جديد
+          </button>
+        </div>
 
-          <div class="flex justify-end gap-2 mt-4">
-            <button @click="submitDelegation" class="bg-primary text-white px-4 py-2 rounded-xl hover:bg-primaryDark font-semibold">
-              تنفيذ التكليف
-            </button>
-            <button @click="closeDelegationModal" class="bg-gray-300 px-4 py-2 rounded-xl hover:bg-gray-400 font-semibold">
-              إلغاء
-            </button>
+        <!-- Search Table -->
+        <div class="relative mb-4">
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="بحث في الجدول (اسم الموظف، الكيان)..."
+            class="w-full p-2.5 pr-10 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary outline-none text-sm transition-all bg-gray-50"
+          />
+          <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+            <MagnifyingGlassIcon class="h-5 w-5 text-gray-400" />
           </div>
         </div>
-      </div>
 
-      <!-- جدول التكليفات النشطة -->
-      <div class="bg-white rounded-2xl shadow-lg p-6 max-w-5xl mx-auto mt-6">
-        <h2 class="text-xl font-bold mb-4 text-gray-700">التكليفات النشطة</h2>
-        <table class="min-w-full bg-white border rounded-lg">
-          <thead>
-            <tr class="bg-navbar">
-              <th class="p-2 border">الموظف المكلف</th>
-              <th class="p-2 border">المدير الأصلي</th>
-              <th class="p-2 border">نوع الكيان</th>
-              <th class="p-2 border">الكيان</th>
-              <th class="p-2 border">تاريخ البداية</th>
-              <th class="p-2 border">تاريخ النهاية</th>
-              <th class="p-2 border">إلغاء</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="d in activeDelegations" :key="d.id">
-              <td class="p-2 border">{{ d.actingManagerName }}</td>
-              <td class="p-2 border">{{ d.originalManagerName }}</td>
-              <td class="p-2 border">{{ d.entityType }}</td>
-              <td class="p-2 border">{{ d.entityName || 'غير محدد' }}</td>
-              <td class="p-2 border">{{ formatDate(d.startDate) }}</td>
-              <td class="p-2 border">{{ formatDate(d.endDate) }}</td>
-              <td class="p-2 border">
-                <button @click="confirmRevoke(d.id)" class="bg-red-500 text-white px-2 rounded">
-                  إلغاء
-                </button>
-              </td>
-            </tr>
-            <tr v-if="!activeDelegations.length">
-              <td colspan="7" class="text-center p-4 text-gray-500">لا توجد تكليفات نشطة</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- مودال تأكيد الإلغاء -->
-      <div v-if="confirmRevokeId !== null" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white p-6 rounded-xl shadow-lg w-full max-w-sm text-center">
-          <p class="mb-4 text-gray-800">هل أنت متأكد من إلغاء التكليف؟</p>
-          <div class="flex justify-center gap-4">
-            <button @click="confirmRevokeId = null" class="px-4 py-2 rounded border border-gray-300">إلغاء</button>
-            <button @click="revokeDelegation(confirmRevokeId)" class="px-4 py-2 bg-red-600 text-white rounded">إلغاء التكليف</button>
-          </div>
+        <!-- Table -->
+        <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+          <table class="min-w-full text-right divide-y divide-gray-200">
+            <thead class="bg-navbar">
+              <tr>
+                <th class="p-4 text-sm font-bold text-gray-700">الموظف المكلف</th>
+                <th class="p-4 text-sm font-bold text-gray-700">المدير الأصلي</th>
+                <th class="p-4 text-sm font-bold text-gray-700">الكيان الإداري</th>
+                <th class="p-4 text-sm font-bold text-gray-700 text-center">الفترة الزمنية</th>
+                <th class="p-4 text-sm font-bold text-gray-700 text-center">الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-100">
+              <tr 
+                v-for="d in filteredDelegations" 
+                :key="d.id" 
+                class="hover:bg-gray-50 transition-colors text-sm"
+              >
+                <td class="p-4 font-semibold text-gray-800">{{ d.actingManagerName }}</td>
+                <td class="p-4 text-gray-600">{{ d.originalManagerName }}</td>
+                <td class="p-4">
+                  <span class="block font-medium text-blue-700">{{ d.entityName || 'غير محدد' }}</span>
+                  <span class="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded text-gray-500 uppercase">
+                    {{ d.entityType === 'Section' ? 'قسم' : 'إدارة فرعية' }}
+                  </span>
+                </td>
+                <td class="p-4 text-center">
+                  <div class="flex items-center justify-center gap-2 text-xs font-mono text-gray-500">
+                    <span class="bg-green-50 text-green-700 px-2 py-1 rounded border border-green-100">{{ formatDate(d.startDate) }}</span>
+                    <span>⬅️</span>
+                    <span class="bg-red-50 text-red-700 px-2 py-1 rounded border border-red-100">{{ formatDate(d.endDate) }}</span>
+                  </div>
+                </td>
+                <td class="p-4 text-center">
+                  <button 
+                    @click="askRevoke(d.id)" 
+                    class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-all" 
+                    title="إلغاء التكليف"
+                  >
+                    <TrashIcon class="w-5 h-5" />
+                  </button>
+                </td>
+              </tr>
+              <tr v-if="filteredDelegations.length === 0">
+                <td colspan="5" class="text-center py-20">
+                  <div class="flex flex-col items-center">
+                    <BriefcaseIcon class="w-12 h-12 text-gray-200 mb-2" />
+                    <p class="text-gray-400 italic">لا توجد تكليفات نشطة تطابق بحثك</p>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
-
-      <!-- التوست -->
-      <transition name="fade">
-        <div v-if="toastProps" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-                px-6 py-3 rounded-lg shadow-lg text-white text-center z-[999]"
-             :class="toastProps.type === 'success' ? 'bg-green-600' : 'bg-red-600'">
-          {{ toastProps.message }}
-        </div>
-      </transition>
-
     </div>
+
+    <!-- Modal إضافة تكليف -->
+    <div v-if="showModal" class="fixed inset-0 bg-black/50 flex justify-center items-center z-[60] p-4 backdrop-blur-sm">
+      <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl animate-fade-in">
+        <h3 class="font-bold text-xl mb-6 text-gray-800 flex items-center gap-2">
+            <ArrowsRightLeftIcon class="w-6 h-6 text-primary" />
+            إنشاء تكليف إداري جديد
+        </h3>
+
+        <div class="space-y-4">
+          <!-- Employee Selection (Searchable) -->
+          <div class="relative">
+            <label class="block text-sm font-bold text-gray-600 mb-1">الموظف المُراد تكليفه</label>
+            <div class="flex gap-2">
+              <input 
+                v-model="empSearch" 
+                :placeholder="form.actingManager ? 'تم اختيار الموظف' : 'ابحث عن موظف...'" 
+                class="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-primary outline-none bg-gray-50"
+                :disabled="form.actingManager !== null" 
+              />
+              <button v-if="form.actingManager" @click="resetEmployeeSelection" class="text-red-500 text-xs underline">تغيير</button>
+            </div>
+            <ul v-if="filteredEmployees.length && empSearch.length > 0 && !form.actingManager" 
+                class="absolute bg-white border w-full mt-1 rounded-xl shadow-xl max-h-40 overflow-y-auto z-[70] p-1">
+              <li v-for="emp in filteredEmployees" :key="emp.id"
+                  @click="selectEmployee(emp)"
+                  class="p-2.5 hover:bg-blue-50 cursor-pointer border-b last:border-0 text-sm rounded-lg transition-colors">
+                {{ emp.fullName }}
+              </li>
+            </ul>
+          </div>
+
+          <!-- End Date -->
+          <div>
+            <label class="block text-sm font-bold text-gray-600 mb-1">تاريخ نهاية التكليف</label>
+            <input type="date" v-model="form.endDate" class="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-primary bg-gray-50" />
+          </div>
+
+          <!-- Entity Type -->
+          <div>
+            <label class="block text-sm font-bold text-gray-600 mb-1">نوع الكيان</label>
+            <select v-model="form.targetEntityType" @change="onTypeChange" class="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-primary bg-gray-50">
+              <option :value="null">اختر النوع</option>
+              <option value="Section">قسم</option>
+              <option value="SubDepartment">إدارة فرعية</option>
+            </select>
+          </div>
+
+          <!-- Target Entity -->
+          <div>
+            <label class="block text-sm font-bold text-gray-600 mb-1">الجهة أو الكيان المستهدف</label>
+            <select v-model="form.targetEntityId" class="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-primary bg-gray-50">
+              <option :value="null">اختر الكيان</option>
+              <option v-for="t in targets" :key="t.id" :value="t.id">{{ t.name }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-8">
+          <button @click="closeModal" class="flex-1 bg-gray-100 px-5 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-200 transition">إلغاء</button>
+          <button @click="saveDelegation" class="flex-1 bg-primary text-white px-8 py-3 rounded-xl font-bold hover:shadow-lg transition">
+            تنفيذ التكليف
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirm Revoke (Delete) -->
+    <div v-if="confirmRevokeId !== null" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] backdrop-blur-sm">
+      <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm text-center border border-red-50">
+        <div class="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center text-red-600 mx-auto mb-4 font-bold text-2xl">!</div>
+        <h3 class="text-xl font-bold text-gray-800 mb-2">إلغاء التكليف؟</h3>
+        <p class="text-sm text-gray-500 mb-8 leading-relaxed">أنت على وشك سحب صلاحيات التكليف الإداري، هل تريد المتابعة؟</p>
+        <div class="flex justify-center gap-4">
+          <button @click="confirmRevokeId = null" class="flex-1 px-6 py-3 rounded-xl border border-gray-300 font-bold text-gray-500">تراجع</button>
+          <button @click="revokeDelegation(confirmRevokeId)" class="flex-1 px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all">نعم، إلغاء</button>
+        </div>
+      </div>
+    </div>
+
+    <Toast v-if="showToast" :message="toastMsg" :type="toastType" />
   </div>
 </template>
 
@@ -141,19 +181,28 @@
 import { ref, onMounted, computed } from "vue";
 import Sidebar from "@/components/Sidebar.vue";
 import Navbar from "@/components/Navbar.vue";
+import Toast from "@/components/Toast.vue";
 import api from "@/services/api";
+import { 
+  MagnifyingGlassIcon, PlusIcon, TrashIcon, BriefcaseIcon, 
+  ArrowsRightLeftIcon
+} from "@heroicons/vue/24/outline";
 
 export default {
-  components: { Sidebar, Navbar },
+  components: { Sidebar, Navbar, Toast, MagnifyingGlassIcon, PlusIcon, TrashIcon, BriefcaseIcon, ArrowsRightLeftIcon },
 
   setup() {
-    const showDelegationModal = ref(false);
-    const search = ref("");
+    const activeDelegations = ref([]);
     const employees = ref([]);
     const sections = ref([]);
     const subDepartments = ref([]);
     const targets = ref([]);
-    const activeDelegations = ref([]);
+    
+    const showModal = ref(false);
+    const empSearch = ref("");
+    const searchQuery = ref("");
+    const confirmRevokeId = ref(null);
+
     const form = ref({
       actingManager: null,
       endDate: "",
@@ -161,60 +210,72 @@ export default {
       targetEntityId: null
     });
 
-    const toastProps = ref(null);
-    const confirmRevokeId = ref(null);
+    const showToast = ref(false);
+    const toastMsg = ref("");
+    const toastType = ref("success");
 
-    const filteredEmployees = computed(() => {
-      const s = search.value.toLowerCase();
-      return employees.value.filter(emp => emp.fullName.toLowerCase().includes(s));
-    });
+    const triggerToast = (msg, type = "success") => {
+      toastMsg.value = msg;
+      toastType.value = type;
+      showToast.value = true;
+      setTimeout(() => (showToast.value = false), 3000);
+    };
 
-    const formatDate = (dt) => dt ? new Date(dt).toLocaleDateString("en-US") : "";
-
-    const loadData = async () => {
+    const fetchData = async () => {
       try {
-        const [emp, sec, sub] = await Promise.all([
+        const [emp, sec, sub, active] = await Promise.all([
           api.get("/Delegation/AvailableEmployees"),
           api.get("/Organization/Sections"),
-          api.get("/Organization/SubDepartments")
+          api.get("/Organization/SubDepartments"),
+          api.get("/Delegation/ActiveDelegations")
         ]);
         employees.value = emp.data;
         sections.value = sec.data;
         subDepartments.value = sub.data;
+        activeDelegations.value = active.data;
       } catch {
-        showToast("خطأ في تحميل البيانات", "error");
+        triggerToast("خطأ في تحميل البيانات", "error");
       }
     };
 
-    const loadActiveDelegations = async () => {
-      try {
-        const res = await api.get("/Delegation/ActiveDelegations");
-        activeDelegations.value = res.data;
-      } catch {
-        showToast("خطأ في تحميل التكليفات النشطة", "error");
-      }
-    };
+    const filteredDelegations = computed(() => {
+      const s = searchQuery.value.toLowerCase();
+      return activeDelegations.value.filter(d => 
+        d.actingManagerName.toLowerCase().includes(s) || 
+        (d.entityName || "").toLowerCase().includes(s)
+      );
+    });
+
+    const filteredEmployees = computed(() =>
+      employees.value.filter(e => e.fullName?.toLowerCase().includes(empSearch.value.toLowerCase()))
+    );
 
     const selectEmployee = (emp) => {
       form.value.actingManager = emp;
-      search.value = "";
+      empSearch.value = emp.fullName;
+    };
+
+    const resetEmployeeSelection = () => {
+      form.value.actingManager = null;
+      empSearch.value = "";
     };
 
     const onTypeChange = () => {
       if (form.value.targetEntityType === "Section") targets.value = sections.value;
       else if (form.value.targetEntityType === "SubDepartment") targets.value = subDepartments.value;
       else targets.value = [];
+      form.value.targetEntityId = null;
     };
 
-    const confirmRevoke = (id) => {
-      confirmRevokeId.value = id;
+    const openAddModal = () => {
+      resetForm();
+      showModal.value = true;
     };
 
-    const submitDelegation = async () => {
-      if (!form.value.actingManager) return showToast("الرجاء اختيار الموظف المكلف", "error");
-      if (!form.value.endDate) return showToast("الرجاء تحديد تاريخ النهاية", "error");
-      if (!form.value.targetEntityType) return showToast("الرجاء اختيار نوع الكيان", "error");
-      if (!form.value.targetEntityId) return showToast("الرجاء اختيار الكيان", "error");
+    const saveDelegation = async () => {
+      if (!form.value.actingManager || !form.value.endDate || !form.value.targetEntityId) {
+        return triggerToast("يرجى ملء كافة الحقول", "error");
+      }
 
       try {
         const payload = new FormData();
@@ -223,61 +284,59 @@ export default {
         payload.append('targetEntityType', form.value.targetEntityType);
         payload.append('targetEntityId', form.value.targetEntityId);
 
-        const res = await api.post("/Delegation/CreateDelegation", payload, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-
-        showToast(res.data.message || "تم التكليف بنجاح ✅", "success");
-        closeDelegationModal();
-        await loadData();
-        await loadActiveDelegations();
-
+        await api.post("/Delegation/CreateDelegation", payload);
+        triggerToast("تم إنشاء التكليف بنجاح ✅");
+        closeModal();
+        fetchData();
       } catch (err) {
-        showToast(err.response?.data?.message || "فشل التكليف", "error");
+        triggerToast(err.response?.data?.message || "فشل التنفيذ", "error");
       }
     };
+
+    const askRevoke = (id) => (confirmRevokeId.value = id);
 
     const revokeDelegation = async (id) => {
       try {
-        const res = await api.post(`/Delegation/RevokeDelegation/${id}`);
-        showToast(res.data.message || "تم إلغاء التكليف بنجاح! 🎉", "success");
-        await loadActiveDelegations();
-      } catch {
-        showToast("فشل إلغاء التكليف", "error");
-      } finally {
+        await api.post(`/Delegation/RevokeDelegation/${id}`);
+        triggerToast("تم إلغاء التكليف");
         confirmRevokeId.value = null;
+        fetchData();
+      } catch {
+        triggerToast("فشل الإلغاء", "error");
       }
     };
 
-    const closeDelegationModal = () => {
-      showDelegationModal.value = false;
+    const resetForm = () => {
       form.value = { actingManager: null, endDate: "", targetEntityType: null, targetEntityId: null };
-      targets.value = [];
-      search.value = "";
+      empSearch.value = "";
     };
 
-    const showToast = (message, type="success") => {
-      toastProps.value = { message, type, key: Date.now() };
-      setTimeout(() => { toastProps.value = null; }, 3000);
+    const closeModal = () => {
+      showModal.value = false;
+      resetForm();
     };
 
-    onMounted(() => {
-      loadData();
-      loadActiveDelegations();
-    });
+    const formatDate = (d) => d ? d.split("T")[0] : "---";
+
+    onMounted(fetchData);
 
     return {
-      showDelegationModal, search, filteredEmployees, selectEmployee, form, targets,
-      onTypeChange, submitDelegation, activeDelegations, confirmRevokeId, confirmRevoke, revokeDelegation,
-      closeDelegationModal, toastProps, formatDate
+      activeDelegations, employees, targets, form, empSearch, searchQuery,
+      filteredDelegations, filteredEmployees, showModal, confirmRevokeId,
+      selectEmployee, resetEmployeeSelection, onTypeChange, openAddModal,
+      saveDelegation, askRevoke, revokeDelegation, closeModal, formatDate,
+      showToast, toastMsg, toastType
     };
   }
 };
 </script>
 
 <style scoped>
-.input { @apply p-2 border rounded-xl w-full; }
-ul li { list-style: none; }
-.fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
 </style>

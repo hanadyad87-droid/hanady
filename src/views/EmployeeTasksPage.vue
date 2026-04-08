@@ -1,300 +1,285 @@
 <template>
-  <div class="flex min-h-screen bg-white" dir="rtl" style="font-family: 'Cairo', sans-serif;">
-
+  <div class="flex min-h-screen bg-gray-100 font-cairo" dir="rtl">
     <!-- Sidebar -->
-    <SidebarPage class="fixed top-0 right-0 h-screen w-24 md:w-64 z-50"/>
+    <SidebarPage class="fixed top-0 right-0 h-screen w-24 md:w-64 z-50" />
 
+    <!-- Main content -->
     <div class="flex-1 p-6 mr-24 md:mr-64">
+      <Navbar />
 
-      <Navbar/>
+      <!-- Card -->
+      <div class="bg-white rounded-2xl shadow-lg p-6 mt-4">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+          <h2 class="text-xl font-bold text-gray-800">المهام الخاصة بي</h2>
 
-      <div class="card p-6 bg-white rounded-xl shadow-lg mt-4">
+        </div>
 
-        <h3 class="text-xl font-bold text-bg-primary mb-4 text-right">
-          المهام الخاصة بي
-        </h3>
+        <!-- Search Table -->
+        <input
+          v-model="searchTable"
+          placeholder="بحث في المهام (عنوان المهمة، المدير)..."
+          class="input w-full mb-4 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none text-sm"
+        />
 
-        <!-- جدول المهام -->
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200 text-right">
-           <thead class="bg-navbar">
-  <tr>
-    <th class="px-4 py-2 text-sm font-medium">المهمة</th>
-    <th class="px-4 py-2 text-sm font-medium">المدير</th>
-    <th class="px-4 py-2 text-sm font-medium">البداية</th>
-    <th class="px-4 py-2 text-sm font-medium">النهاية</th>
-    <th class="px-4 py-2 text-sm font-medium">الحالة</th>
-    <th class="px-4 py-2 text-sm font-medium">الإجراءات</th>
-    <th class="px-4 py-2 text-sm font-medium">قرار المدير</th>
-  </tr>
-</thead>
-
-<tbody class="divide-y divide-gray-200">
-  <tr v-for="task in tasks" :key="task.id" :id="`row-${task.id}`" class="hover:bg-gray-50">
-    <td class="px-4 py-2 text-sm whitespace-pre-wrap">{{task.title}}</td>
-    <td class="px-4 py-2 text-sm">{{task.manager}}</td>
-    <td class="px-4 py-2 text-sm">{{ task.startDate.split('T')[0] }}</td>
-    <td class="px-4 py-2 text-sm">{{ task.endDate.split('T')[0] }}</td>
-    <td class="px-4 py-2">
-      <select v-model="task.status" @change="updateStatus(task)" class="border rounded p-1 text-sm">
-        <option value="جديدة">جديدة</option>
-        <option value="قيد التنفيذ">قيد التنفيذ</option>
-        <option value="مكتملة">مكتملة</option>
-      </select>
-    </td>
-    <td class="px-4 py-2 flex gap-2 items-center text-sm">
-      <button @click="showTaskDetails(task)" class="text-gray-600 hover:text-gray-900">
-        <EyeIcon class="w-5 h-5"/>
-      </button>
-      <button @click="showComments(task)" class="text-gray-600 hover:text-gray-900">
-        <ChatBubbleLeftRightIcon class="w-5 h-5"/>
-      </button>
-    </td>
-    <td class="px-4 py-2 text-sm"
-        :class="{
-          'text-green-600': task.managerDecision==='موافق',
-          'text-red-600': task.managerDecision==='مرفوض',
-          'text-gray-500': task.managerDecision==='لم يقرر'
-        }">
-      {{ task.managerDecision || 'لم يقرر' }}
-    </td>
-  </tr>
-</tbody>
+        <!-- Table -->
+        <div class="overflow-x-auto rounded-lg border border-gray-200">
+          <table class="min-w-full text-right divide-y divide-gray-200">
+            <thead class="bg-navbar">
+              <tr>
+                <th class="p-3 text-sm font-semibold text-gray-600">المهمة</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">المدير</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">البداية</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">النهاية</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">الحالة</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">قرار المدير</th>
+                <th class="p-3 text-sm font-semibold text-gray-600 text-center">الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr v-for="task in filteredTasks" :key="task.id" class="hover:bg-gray-50 transition">
+                <td class="p-3 text-sm font-medium">{{ task.title }}</td>
+                <td class="p-3 text-sm text-gray-600">{{ task.manager }}</td>
+                <td class="p-3 text-sm text-gray-500">{{ formatDate(task.startDate) }}</td>
+                <td class="p-3 text-sm text-gray-500">{{ formatDate(task.endDate) }}</td>
+                <td class="p-3 text-sm">
+                  <select 
+                    v-model="task.status" 
+                    @change="updateStatus(task)" 
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-primary focus:border-primary block w-full p-1.5 outline-none"
+                  >
+                    <option value="جديدة">جديدة</option>
+                    <option value="قيد التنفيذ">قيد التنفيذ</option>
+                    <option value="مكتملة">مكتملة</option>
+                  </select>
+                </td>
+                <td class="p-3 text-sm">
+                  <span :class="decisionClass(task.managerDecision)" class="px-2 py-1 rounded-full text-xs font-bold">
+                    {{ task.managerDecision || 'لم يقرر' }}
+                  </span>
+                </td>
+                <td class="p-3 text-sm flex gap-3 justify-center">
+                  <button @click="openDetails(task)" class="text-blue-600 hover:scale-110 transition" title="عرض التفاصيل">
+                    <EyeIcon class="w-5 h-5" />
+                  </button>
+                  <button @click="openComments(task)" class="text-primary hover:scale-110 transition" title="التعليقات">
+                    <ChatBubbleLeftRightIcon class="w-5 h-5" />
+                  </button>
+                </td>
+              </tr>
+              <tr v-if="!filteredTasks.length">
+                <td colspan="7" class="text-center py-10 text-gray-400 italic">لا توجد مهام حالياً</td>
+              </tr>
+            </tbody>
           </table>
         </div>
       </div>
     </div>
 
- <!-- مودال تفاصيل المهمة -->
-<div v-if="showDetailModal && showType==='details'"
-     class="fixed inset-0 bg-black/40 flex items-start justify-center z-50 p-4 pt-10 overflow-y-auto">
-  <div class="bg-white p-6 rounded-xl w-full max-w-md shadow-lg space-y-4 max-h-[85vh] overflow-y-auto">
-    <h2 class="text-lg font-bold text-green-900 flex justify-between items-center">
-      <span>تفاصيل المهمة</span>
-      <button @click="closeModal" class="text-gray-600 hover:text-gray-900 font-bold text-xl">&times;</button>
-    </h2>
-
-    <div v-if="detailTask">
-      <p><strong>المهمة:</strong> {{detailTask.title}}</p>
-
-<!-- الوصف مع عنوان خارجي + 3 أسطر وسكرول عمودي -->
-<div class="mb-1 font-semibold text-black-700">الوصف:</div>
-
-<div 
-  class="bg-gray-50 p-2 border rounded-lg overflow-y-auto overflow-x-hidden break-words whitespace-pre-line text-right leading-relaxed"
-  style="max-height: 7rem;" 
->
-  <p>{{ detailTask.description }}</p>
-</div>
-      <p><strong>المدير:</strong> {{detailTask.manager}}</p>
-      <p><strong>القسم:</strong> {{detailTask.section}}</p>
-
-      <p v-if="detailTask.attachmentPath">
-        <strong>المرفق:</strong>
-        <a :href="'http://localhost:5205/' + detailTask.attachmentPath" target="_blank" class="text-blue-600 underline">
-          عرض الملف
-        </a>
-      </p>
-    </div>
-  </div>
-</div>
-
-    <!-- مودال التعليقات -->
-   <!-- مودال التعليقات مصغر الخط -->
-<div v-if="showDetailModal && showType==='comments'"
-     class="fixed inset-0 bg-black/40 flex items-start justify-center z-50 p-4 pt-10 overflow-y-auto">
-  <div class="bg-white p-4 rounded-xl w-full max-w-md shadow-lg space-y-3 max-h-[85vh] overflow-y-auto">
-
-    <h2 class="text-base font-bold text-green-900 flex justify-between items-center">
-      <span>التعليقات</span>
-      <button @click="closeModal" class="text-gray-600 hover:text-gray-900 font-bold text-lg">&times;</button>
-    </h2>
-
-    <ul>
-  <li v-for="c in comments" :key="c.id" class="mb-2">
-    <!-- اسم الموظف فوق الصندوق -->
-    <div class="text-sm font-semibold text-gray-700 mb-1">
-      {{ c.employeeName || 'مجهول' }}
-    </div>
-
-    <!-- صندوق التعليق -->
-    <div 
-      class="bg-gray-100 p-2 rounded-lg break-words text-sm"
-      style="max-height: 6rem; overflow-y: auto; white-space: pre-line;"
-    >
-      {{ c.comment }}
-    </div>
-
-    <!-- رابط المرفق إذا موجود -->
-    <a v-if="c.attachmentUrl" :href="c.attachmentUrl" target="_blank" class="text-blue-500 underline ml-1 text-sm mt-1 inline-block">
-      مرفق
-    </a>
-  </li>
-</ul>
-
-    <div class="mt-2 flex flex-col gap-1.5">
-      <textarea
-        v-model="newComment"
-        placeholder="اكتب تعليقك هنا..."
-        class="input w-full resize-none overflow-hidden min-h-[50px] text-sm"
-        rows="2"
-        @input="autoResize($event)"
-      ></textarea>
-      <div class="flex gap-1.5">
-        <input type="file" @change="onCommentFileChange" class="h-8 text-sm"/>
-        <button @click="sendComment" class="bg-primary text-white px-3 py-1.5 rounded-lg text-sm">
-          إرسال
-        </button>
+    <!-- Modal: تفاصيل المهمة -->
+    <div v-if="showModal && modalType === 'details'" class="fixed inset-0 bg-black/50 flex justify-center items-center z-[60] p-4">
+      <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl relative">
+        <button @click="closeModal" class="absolute top-4 left-4 text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+        <h3 class="font-bold text-xl mb-6 text-gray-800 border-b pb-2">تفاصيل المهمة</h3>
+        
+        <div class="space-y-4">
+          <div>
+            <label class="text-xs text-gray-500 block mb-1">عنوان المهمة</label>
+            <p class="font-semibold text-gray-800">{{ selectedTask.title }}</p>
+          </div>
+          <div>
+            <label class="text-xs text-gray-500 block mb-1">وصف المهمة</label>
+            <div class="bg-gray-50 p-3 rounded-lg border text-sm leading-relaxed max-h-32 overflow-y-auto whitespace-pre-wrap">
+              {{ selectedTask.description }}
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="text-xs text-gray-500 block mb-1">المدير المسند</label>
+              <p class="text-sm font-medium">{{ selectedTask.manager }}</p>
+            </div>
+            <div>
+              <label class="text-xs text-gray-500 block mb-1">القسم</label>
+              <p class="text-sm font-medium">{{ selectedTask.section }}</p>
+            </div>
+          </div>
+          <div v-if="selectedTask.attachmentPath">
+            <label class="text-xs text-gray-500 block mb-1">المرفقات</label>
+            <a :href="'http://localhost:5205/' + selectedTask.attachmentPath" target="_blank" class="text-blue-600 hover:underline text-sm flex items-center gap-1">
+              📎 عرض الملف المرفق
+            </a>
+          </div>
+        </div>
+        <div class="mt-8 flex justify-end">
+          <button @click="closeModal" class="bg-primary text-white px-8 py-2 rounded-xl font-bold hover:shadow-lg transition">إغلاق</button>
+        </div>
       </div>
     </div>
-  </div>
-</div>
 
-    <!-- Toast -->
-    <transition name="fade">
-      <div v-if="toastMessage"
-           class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-                  px-6 py-3 rounded-lg shadow-lg text-white text-center z-[999]"
-           :class="toastType==='success'?'bg-green-600':'bg-red-600'">
-        {{toastMessage}}
+    <!-- Modal: التعليقات -->
+    <div v-if="showModal && modalType === 'comments'" class="fixed inset-0 bg-black/50 flex justify-center items-center z-[60] p-4">
+      <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl relative flex flex-col max-h-[90vh]">
+        <button @click="closeModal" class="absolute top-4 left-4 text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+        <h3 class="font-bold text-xl mb-4 text-gray-800">التعليقات</h3>
+        
+        <!-- Comments List -->
+        <div class="flex-1 overflow-y-auto space-y-4 mb-4 p-2">
+          <div v-for="c in comments" :key="c.id" class="bg-gray-50 p-3 rounded-xl border border-gray-100">
+            <div class="flex justify-between items-center mb-1">
+              <span class="text-xs font-bold text-primary">{{ c.employeeName || 'مجهول' }}</span>
+            </div>
+            <p class="text-sm text-gray-700 whitespace-pre-line">{{ c.comment }}</p>
+            <a v-if="c.attachmentUrl" :href="c.attachmentUrl" target="_blank" class="text-blue-500 text-xs underline mt-2 inline-block">📎 مرفق</a>
+          </div>
+          <div v-if="!comments.length" class="text-center py-10 text-gray-400 text-sm">لا توجد تعليقات بعد</div>
+        </div>
+
+        <!-- Add Comment Form -->
+        <div class="border-t pt-4 space-y-3">
+          <textarea
+            v-model="newComment"
+            placeholder="اكتب تعليقك هنا..."
+            class="w-full p-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary resize-none"
+            rows="2"
+          ></textarea>
+          <div class="flex items-center justify-between gap-2">
+            <input type="file" @change="onFileChange" class="text-xs w-full file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-gray-100 file:text-gray-600 cursor-pointer" />
+            <button @click="sendComment" class="bg-primary text-white px-6 py-1.5 rounded-lg text-sm font-bold hover:bg-green-700 transition">إرسال</button>
+          </div>
+        </div>
       </div>
-    </transition>
+    </div>
+
+    <ToastPage v-if="showToast" :message="toastMessage" :type="toastType" />
   </div>
 </template>
 
 <script>
-import {ref,onMounted} from "vue"
-import axios from "axios"
-import SidebarPage from "../components/Sidebar.vue"
-import Navbar from "../components/Navbar.vue"
-import { EyeIcon, ChatBubbleLeftRightIcon } from "@heroicons/vue/24/outline"
-import { useHighlightRow } from "@/composables/useHighlightRow";
+import { ref, onMounted, computed } from "vue";
+import axios from "axios";
+import SidebarPage from "@/components/Sidebar.vue";
+import Navbar from "@/components/Navbar.vue";
+import ToastPage from "@/components/Toast.vue";
+import { EyeIcon, ChatBubbleLeftRightIcon } from "@heroicons/vue/24/outline";
+
 export default {
-components:{SidebarPage,Navbar,EyeIcon,ChatBubbleLeftRightIcon},
-setup(){
-  const tasks = ref([])
-  const comments = ref([])
-  const showDetailModal = ref(false)
-  const detailTask = ref(null)
-  const newComment = ref("")
-  const attachment = ref(null)
-  const toastMessage = ref("")
-  const toastType = ref("success")
-  const showType = ref('details') // "details" أو "comments"
- useHighlightRow(tasks);
-  axios.defaults.baseURL = "http://localhost:5205/api"
-  axios.defaults.headers.common["Authorization"] = `Bearer ${localStorage.getItem("token")}`
+  components: { SidebarPage, Navbar, ToastPage, EyeIcon, ChatBubbleLeftRightIcon },
+  setup() {
+    const tasks = ref([]);
+    const searchTable = ref("");
+    const showModal = ref(false);
+    const modalType = ref("details"); // 'details' or 'comments'
+    const selectedTask = ref(null);
+    const comments = ref([]);
+    const newComment = ref("");
+    const attachment = ref(null);
 
-  const showToast = (msg,type="success")=>{
-    toastMessage.value = msg
-    toastType.value = type
-    setTimeout(()=>toastMessage.value="",3000)
+    const showToast = ref(false);
+    const toastMessage = ref("");
+    const toastType = ref("success");
+
+    axios.defaults.baseURL = "http://localhost:5205/api";
+    axios.defaults.headers.common["Authorization"] = `Bearer ${localStorage.getItem("token")}`;
+
+    const triggerToast = (msg, type = "success") => {
+      toastMessage.value = msg;
+      toastType.value = type;
+      showToast.value = true;
+      setTimeout(() => (showToast.value = false), 3000);
+    };
+
+    const fetchTasks = async () => {
+      try {
+        const res = await axios.get("/Task/my-tasks");
+        tasks.value = res.data.reverse().map(t => ({
+          ...t,
+          status: t.status === 'New' ? 'جديدة' : t.status === 'InProgress' ? 'قيد التنفيذ' : 'مكتملة',
+          managerDecision: t.managerDecision === 'Approved' ? 'موافق' :
+                           t.managerDecision === 'Rejected' ? 'مرفوض' : 'لم يقرر'
+        }));
+      } catch {
+        triggerToast("فشل تحميل المهام", "error");
+      }
+    };
+
+    const filteredTasks = computed(() => {
+      const s = searchTable.value.toLowerCase();
+      return tasks.value.filter(t => 
+        (t.title || "").toLowerCase().includes(s) ||
+        (t.manager || "").toLowerCase().includes(s)
+      );
+    });
+
+    const updateStatus = async (task) => {
+      try {
+        const backendStatus = task.status === 'جديدة' ? 'New' : task.status === 'قيد التنفيذ' ? 'InProgress' : 'Completed';
+        await axios.put(`/Task/update-status/${task.id}?status=${backendStatus}`);
+        triggerToast("تم تحديث الحالة بنجاح");
+      } catch {
+        triggerToast("فشل تحديث الحالة", "error");
+      }
+    };
+
+    const openDetails = (task) => {
+      selectedTask.value = task;
+      modalType.value = "details";
+      showModal.value = true;
+    };
+
+    const openComments = async (task) => {
+      selectedTask.value = task;
+      modalType.value = "comments";
+      showModal.value = true;
+      try {
+        const res = await axios.get(`/Task/${task.id}/comments`);
+        comments.value = res.data;
+      } catch {
+        triggerToast("فشل تحميل التعليقات", "error");
+      }
+    };
+
+    const sendComment = async () => {
+      if (!newComment.value.trim() && !attachment.value) return;
+      try {
+        const data = new FormData();
+        data.append("Comment", newComment.value);
+        if (attachment.value) data.append("Attachment", attachment.value);
+        await axios.post(`/Task/${selectedTask.value.id}/comment`, data);
+        newComment.value = "";
+        attachment.value = null;
+        const res = await axios.get(`/Task/${selectedTask.value.id}/comments`);
+        comments.value = res.data;
+        triggerToast("تمت إضافة التعليق");
+      } catch {
+        triggerToast("فشل إضافة التعليق", "error");
+      }
+    };
+
+    const onFileChange = (e) => { attachment.value = e.target.files[0]; };
+    const closeModal = () => { showModal.value = false; selectedTask.value = null; };
+    const formatDate = (date) => date ? date.split('T')[0] : "---";
+    
+    const decisionClass = (decision) => {
+      if (decision === 'موافق') return 'bg-green-100 text-green-700';
+      if (decision === 'مرفوض') return 'bg-red-100 text-red-700';
+      return 'bg-gray-100 text-gray-600';
+    };
+
+    onMounted(fetchTasks);
+
+    return {
+      tasks, filteredTasks, searchTable, showModal, modalType, selectedTask, comments, 
+      newComment, showToast, toastMessage, toastType, openDetails, openComments, 
+      updateStatus, sendComment, onFileChange, closeModal, formatDate, decisionClass
+    };
   }
-
- const fetchTasks = async () => {
-  try {
-    const res = await axios.get("/Task/my-tasks")
-    tasks.value = res.data
-      .reverse()
-      .map(t => ({
-        ...t,
-        status: t.status==='New'?'جديدة': t.status==='InProgress'?'قيد التنفيذ':'مكتملة',
-        managerDecision: t.managerDecision === 'Approved' ? 'موافق' :
-                         t.managerDecision === 'Rejected' ? 'مرفوض' : 'لم يقرر',
-        commentsCount: t.commentsCount || 0
-      }))
-  } catch {
-    showToast("فشل تحميل المهام","error")
-  }
-}
-
-  const updateStatus = async(task)=>{
-    try{
-      const backendStatus = task.status==='جديدة'?'New': task.status==='قيد التنفيذ'?'InProgress':'Completed'
-      await axios.put(`/Task/update-status/${task.id}?status=${backendStatus}`)
-      showToast("تم تحديث الحالة")
-    }catch{
-      showToast("فشل تحديث الحالة","error")
-    }
-  }
-
-  const showTaskDetails = (task)=>{
-    detailTask.value = task
-    showType.value = 'details'
-    showDetailModal.value = true
-  }
-
-  const showComments = async(task)=>{
-    detailTask.value = task
-    showType.value = 'comments'
-    showDetailModal.value = true
-    try{
-      const res = await axios.get(`/Task/${task.id}/comments`)
-      comments.value = res.data
-    }catch{
-      showToast("فشل تحميل التعليقات","error")
-    }
-  }
-
-  const sendComment = async()=>{
-    try{
-      const data = new FormData()
-      data.append("Comment",newComment.value)
-      if(attachment.value) data.append("Attachment",attachment.value)
-      await axios.post(`/Task/${detailTask.value.id}/comment`,data)
-      newComment.value=""
-      attachment.value=null
-      showComments(detailTask.value)
-      showToast("تم إضافة التعليق")
-    }catch{
-      showToast("فشل إضافة التعليق","error")
-    }
-  }
-
-  const onCommentFileChange = (e)=>{
-    attachment.value = e.target.files[0]
-  }
-
-  const autoResize = (e)=>{
-    e.target.style.height = "auto"
-    e.target.style.height = e.target.scrollHeight + "px"
-  }
-
-  const closeModal = ()=>{
-    showDetailModal.value = false
-    detailTask.value = null
-    comments.value = []
-  }
-
-  onMounted(()=>{ fetchTasks() })
-
-  return {
-    tasks, showDetailModal, detailTask, comments, newComment,
-    showTaskDetails, updateStatus, showComments, sendComment,
-    onCommentFileChange, autoResize, toastMessage, toastType, showType, closeModal
-  }
-}
-}
+};
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
-
-/* تطبيق خط Cairo وحجم خط أصغر على كل الصفحة */
-body, input, textarea, select, button {
-  font-family: 'Cairo', sans-serif;
-  font-size: 12px; /* حجم الخط المصغر */
-}
-
-/* ستايل موحد لكل input */
-.input {
-  @apply p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right;
-  font-size: 14px; /* نفس الحجم المصغر */
-}
-
-/* تأثيرات fade */
-.fade-enter-active,
-.fade-leave-active { transition: opacity .3s }
-.fade-enter-from,
-.fade-leave-to { opacity: 0 }
+/* تحسين شكل التمرير داخل المودال */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #aaa; }
 </style>

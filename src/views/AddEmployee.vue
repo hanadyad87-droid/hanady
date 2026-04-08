@@ -1,13 +1,7 @@
 <template>
   <div class="flex min-h-screen bg-white">
 
-    <!-- Sidebar -->
-    <Sidebar class="fixed top-0 right-0 h-screen w-24 md:w-64 z-50" />
-
-    <!-- المحتوى -->
-    <div class="flex-1 p-6 mr-24 md:mr-64 flex flex-col">
-
-      <Navbar />
+   
 
       <!-- الصفحات المتسلسلة -->
       <div class="flex-1 flex items-start md:items-center justify-center">
@@ -27,12 +21,11 @@
         />
       </div>
     </div>
-  </div>
+
 </template>
 
 <script>
-import Sidebar from "@/components/Sidebar.vue";
-import Navbar from "@/components/Navbar.vue";
+
 
 import BasicInfoPage from "@/views/BasicInfoPage.vue";
 import AdminInfoPage from "@/views/AdminInfoPage.vue";
@@ -40,7 +33,7 @@ import EmployeeFinancialPage from "@/views/EmployeeFinancialPage.vue";
 
 export default {
   name: "AddEmployee",
-  components: { Sidebar, Navbar, BasicInfoPage, AdminInfoPage, EmployeeFinancialPage },
+  components: {  BasicInfoPage, AdminInfoPage, EmployeeFinancialPage },
   data() {
     return {
       employeeId: null,

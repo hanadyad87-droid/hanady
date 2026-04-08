@@ -1,296 +1,344 @@
 <template>
-  <div class="flex min-h-screen bg-white" dir="rtl">
-
-    <!-- Sidebar ثابت -->
-    <Sidebar class="fixed top-0 right-0 h-screen w-24 md:w-64 bg-primary text-white p-4 z-50" />
+  <div class="flex min-h-screen bg-gray-100 font-cairo" dir="rtl">
+    <!-- Sidebar -->
+    <SidebarPage class="fixed top-0 right-0 h-screen w-24 md:w-64 z-50" />
 
     <!-- المحتوى الرئيسي -->
-    <div class="flex-1 p-6 min-h-screen mr-24 md:mr-64">
+    <div class="flex-1 p-6 mr-24 md:mr-64">
       <Navbar />
 
-      <!-- زر إرسال شكوى جديدة -->
-      <div class="mb-6 text-left">
-        <button @click="showNewComplaintModal = true"
-                class="bg-primary hover:bg-primaryDark text-white px-6 py-2 rounded-lg font-semibold transition shadow-md">
-          إرسال شكوى جديدة
-        </button>
-      </div>
+      <!-- Card Container -->
+      <div class="bg-white rounded-2xl shadow-lg p-6 mt-4">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+          <h2 class="text-xl font-bold text-gray-800">إدارة الشكاوى</h2>
+          <button
+            @click="openAddModal"
+            class="bg-primary hover:bg-green-700 text-white px-6 py-2 rounded-xl shadow transition-all flex items-center gap-2"
+          >
+            <span>+</span> إرسال شكوى جديدة
+          </button>
+        </div>
 
-      <!-- جدول الشكاوى -->
-      <div class="bg-white rounded-xl shadow-md p-6" dir="rtl">
-        <h3 class="text-xl font-bold text-right mb-4 text-primaryDark">شكاويك</h3>
+        <!-- Search Table -->
+        <input
+          v-model="searchQuery"
+          placeholder="بحث في الشكاوى (المحتوى، القسم، الموظف)..."
+          class="input w-full mb-4 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none"
+        />
 
-       <table class="min-w-full divide-y divide-gray-200 text-right">
+        <!-- Table -->
+        <div class="overflow-x-auto rounded-lg border border-gray-200">
+          <table class="min-w-full text-right divide-y divide-gray-200">
             <thead class="bg-navbar">
-            <tr>
-              <th class="px-3 py-2 text-right font-medium text-gray-700">الموظف</th>
-              <th class="px-3 py-2 text-right font-medium text-gray-700">المحتوى</th>
-              <th class="px-3 py-2 text-right font-medium text-gray-700">القسم</th>
-              <th class="px-3 py-2 text-right font-medium text-gray-700">تاريخ الإنشاء</th>
-              <th class="px-3 py-2 text-right font-medium text-gray-700">المرفق</th>
-              <th class="px-3 py-2 text-right font-medium text-gray-700">الحالة</th>
-              <th class="px-3 py-2 text-right font-medium text-gray-700">إجراءات</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-100">
-            <tr v-for="c in complaints" :key="c.id" class="hover:bg-gray-50 transition">
-              <td class="px-3 py-2 whitespace-nowrap">{{ c.isAnonymous ? "مجهول" : (c.employeeName || "-") }}</td>
-              <td class="px-3 py-2 text-right max-w-[250px] truncate" :title="c.content">{{ c.content }}</td>
-              <td class="px-3 py-2 whitespace-nowrap">{{ c.isForAllDepartments ? "كل الأقسام" : (c.departmentName || "-") }}</td>
-              <td class="px-3 py-2 whitespace-nowrap">{{ formatDate(c.createdAt) }}</td>
-              <td class="px-3 py-2 text-gray-600 whitespace-nowrap">
-                <a v-if="c.attachmentPath" :href="c.attachmentPath" target="_blank" class="hover:underline text-blue-600">عرض الملف</a>
-                <span v-else>-</span>
-              </td>
-              <td class="px-3 py-2 whitespace-nowrap">
-                <span :class="['status-badge', statusClass(c.status)]">{{ statusText(c.status) }}</span>
-              </td>
-              <td class="px-3 py-2 flex justify-center gap-2 whitespace-nowrap">
-                <svg @click="viewComplaint(c)" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                     stroke="currentColor" class="w-5 h-5 text-gray-600 hover:text-gray-800 cursor-pointer" title="عرض الشكوى">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7s-8.268-2.943-9.542-7z"/>
-                </svg>
-
-                <svg v-if="statusText(c.status) === 'تحت المراجعة'" @click="confirmDelete(c.id)"
-                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                     stroke="currentColor" class="w-5 h-5 text-gray-600 hover:text-gray-800 cursor-pointer" title="حذف الشكوى">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-4h4m-4 0a1 1 0 00-1 1v0a1 1 0 001 1h4a1 1 0 001-1v0a1 1 0 00-1-1m-4 0h4"/>
-                </svg>
-              </td>
-            </tr>
-
-            <tr v-if="complaints.length === 0">
-              <td colspan="7" class="text-center text-gray-400 py-4">لا توجد شكاوى حالياً</td>
-            </tr>
-          </tbody>
-        </table>
+              <tr>
+                <th class="p-3 text-sm font-semibold text-gray-600">الموظف</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">المحتوى</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">القسم</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">التاريخ</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">الحالة</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr v-for="c in filteredComplaints" :key="c.id" class="hover:bg-gray-50 transition">
+                <td class="p-3 text-sm">
+                  {{ c.isAnonymous ? "مجهول" : (c.employeeName || "-") }}
+                </td>
+                <td class="p-3 text-sm max-w-[200px] truncate" :title="c.content">
+                  {{ c.content }}
+                </td>
+                <td class="p-3 text-sm">
+                  {{ c.isForAllDepartments ? "كل الأقسام" : (c.departmentName || "-") }}
+                </td>
+                <td class="p-3 text-sm text-gray-500">{{ formatDate(c.createdAt) }}</td>
+                <td class="p-3 text-sm">
+                  <span :class="['status-badge', statusClass(c.status)]">
+                    {{ statusText(c.status) }}
+                  </span>
+                </td>
+                <td class="p-3 text-sm flex gap-3">
+                  <button @click="viewComplaint(c)" class="text-blue-600 hover:scale-110 transition" title="عرض">
+                    👁️
+                  </button>
+                  <button 
+                    v-if="c.status === 0" 
+                    @click="askDelete(c.id)" 
+                    class="text-red-600 hover:scale-110 transition" 
+                    title="حذف"
+                  >
+                    🗑️
+                  </button>
+                </td>
+              </tr>
+              <tr v-if="!filteredComplaints.length">
+                <td colspan="6" class="text-center py-10 text-gray-400 italic">لا توجد شكاوى متاحة</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
-    <!-- مودال إرسال شكوى جديدة -->
-    <div v-if="showNewComplaintModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div class="bg-white rounded-xl shadow-lg w-full max-w-2xl p-6 relative">
-        <button @click="showNewComplaintModal = false"
-                class="absolute top-4 left-4 text-gray-500 hover:text-gray-700 text-xl">&times;</button>
-        <h2 class="text-2xl font-bold text-primaryDark mb-4 text-right">إرسال شكوى جديدة</h2>
+    <!-- Modal إضافة شكوى جديدة -->
+    <div v-if="showModal" class="fixed inset-0 bg-black/50 flex justify-center items-center z-[60] p-4">
+      <div class="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl">
+        <h3 class="font-bold text-xl mb-4 text-gray-800">إرسال شكوى جديدة</h3>
 
-        <form @submit.prevent="submitComplaint" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
+        <div class="space-y-4">
           <!-- المحتوى -->
-          <div class="md:col-span-2">
-            <label class="block text-right text-sm font-medium mb-1">المحتوى*</label>
-            <textarea v-model="newComplaint.content" required
-                      class="w-full p-3 border rounded-lg text-right text-sm focus:ring-2 focus:ring-primaryDark focus:border-primaryDark"
-                      rows="2" placeholder="اكتب محتوى الشكوى هنا..."></textarea>
-          </div>
-
-          <!-- القسم -->
           <div>
-            <label class="block text-right text-sm font-medium mb-1">القسم</label>
-            <select v-model="newComplaint.departmentId" :disabled="newComplaint.isForAllDepartments"
-                    class="w-full p-2 border rounded-lg text-right text-sm focus:ring-2 focus:ring-primaryDark focus:border-primaryDark">
-              <option value="0">اختر القسم</option>
-              <option v-for="dept in departments" :key="dept.id" :value="dept.id">{{ dept.name }}</option>
-            </select>
+            <label class="block text-sm font-medium mb-1">محتوى الشكوى*</label>
+            <textarea 
+              v-model="form.content" 
+              rows="3"
+              class="input w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
+              placeholder="اكتب تفاصيل الشكوى..."
+            ></textarea>
           </div>
 
-          <!-- لكل الأقسام -->
-          <div class="flex items-center gap-2 mt-5">
-            <input type="checkbox" v-model="newComplaint.isForAllDepartments" class="accent-primary" />
-            <label>لكل الأقسام</label>
+          <!-- خيارات القسم -->
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium mb-1">القسم</label>
+              <select 
+                v-model="form.departmentId" 
+                :disabled="form.isForAllDepartments"
+                class="input w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-primary disabled:bg-gray-200"
+              >
+                <option :value="0">اختر القسم</option>
+                <option v-for="dept in departments" :key="dept.id" :value="dept.id">{{ dept.name }}</option>
+              </select>
+            </div>
+            <div class="flex items-center gap-2 mt-6">
+              <input type="checkbox" v-model="form.isForAllDepartments" class="w-4 h-4 accent-primary" />
+              <label class="text-sm">لكل الأقسام</label>
+            </div>
           </div>
 
-          <!-- شكوى مجهولة -->
-          <div class="flex items-center gap-2 mt-2">
-            <input type="checkbox" v-model="newComplaint.isAnonymous" class="accent-primary" />
-            <label>إرسال الشكوى مجهولة</label>
+          <!-- خيار مجهول -->
+          <div class="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+            <input type="checkbox" v-model="form.isAnonymous" class="w-4 h-4 accent-primary" />
+            <label class="text-sm font-medium text-gray-700">إرسال الشكوى كـ "مجهول"</label>
           </div>
 
           <!-- المرفقات -->
-          <div class="md:col-span-2">
-            <label class="block text-right text-sm font-medium mb-1">مرفق (اختياري)</label>
-            <input type="file" @change="handleFileUpload" class="w-full p-2 border rounded-lg text-sm" />
-            <p v-if="attachedFile" class="text-xs mt-1 text-gray-500">ملف محدد: {{ attachedFile.name }}</p>
+          <div>
+            <label class="block text-sm font-medium mb-1">إرفاق ملف (اختياري)</label>
+            <input type="file" @change="handleFileUpload" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-primary file:text-white cursor-pointer"/>
           </div>
-
-          <div class="md:col-span-2 text-center mt-2">
-            <button type="submit" class="bg-primary hover:bg-primaryDark text-white px-6 py-2 rounded-lg font-semibold transition shadow-md">
-              إرسال الشكوى 📤
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- مودال عرض الشكوى -->
-    <div v-if="showDetailModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div class="bg-white rounded-xl shadow-lg w-full max-w-2xl max-h-[80vh] overflow-y-auto p-6 relative">
-        <button @click="showDetailModal = false" class="absolute top-4 left-4 text-gray-500 hover:text-gray-700 text-xl">&times;</button>
-        <h2 class="text-2xl font-bold text-primaryDark mb-4 text-right">تفاصيل الشكوى</h2>
-        <div class="space-y-4 text-right">
-          <p><span class="font-semibold">الموظف:</span> {{ selectedComplaint.isAnonymous ? "مجهول" : (selectedComplaint.employeeName || "-") }}</p>
-          <p><span class="font-semibold">القسم:</span> {{ selectedComplaint.isForAllDepartments ? "كل الأقسام" : (selectedComplaint.departmentName || "-") }}</p>
-          <p><span class="font-semibold">تاريخ الإنشاء:</span> {{ formatDate(selectedComplaint.createdAt) }}</p>
-          <p><span class="font-semibold">الحالة:</span> {{ statusText(selectedComplaint.status) }}</p>
-          <p><span class="font-semibold">المحتوى:</span></p>
-          <div class="p-3 border rounded-lg bg-gray-50 whitespace-pre-wrap break-words">
-            {{ selectedComplaint.content }}
-          </div>
-          <p v-if="selectedComplaint.attachmentPath">
-            <span class="font-semibold">المرفق:</span>
-            <a :href="selectedComplaint.attachmentPath" target="_blank" class="text-blue-600 hover:underline">عرض الملف</a>
-          </p>
         </div>
-        <div class="mt-6 text-center">
-          <button @click="showDetailModal = false"
-                  class="bg-primary hover:bg-primaryDark text-white px-6 py-2 rounded-lg font-semibold transition shadow-md">
-            إغلاق
+
+        <div class="flex justify-end gap-3 mt-8">
+          <button @click="closeModal" class="bg-gray-200 px-5 py-2 rounded-lg font-medium hover:bg-gray-300 transition">إلغاء</button>
+          <button @click="submitComplaint" class="bg-primary text-white px-8 py-2 rounded-lg font-bold hover:shadow-lg transition">
+            إرسال 📤
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Toast -->
-    <ToastPage 
-      v-if="toastMessage" 
-      :message="toastMessage" 
-      :type="toastType" 
-      :onConfirm="toastOnConfirm" 
-    />
+    <!-- Modal عرض التفاصيل -->
+    <div v-if="showDetailModal" class="fixed inset-0 bg-black/50 flex justify-center items-center z-[60] p-4">
+      <div class="bg-white rounded-2xl p-6 w-full max-w-2xl shadow-2xl relative">
+        <h3 class="font-bold text-xl mb-4 text-gray-800">تفاصيل الشكوى</h3>
+        <div class="space-y-4 text-right">
+          <div class="grid grid-cols-2 gap-4 border-b pb-4">
+            <p><span class="font-semibold text-gray-600">الموظف:</span> {{ selectedComplaint.isAnonymous ? "مجهول" : selectedComplaint.employeeName }}</p>
+            <p><span class="font-semibold text-gray-600">القسم:</span> {{ selectedComplaint.isForAllDepartments ? "كل الأقسام" : selectedComplaint.departmentName }}</p>
+            <p><span class="font-semibold text-gray-600">التاريخ:</span> {{ formatDate(selectedComplaint.createdAt) }}</p>
+            <p><span class="font-semibold text-gray-600">الحالة:</span> {{ statusText(selectedComplaint.status) }}</p>
+          </div>
+          <div>
+            <span class="font-semibold text-gray-600">المحتوى:</span>
+            <div class="mt-2 p-4 bg-gray-50 rounded-xl border whitespace-pre-wrap text-gray-800">
+              {{ selectedComplaint.content }}
+            </div>
+          </div>
+          <div v-if="selectedComplaint.attachmentPath" class="pt-2">
+            <a :href="selectedComplaint.attachmentPath" target="_blank" class="text-blue-600 underline flex items-center gap-2">
+              📎 عرض الملف المرفق
+            </a>
+          </div>
+        </div>
+        <div class="flex justify-center mt-6">
+          <button @click="showDetailModal = false" class="bg-primary text-white px-10 py-2 rounded-lg">إغلاق</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirm Delete -->
+    <div v-if="confirmDeleteId !== null" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
+      <div class="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-sm text-center">
+        <p class="mb-6 text-gray-700 font-bold">هل أنت متأكد من حذف هذه الشكوى؟</p>
+        <div class="flex justify-center gap-4">
+          <button @click="confirmDeleteId = null" class="px-6 py-2 rounded-lg border border-gray-300">تراجع</button>
+          <button @click="deleteComplaint(confirmDeleteId)" class="px-6 py-2 bg-red-600 text-white rounded-lg">حذف</button>
+        </div>
+      </div>
+    </div>
+
+    <ToastPage v-if="showToast" :message="toastMessage" :type="toastType" />
   </div>
 </template>
 
 <script>
-import Sidebar from "@/components/Sidebar.vue";
+import { ref, onMounted, computed } from "vue";
+import SidebarPage from "@/components/Sidebar.vue";
 import Navbar from "@/components/Navbar.vue";
 import ToastPage from "@/components/Toast.vue";
 import api from "@/services/api";
 
 export default {
-  name: "ManagerComplaints",
-  components: { Sidebar, Navbar, ToastPage },
-  data() {
-    return {
-      complaints: [],
-      departments: [],
-      newComplaint: { content: "", departmentId: 0, isForAllDepartments: false, isAnonymous: false },
-      attachedFile: null,
-      showNewComplaintModal: false,
-      toastMessage: "",
-      toastType: "success",
-      toastOnConfirm: null,
-      selectedComplaint: null,
-      showDetailModal: false
+  name: 'ComplaintsView',
+  components: { SidebarPage, Navbar, ToastPage },
+
+  setup() {
+    const complaints = ref([]);
+    const departments = ref([]);
+    const showModal = ref(false);
+    const showDetailModal = ref(false);
+    const selectedComplaint = ref(null);
+    const searchQuery = ref("");
+    const confirmDeleteId = ref(null);
+
+    const form = ref({
+      content: "",
+      departmentId: 0,
+      isForAllDepartments: false,
+      isAnonymous: false,
+      file: null
+    });
+
+    const showToast = ref(false);
+    const toastMessage = ref("");
+    const toastType = ref("success");
+
+    const toast = (msg, type = "success") => {
+      toastMessage.value = msg;
+      toastType.value = type;
+      showToast.value = true;
+      setTimeout(() => (showToast.value = false), 3000);
     };
-  },
-  mounted() {
-    this.fetchDepartments();
-    this.fetchComplaints();
-  },
-  methods: {
-    viewComplaint(complaint) {
-      this.selectedComplaint = complaint;
-      this.showDetailModal = true;
-    },
-    showToast(message, type="success", onConfirm=null) {
-      this.toastMessage = message;
-      this.toastType = type;
-      this.toastOnConfirm = onConfirm;
-      setTimeout(() => { this.toastMessage = ""; this.toastOnConfirm = null; }, 5000);
-    },
-    formatDate(dateStr) {
-      if (!dateStr) return "-";
-      const date = new Date(dateStr);
-      return date.toLocaleString("ar-LY", { year: "numeric", month: "2-digit", day: "2-digit" });
-    },
-    statusText(status) {
-      const map = {0:"تحت المراجعة",1:"تم التحويل للقسم",2:"قيد التحقيق",3:"تم الرد",4:"معلقة"};
-      return map[status] || "غير معروف";
-    },
-    statusClass(status) {
-      const map = {0:"bg-gray-400",1:"bg-purple-500",2:"bg-yellow-500",3:"bg-green-500",4:"bg-red-500"};
-      return map[status] || "bg-gray-400";
-    },
-    handleFileUpload(e) { this.attachedFile = e.target.files[0] || null; },
-   async fetchDepartments() { 
-  try { 
-    const response = await api.get("/Organization/Departments");
-    console.log("Departments API Response:", response.data); // ← راقب في Console
-    this.departments = response.data;
-  } catch(err){ 
-    console.error("Error fetching departments:", err); 
-  } 
-},
-    async fetchComplaints() {
+
+    const fetchData = async () => {
       try {
-        const data = (await api.get("/complaints/my")).data;
-        this.complaints = data;
-      } catch(err){ console.error(err); }
-    },
-    confirmDelete(complaintId) {
-      this.showToast("⚠️ هل تريد حقاً حذف الشكوى؟", "info", async () => { await this.deleteComplaint(complaintId); });
-    },
-    async deleteComplaint(id) {
+        const [compRes, deptRes] = await Promise.all([
+          api.get("/complaints/my"),
+          api.get("/Organization/Departments")
+        ]);
+        complaints.value = compRes.data;
+        departments.value = deptRes.data;
+      } catch (e) {
+        toast("خطأ في تحميل البيانات", "error");
+      }
+    };
+
+    const filteredComplaints = computed(() => {
+      const q = searchQuery.value.toLowerCase();
+      return complaints.value.filter(c => 
+        (c.content || "").toLowerCase().includes(q) ||
+        (c.employeeName || "").toLowerCase().includes(q) ||
+        (c.departmentName || "").toLowerCase().includes(q)
+      );
+    });
+
+    const handleFileUpload = (e) => {
+      form.value.file = e.target.files[0];
+    };
+
+    const openAddModal = () => {
+      resetForm();
+      showModal.value = true;
+    };
+
+    const closeModal = () => {
+      showModal.value = false;
+      resetForm();
+    };
+
+    const resetForm = () => {
+      form.value = { content: "", departmentId: 0, isForAllDepartments: false, isAnonymous: false, file: null };
+    };
+
+    const viewComplaint = (complaint) => {
+      selectedComplaint.value = complaint;
+      showDetailModal.value = true;
+    };
+
+    const submitComplaint = async () => {
+      if (!form.value.content) return toast("يرجى كتابة محتوى الشكوى", "error");
+
+      try {
+        const formData = new FormData();
+        formData.append("Content", form.value.content);
+        formData.append("IsForAllDepartments", form.value.isForAllDepartments);
+        formData.append("IsAnonymous", form.value.isAnonymous);
+
+        if (!form.value.isForAllDepartments && form.value.departmentId > 0) {
+          formData.append("DepartmentId", form.value.departmentId);
+        }
+
+        if (form.value.file) {
+          formData.append("File", form.value.file);
+        }
+
+        await api.post("/complaints/create", formData, {
+          headers: { "Content-Type": "multipart/form-data" }
+        });
+
+        toast("تم إرسال الشكوى بنجاح");
+        closeModal();
+        fetchData();
+      } catch (err) {
+        toast("حدث خطأ أثناء الإرسال", "error");
+      }
+    };
+
+    const askDelete = (id) => (confirmDeleteId.value = id);
+
+    const deleteComplaint = async (id) => {
       try {
         await api.delete(`/complaints/${id}`);
-        this.showToast("✅ تم حذف الشكوى بنجاح");
-        await this.fetchComplaints();
-      } catch(err){ console.error(err); this.showToast("❌ حدث خطأ أثناء الحذف","error"); }
-    },
-    async submitComplaint() {
-      if(!this.newComplaint.content) return this.showToast("يرجى كتابة محتوى الشكوى","info");
-
-      const formData = new FormData();
-      formData.append("Content", this.newComplaint.content);
-      formData.append("IsForAllDepartments", this.newComplaint.isForAllDepartments);
-      formData.append("IsAnonymous", this.newComplaint.isAnonymous);
-
-      const deptId = (!this.newComplaint.isForAllDepartments && this.newComplaint.departmentId > 0) 
-                     ? this.newComplaint.departmentId 
-                     : null;
-      if(deptId !== null) formData.append("DepartmentId", deptId);
-
-      if(this.attachedFile){ formData.append("File", this.attachedFile); }
-
-      try {
-        await api.post("/complaints/create", formData, { headers: { "Content-Type": "multipart/form-data" } });
-        this.newComplaint = { content:"", departmentId:0, isForAllDepartments:false, isAnonymous:false };
-        this.attachedFile = null;
-        this.showNewComplaintModal = false;
-        this.showToast("✅ تم إرسال الشكوى بنجاح","success");
-        await this.fetchComplaints();
-      } catch(err){
-        console.error(err);
-        this.showToast("❌ حدث خطأ أثناء إرسال الشكوى","error");
+        toast("تم حذف الشكوى");
+        confirmDeleteId.value = null;
+        fetchData();
+      } catch (err) {
+        toast("فشل الحذف", "error");
       }
-    }
+    };
+
+    const formatDate = (dateStr) => {
+      if (!dateStr) return "---";
+      return new Date(dateStr).toLocaleDateString("ar-LY");
+    };
+
+    const statusText = (status) => {
+      const map = { 0: "تحت المراجعة", 1: "تم التحويل", 2: "قيد التحقيق", 3: "تم الرد", 4: "معلقة" };
+      return map[status] || "غير معروف";
+    };
+
+    const statusClass = (status) => {
+      const map = { 0: "bg-gray-400", 1: "bg-purple-500", 2: "bg-yellow-500", 3: "bg-green-500", 4: "bg-red-500" };
+      return map[status] || "bg-gray-400";
+    };
+
+    onMounted(fetchData);
+
+    return {
+      complaints, departments, form, searchQuery, filteredComplaints,
+      showModal, showDetailModal, selectedComplaint, confirmDeleteId,
+      openAddModal, closeModal, submitComplaint, viewComplaint,
+      askDelete, deleteComplaint, handleFileUpload, formatDate,
+      statusText, statusClass, showToast, toastMessage, toastType
+    };
   }
 };
 </script>
 
 <style scoped>
+.input { @apply bg-gray-50; }
 .status-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 90px;
-  height: 28px;
-  font-size: 12px;
-  font-weight: 600;
-  border-radius: 9999px;
-  color: white;
-}
-td.truncate, div.whitespace-pre-wrap {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 250px;
-  word-break: break-word;
-}
-div.whitespace-pre-wrap {
-  white-space: pre-wrap;
+  @apply px-3 py-1 rounded-full text-white text-[11px] font-bold inline-block text-center min-w-[80px];
 }
 </style>

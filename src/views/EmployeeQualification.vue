@@ -1,149 +1,354 @@
 <template>
-  <div dir="rtl" class="flex min-h-screen bg-white">
-
+  <div class="flex min-h-screen bg-gray-100 font-cairo" dir="rtl">
     <!-- Sidebar -->
-    <Sidebar
-      class="fixed top-0 right-0 h-screen w-24 sm:w-28 md:w-60 z-50"
-    />
+    <SidebarPage class="fixed top-0 right-0 h-screen w-24 md:w-64 z-50"/>
 
-    <!-- المحتوى -->
-    <div class="flex-1 mr-24 sm:mr-28 md:mr-60 p-4 sm:p-6">
+    <!-- Main content -->
+    <div class="flex-1 p-6 mr-24 md:mr-64">
+      <Navbar/>
 
-      <!-- Navbar -->
-      <Navbar />
-
-      <!-- الكارد -->
-      <div class="bg-white rounded-xl shadow p-6 max-w-4xl mx-auto mt-4">
-
-        <!-- العنوان -->
-        <h3 class="text-xl font-bold mb-6 text-right primary">
-          المؤهل العلمي 
-        </h3>
-
-        <!-- الفورم -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-          <div class="flex flex-col">
-            <label class="text-sm text-gray-600 mb-1">المؤهل العلمي</label>
-            <input
-              type="text"
-              v-model="form.degree"
-              class="input"
-              placeholder="مثال: بكالوريوس"
-            />
-          </div>
-
-          <div class="flex flex-col">
-            <label class="text-sm text-gray-600 mb-1">التخصص</label>
-            <input
-              type="text"
-              v-model="form.specialization"
-              class="input"
-              placeholder="مثال: علوم حاسوب"
-            />
-          </div>
-
-          <div class="flex flex-col">
-            <label class="text-sm text-gray-600 mb-1">الجامعة / المعهد</label>
-            <input
-              type="text"
-              v-model="form.institution"
-              class="input"
-              placeholder="اسم الجهة التعليمية"
-            />
-          </div>
-
-          <div class="flex flex-col">
-            <label class="text-sm text-gray-600 mb-1">تاريخ التخرج</label>
-            <input
-              type="date"
-              v-model="form.graduationDate"
-              class="input"
-            />
-          </div>
-
-        </div>
-
-        <!-- زر الحفظ -->
-        <div class="flex justify-center mt-8">
+      <!-- Card -->
+      <div class="bg-white rounded-2xl shadow-lg p-6 mt-4">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+          <h2 class="text-xl font-bold text-gray-800">المؤهلات العلمية</h2>
           <button
-            @click="save"
-           class="bg-primary hover:bg-primaryDark text-white px-6 py-2 rounded-xl font-semibold shadow-md transition"
-          >
-            حفظ المؤهل العلمي
+            @click="openAddModal"
+            class="bg-primary hover:bg-green-700 text-white px-4 py-2 rounded-xl shadow transition-all">
+            + إضافة مؤهل
           </button>
         </div>
 
+        <!-- Search Table -->
+        <input
+          v-model="searchTable"
+          placeholder="بحث في الجدول (اسم الموظف، المؤهل، المؤسسة)..."
+          class="input w-full mb-4 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none"
+        />
+
+        <!-- Table -->
+        <div class="overflow-x-auto rounded-lg border border-gray-200">
+          <table class="min-w-full text-right divide-y divide-gray-200">
+            <thead class="bg-navbar">
+              <tr>
+                <th class="p-3 text-sm font-semibold text-gray-600">الموظف</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">المؤهل</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">التخصص</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">المؤسسة</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">التاريخ</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr v-for="edu in filteredEducations" :key="edu.id || edu.Id" class="hover:bg-gray-50 transition">
+                <td class="p-3 text-sm">{{ edu.employee || edu.Employee }}</td>
+                <td class="p-3 text-sm">
+                  {{ edu.qualification || edu.Qualification }}
+                  <span v-if="edu.file || edu.File">
+                    <a :href="edu.file || edu.File" target="_blank" class="mr-2 text-blue-500">📎</a>
+                  </span>
+                </td>
+                <td class="p-3 text-sm">
+                  <span :class="(edu.type || edu.Type) === 'Public' ? 'text-green-600' : 'text-purple-600'">
+                    {{ (edu.type || edu.Type) === 'Public' ? 'عام' : 'خاص' }}
+                  </span>
+                </td>
+                <td class="p-3 text-sm">{{ edu.institution || edu.Institution }}</td>
+                <td class="p-3 text-sm text-gray-500">{{ formatDate(edu.createdAt || edu.CreatedAt) }}</td>
+                <td class="p-3 text-sm flex gap-3">
+                  <button @click="editEducation(edu)" class="text-blue-600 hover:scale-110 transition">✏️</button>
+                  <button @click="askDelete(edu.id || edu.Id)" class="text-red-600 hover:scale-110 transition">🗑️</button>
+                </td>
+              </tr>
+              <tr v-if="!filteredEducations.length">
+                <td colspan="6" class="text-center py-10 text-gray-400 italic">لا توجد بيانات متاحة</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
-    <!-- Toast -->
-    <transition name="fade">
-      <div
-        v-if="toastMessage"
-        class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-               px-6 py-3 rounded-lg shadow-lg text-white text-center z-[999]"
-        :class="toastType === 'success' ? 'bg-green-600' : 'bg-red-600'"
-      >
-        {{ toastMessage }}
-      </div>
-    </transition>
+    <!-- Modal إضافة/تعديل -->
+    <div v-if="showModal" class="fixed inset-0 bg-black/50 flex justify-center items-center z-[60] p-4">
+      <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+        <h3 class="font-bold text-xl mb-4 text-gray-800">{{ isEdit ? 'تعديل المؤهل العلمي' : 'إضافة مؤهل جديد' }}</h3>
 
+        <div class="space-y-4">
+          <!-- Employee -->
+          <div class="relative">
+            <label class="block text-sm font-medium mb-1">الموظف</label>
+            <div class="flex gap-2">
+              <input 
+                v-model="search" 
+                :placeholder="form.employeeId ? 'تم اختيار الموظف' : 'ابحث عن موظف...'" 
+                class="input w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                :disabled="form.employeeId !== null" 
+              />
+              <button v-if="form.employeeId" @click="resetEmployeeSelection" class="text-red-500 text-xs underline">تغيير</button>
+            </div>
+            <ul v-if="filteredEmployees.length && search.length > 0 && !form.employeeId" 
+                class="absolute bg-white border w-full mt-1 rounded-lg shadow-xl max-h-40 overflow-y-auto z-[70]">
+              <li v-for="emp in filteredEmployees" :key="emp.id"
+                  @click="selectEmployee(emp)"
+                  class="p-2 hover:bg-gray-100 cursor-pointer border-b last:border-0">
+                {{ emp.fullName }}
+              </li>
+            </ul>
+          </div>
+
+          <!-- Qualification -->
+          <div>
+            <label class="block text-sm font-medium mb-1">المؤهل الدراسي</label>
+            <select v-model="form.qualificationId" class="input w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-primary">
+              <option :value="null">اختر المؤهل</option>
+              <option v-for="q in qualifications" :key="q.id" :value="q.id">{{ q.name }}</option>
+            </select>
+          </div>
+
+          <!-- Type -->
+          <div>
+            <label class="block text-sm font-medium mb-1">نوع التخصص</label>
+            <div class="flex gap-6 p-2 bg-gray-50 rounded-lg">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" value="Public" v-model="form.type" class="w-4 h-4 accent-primary" /> عام
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" value="Private" v-model="form.type" class="w-4 h-4 accent-primary" /> خاص
+              </label>
+            </div>
+          </div>
+
+          <!-- Institution -->
+          <div>
+  <label class="block text-sm font-medium mb-1">المؤسسة / الجامعة</label>
+  <input 
+    v-model="form.institution" 
+    type="text"
+    name="institution"
+    class="input w-full p-2 border rounded-lg"
+    required
+  />
+</div>
+
+          <!-- File -->
+          <div>
+            <label class="block text-sm font-medium mb-1">إرفاق الشهادة (اختياري)</label>
+            <input type="file" @change="e => form.file = e.target.files[0]" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-primary file:text-white cursor-pointer"/>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-8">
+          <button @click="closeModal" class="bg-gray-200 px-5 py-2 rounded-lg font-medium hover:bg-gray-300 transition">إلغاء</button>
+          <button @click="saveEducation" class="bg-primary text-white px-8 py-2 rounded-lg font-bold hover:shadow-lg transition">
+            {{ isEdit ? 'تحديث' : 'حفظ' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirm Delete -->
+    <div v-if="confirmDeleteId !== null" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
+      <div class="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-sm text-center">
+        <p class="mb-6 text-gray-700 font-bold">هل أنت متأكد من الحذف؟</p>
+        <div class="flex justify-center gap-4">
+          <button @click="confirmDeleteId = null" class="px-6 py-2 rounded-lg border border-gray-300">تراجع</button>
+          <button @click="deleteEducation(confirmDeleteId)" class="px-6 py-2 bg-red-600 text-white rounded-lg">حذف</button>
+        </div>
+      </div>
+    </div>
+
+    <ToastPage v-if="showToast" :message="toastMessage" :type="toastType" />
   </div>
 </template>
 
 <script>
-import Sidebar from "../components/Sidebar.vue";
-import Navbar from "../components/Navbar.vue";
+import { ref, onMounted, computed } from "vue";
+import SidebarPage from "@/components/Sidebar.vue";
+import Navbar from "@/components/Navbar.vue";
+import ToastPage from "@/components/Toast.vue";
+import api from "@/services/api";
 
 export default {
-  name: "QualificationInfo",
-  components: { Sidebar, Navbar },
-  data() {
-    return {
-      form: {
-        degree: "",
-        specialization: "",
-        institution: "",
-        graduationDate: ""
-      },
-      toastMessage: "",
-      toastType: "success"
-    };
-  },
-  methods: {
-    save() {
-      if (
-        !this.form.degree ||
-        !this.form.specialization ||
-        !this.form.institution ||
-        !this.form.graduationDate
-      ) {
-        this.toastMessage = "الرجاء ملء جميع الحقول ❌";
-        this.toastType = "error";
-        setTimeout(() => (this.toastMessage = ""), 3000);
-        return;
-      }
+  components: { SidebarPage, Navbar, ToastPage },
 
-      this.toastMessage = "تم حفظ المؤهل العلمي ✅";
-      this.toastType = "success";
-      setTimeout(() => (this.toastMessage = ""), 3000);
+  setup() {
+    const educations = ref([]);
+    const employees = ref([]);
+    const qualifications = ref([]);
+    const showModal = ref(false);
+    const isEdit = ref(false);
+    const search = ref("");
+    const searchTable = ref("");
+    const confirmDeleteId = ref(null);
+
+    const form = ref({
+      id: null,
+      employeeId: null,
+      qualificationId: null,
+      type: "Public",
+      institution: "",
+      file: null
+    });
+
+    const showToast = ref(false);
+    const toastMessage = ref("");
+    const toastType = ref("success");
+
+    const toast = (msg, type = "success") => {
+      toastMessage.value = msg;
+      toastType.value = type;
+      showToast.value = true;
+      setTimeout(() => (showToast.value = false), 3000);
+    };
+
+    const fetchData = async () => {
+      try {
+        const [edu, emp, qual] = await Promise.all([
+          api.get("/EmployeeEducation/all"),
+          api.get("/Employee/all"),
+          api.get("/EmployeeEducation/qualifications")
+        ]);
+        educations.value = edu.data;
+        employees.value = emp.data;
+        qualifications.value = qual.data;
+      } catch (e) {
+        toast("خطأ في تحميل البيانات", "error");
+      }
+    };
+
+    const filteredEducations = computed(() => {
+      const s = searchTable.value.toLowerCase();
+      return educations.value.filter(e => 
+        (e.employee || e.Employee || "").toLowerCase().includes(s) ||
+        (e.qualification || e.Qualification || "").toLowerCase().includes(s) ||
+        (e.institution || e.Institution || "").toLowerCase().includes(s)
+      );
+    });
+
+    const filteredEmployees = computed(() =>
+      employees.value.filter(e => e.fullName?.toLowerCase().includes(search.value.toLowerCase()))
+    );
+
+    const selectEmployee = (emp) => {
+      form.value.employeeId = emp.id;
+      search.value = emp.fullName;
+    };
+
+    const resetEmployeeSelection = () => {
+      form.value.employeeId = null;
+      search.value = "";
+    };
+
+    const openAddModal = () => {
+      isEdit.value = false;
+      resetForm();
+      showModal.value = true;
+    };
+
+    const editEducation = (edu) => {
+      isEdit.value = true;
+      const empName = edu.employee || edu.Employee;
+      const emp = employees.value.find(e => e.fullName === empName);
+      const qualName = edu.qualification || edu.Qualification;
+      const qual = qualifications.value.find(q => q.name === qualName);
+
+      form.value = {
+        id: edu.id || edu.Id,
+        employeeId: emp ? emp.id : null,
+        qualificationId: qual ? qual.id : null,
+        type: edu.type || edu.Type || "Public",
+        institution: edu.institution || edu.Institution || "",
+        file: null
+      };
+      search.value = empName || "";
+      showModal.value = true;
+    };
+
+const saveEducation = async () => {
+  if (!form.value.employeeId || !form.value.qualificationId || !form.value.institution) {
+    return toast("يرجى ملء كافة الحقول الإجبارية", "error");
+  }
+
+  try {
+    const formData = new FormData();
+
+    formData.append("employeeId", Number(form.value.employeeId));
+    formData.append("qualificationId", Number(form.value.qualificationId));
+    formData.append("type", form.value.type);
+    formData.append("institution", form.value.institution.trim());
+
+    if (form.value.file && form.value.file instanceof File) {
+      formData.append("file", form.value.file);
     }
+
+    console.log("إرسال البيانات النهائية...");
+
+    // تمت إزالة "const response =" من هنا لحل مشكلة ESLint
+    if (isEdit.value) {
+      await api.put(`/EmployeeEducation/${form.value.id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+    } else {
+      await api.post("/EmployeeEducation", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+    }
+
+    toast("تم حفظ البيانات بنجاح!");
+    closeModal();
+    fetchData();
+  } catch (err) {
+    console.error("تفاصيل الخطأ كاملة:", err.response?.data);
+    
+    const errors = err.response?.data?.errors;
+    if (errors) {
+      const firstErrorKey = Object.keys(errors)[0];
+      const firstErrorMessage = errors[firstErrorKey][0];
+      toast(`${firstErrorKey}: ${firstErrorMessage}`, "error");
+    } else {
+      toast("خطأ 400: السيرفر رفض الطلب", "error");
+    }
+  }
+};
+    const askDelete = (id) => (confirmDeleteId.value = id);
+
+    const deleteEducation = async (id) => {
+      try {
+        await api.delete(`/EmployeeEducation/${id}`);
+        toast("تم الحذف");
+        confirmDeleteId.value = null;
+        fetchData();
+      } catch (err) {
+        toast("فشل الحذف", "error");
+      }
+    };
+
+    const resetForm = () => {
+      form.value = { id: null, employeeId: null, qualificationId: null, type: "Public", institution: "", file: null };
+      search.value = "";
+    };
+
+    const closeModal = () => {
+      showModal.value = false;
+      resetForm();
+    };
+
+    const formatDate = (d) => d ? d.split("T")[0] : "---";
+
+    onMounted(fetchData);
+
+    return {
+      educations, qualifications, employees, form, search, searchTable,
+      filteredEducations, filteredEmployees, showModal, isEdit, confirmDeleteId,
+      selectEmployee, resetEmployeeSelection, openAddModal, editEducation, 
+      saveEducation, askDelete, deleteEducation, closeModal, formatDate,
+      showToast, toastMessage, toastType
+    };
   }
 };
 </script>
 
 <style scoped>
-.input {
-  @apply p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right;
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
+.input { @apply bg-gray-50; }
 </style>

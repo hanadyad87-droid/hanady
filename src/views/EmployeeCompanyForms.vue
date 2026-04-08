@@ -1,110 +1,89 @@
 <template>
-  <div class="flex min-h-screen bg-white font-cairo" dir="rtl">
-
+  <div class="flex min-h-screen bg-gray-100 font-cairo" dir="rtl">
     <!-- Sidebar -->
     <SidebarPage class="fixed top-0 right-0 h-screen w-24 md:w-64 z-50"/>
 
-    <!-- المحتوى -->
+    <!-- المحتوى الرئيسي -->
     <div class="flex-1 p-6 mr-24 md:mr-64">
-
       <Navbar/>
 
-      <div class="card p-6 bg-white rounded-xl shadow-lg mt-4">
+      <!-- البطاقة الرئيسية -->
+      <div class="bg-white rounded-2xl shadow-lg p-6 mt-4">
+        
+        <!-- الرأس (العنوان) -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+          <h2 class="text-xl font-bold text-gray-800">النماذج </h2>
+          <!-- يمكن إضافة زر هنا إذا كان هناك رفع نماذج مستقبلاً -->
+        </div>
 
-        <h3 class="text-xl font-bold text-bg-primary mb-4 text-right">
-          النماذج
-        </h3>
-
-        <!-- البحث -->
-        <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+      
+        <div class="mb-4">
           <input
             v-model="search"
             @input="searchForms"
-            placeholder="ابحث عن نموذج..."
-            class="input w-full md:w-72 text-sm"/>
+            placeholder="ابحث عن نموذج (بالاسم أو المحتوى)..."
+            class="input w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none"
+          />
         </div>
 
-        <!-- جدول النماذج -->
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200 text-right">
+        <!-- الجدول -->
+        <div class="overflow-x-auto rounded-lg border border-gray-200">
+          <table class="min-w-full text-right divide-y divide-gray-200">
             <thead class="bg-navbar">
               <tr>
-                <th class="px-4 py-2 text-sm">العنوان</th>
-                <th class="px-4 py-2 text-sm">تاريخ الرفع</th>
-                <th class="px-4 py-2 text-sm">رفع بواسطة</th>
-                <th class="px-4 py-2 text-sm">إجراءات</th>
+                <th class="p-4 text-sm font-semibold text-gray-600">العنوان</th>
+                <th class="p-4 text-sm font-semibold text-gray-600">تاريخ الرفع</th>
+                <th class="p-4 text-sm font-semibold text-gray-600">رفع بواسطة</th>
+                <th class="p-4 text-sm font-semibold text-gray-600">إجراءات</th>
               </tr>
             </thead>
 
-            <tbody class="divide-y divide-gray-200">
-              <tr v-for="form in forms" :key="form.id" class="hover:bg-gray-50">
-
-                <td class="px-4 py-2 font-semibold">{{form.title}}</td>
-                <td class="px-4 py-2">{{formatDate(form.uploadedAt)}}</td>
-                <td class="px-4 py-2">{{form.uploadedBy}}</td>
-
-                <!-- عمود الإجراءات -->
-                <td class="px-4 py-2 flex gap-2">
-                  <!-- أيقونة عرض الوصف -->
-                 <button
-    @click="viewForm(form)"
-    class="text-blue-600 hover:text-blue-800">
-
-    <EyeIcon class="w-5 h-5"/>
-
-  </button>
-
-                  <!-- أيقونة تحميل -->
-                  <!-- Download -->
-  <a
-    :href="form.fileUrl"
-    target="_blank"
-    class="text-green-600 hover:text-green-800">
-
-    <ArrowDownTrayIcon class="w-5 h-5"/>
-
-  </a>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr v-for="form in forms" :key="form.id" class="hover:bg-gray-50 transition">
+                <td class="p-4 text-sm font-bold text-gray-700">{{ form.title }}</td>
+                <td class="p-4 text-sm text-gray-500">{{ formatDate(form.uploadedAt) }}</td>
+                <td class="p-4 text-sm">
+                  <span class="bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-xs">
+                    {{ form.uploadedBy }}
+                  </span>
                 </td>
 
+                <!-- عمود الإجراءات -->
+                <td class="p-4 text-sm flex gap-4">
+                  <!-- عرض الوصف -->
+                 
+
+                  <!-- تحميل الملف -->
+                  <a
+                    :href="form.fileUrl"
+                    target="_blank"
+                    title="تحميل الملف"
+                    class="text-green-600 hover:scale-110 transition-transform">
+                    <ArrowDownTrayIcon class="w-5 h-5"/>
+                  </a>
+                </td>
+              </tr>
+
+              <!-- حالة عدم وجود بيانات -->
+              <tr v-if="forms.length === 0">
+                <td colspan="4" class="text-center py-10 text-gray-400 italic">
+                  لا توجد نماذج متاحة حالياً
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
-
-        <div v-if="forms.length === 0"
-             class="text-center text-gray-500 mt-6">
-          لا توجد نماذج متاحة حالياً
-        </div>
       </div>
-
-      <!-- مودال عرض وصف النموذج -->
-    <div v-if="showModal"
-     class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-  <div class="bg-white rounded-xl shadow-lg max-w-md w-full p-4 max-h-[80vh] overflow-auto">
-    
-    <!-- رأس المودال -->
-    <div class="flex justify-between items-center mb-2">
-      <h2 class="font-bold text-lg">{{ selectedForm.title }}</h2>
-      <button @click="showModal=false" class="text-gray-600 hover:text-gray-900 text-xl">&times;</button>
     </div>
 
-   <!-- الوصف -->
-<div class="bg-gray-100 p-2 rounded-lg text-sm overflow-y-auto break-words whitespace-pre-wrap"
-     style="max-height: calc(1.25rem * 3 + 0.5rem); line-height: 1.25rem;">
-  {{ selectedForm.description }}
-</div>
+  
 
-  </div>
-</div>
-
-    </div>
-
+    <!-- التنبيهات -->
     <ToastPage
       v-if="showToast"
       :message="toastMessage"
       :type="toastType"
     />
-
   </div>
 </template>
 
@@ -114,12 +93,12 @@ import { ref, onMounted } from "vue"
 import SidebarPage from "../components/Sidebar.vue"
 import Navbar from "../components/Navbar.vue"
 import ToastPage from "@/components/Toast.vue"
-import { EyeIcon, ArrowDownTrayIcon,  } from "@heroicons/vue/24/outline"
+import {  ArrowDownTrayIcon } from "@heroicons/vue/24/outline"
+
 export default {
-  components:{ SidebarPage, Navbar, ToastPage,EyeIcon, ArrowDownTrayIcon},
+  components: { SidebarPage, Navbar, ToastPage,  ArrowDownTrayIcon },
 
-  setup(){
-
+  setup() {
     const forms = ref([])
     const search = ref("")
     const showModal = ref(false)
@@ -129,45 +108,57 @@ export default {
     const toastType = ref("success")
     const showToast = ref(false)
 
+    // إعدادات Axios
     axios.defaults.baseURL = "http://localhost:5205/api"
-    axios.defaults.headers.common["Authorization"] =
-      `Bearer ${localStorage.getItem("token")}`
+    axios.defaults.headers.common["Authorization"] = `Bearer ${localStorage.getItem("token")}`
 
-    const triggerToast = (msg,type="success")=>{
-      toastMessage.value=msg
-      toastType.value=type
-      showToast.value=true
-      setTimeout(()=>{ showToast.value=false },3000)
+    const triggerToast = (msg, type = "success") => {
+      toastMessage.value = msg
+      toastType.value = type
+      showToast.value = true
+      setTimeout(() => { showToast.value = false }, 3000)
     }
 
     const fetchForms = async () => {
-      try{
+      try {
         const res = await axios.get("/company-forms/all")
         forms.value = res.data
-      }catch{
-        triggerToast("فشل تحميل النماذج","error")
+      } catch {
+        triggerToast("فشل تحميل النماذج", "error")
       }
     }
 
     const searchForms = async () => {
-      try{
-        const res = await axios.get("/company-forms/all",{ params:{ searchTerm: search.value } })
+      try {
+        const res = await axios.get("/company-forms/all", { params: { searchTerm: search.value } })
         forms.value = res.data
-      }catch{
-        triggerToast("خطأ في البحث","error")
+      } catch {
+        triggerToast("خطأ في البحث", "error")
       }
     }
 
-    const formatDate = (dateStr) => { if(!dateStr) return ''; return dateStr.split("T")[0] }
+    const formatDate = (dateStr) => { 
+      if (!dateStr) return '---'; 
+      return dateStr.split("T")[0] 
+    }
 
     const viewForm = (form) => {
       selectedForm.value = form
       showModal.value = true
     }
 
-    onMounted(()=>{ fetchForms() })
+    onMounted(() => { fetchForms() })
 
-    return { forms, search, searchForms, formatDate, showModal, selectedForm, viewForm, toastMessage, toastType, showToast }
+    return { 
+      forms, search, searchForms, formatDate, 
+      showModal, selectedForm, viewForm, 
+      toastMessage, toastType, showToast 
+    }
   }
 }
 </script>
+
+<style scoped>
+/* نفس لمسة التصميم في صفحة المؤهلات */
+.input { @apply bg-gray-50; }
+</style>

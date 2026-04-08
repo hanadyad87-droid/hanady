@@ -62,9 +62,10 @@ export default {
       const links = [
         { name: "الرئيسية", path: "/dashboard", icon: "🏠", roles: [1,2,3,4,5,6] },
         { name: "الموظفين", path: "/employees", icon: "👥", roles: [1] },
-        { name: "الإجازات", path: "/leaves", icon: "✈️", roles: [5,2,3,4,6] },
+        { name: "الإجازات", path: "/leaves", icon: "✈️", roles: [3,4,6] },
         { name: "الطلبات", path: "/requests", icon: "📄", roles: [1,2,3,4,5,6] },
-        { name: "تعيين الإدارات", path: "/departments-management", icon: "🏢", roles: [1] },
+{ name: "إدارة الإدارات", path: "/departments", icon: "🏢", roles: [1] },
+{ name: "تعيين المدراء", path: "/assign-managers", icon: "👔", roles: [1] },
         { name: "المؤهل العلمي", path: "/employee-qualification", icon: "🎓", roles: [1] },
         { name: "إدارة الإجازات", path: "/manager/leaves", icon: "🗂️", roles: [2,3,4,5] },
         { name: "الصلاحيات", path: "/permissions", icon: "🔐", roles: [1] },
@@ -80,7 +81,7 @@ export default {
 { name: "التقارير", path: "/reports", icon: "📊", roles: [3,4,5] },
 { name: "النماذج", path: "/company-forms", icon: "📄", roles: [6] },
 { name: "إدارة النماذج", path: "/company-forms/manage", icon: "📑", roles: [1,2,3,4,5] },
-        { name: "التقييم", path: "/evaluation", icon: "⭐", roles: [1,2,3,4,5,6] },
+        
         { name: "الاسئلة الشائعة", path: "/knowledge", icon: "📚", roles: [1,2,3,4,5,6] },
         { name: "إدارة الاسئلة الشائعة", path: "/faq-mangement", icon: "📚", roles: [1,2] }
       ];

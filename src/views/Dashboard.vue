@@ -1,224 +1,209 @@
 <template>
-  <div class="flex min-h-screen bg-white" dir="rtl">
+  <div class="flex min-h-screen bg-gray-100" dir="rtl">
 
     <!-- Sidebar -->
-    <Sidebar class="fixed top-0 right-0 h-screen w-24 md:w-64 bg-primary text-white p-4 z-50" />
+    <Sidebar class="fixed top-0 right-0 h-screen w-20 md:w-64 bg-primary text-white z-50" />
 
-    <!-- المحتوى -->
-    <div class="flex-1 p-4 sm:p-6 mr-24 md:mr-64">
+    <!-- Main Content -->
+    <div class="flex-1 p-4 md:p-6 mr-20 md:mr-64">
 
       <Navbar />
 
-      <!-- البوكس الأبيض الرئيسي -->
-      <div class="bg-white rounded-xl shadow p-4 sm:p-5 md:p-6 w-full sm:max-w-xl md:max-w-3xl mx-auto space-y-4">
+      <div class="max-w-7xl mx-auto space-y-6">
 
-        <!-- الإعلانات -->
+        <!-- Announcements -->
         <div>
-          <div
-            v-if="announcements.length"
-            class="announcement-bar overflow-hidden rounded-md h-10 flex items-center px-2 sm:px-3 md:px-4"
-            style="background: linear-gradient(90deg,#1D4736,#165a40,#1D4736);"
-          >
-            <div
-              class="announcement-track flex items-center gap-12 sm:gap-16 md:gap-20"
-              :style="{ animationDuration: scrollDuration + 's' }"
-            >
-              <div
-                v-for="ann in announcements"
-                :key="ann.id"
-                class="text-white text-xs sm:text-sm flex gap-1 sm:gap-2 whitespace-nowrap"
-              >
+          <div v-if="announcements.length"
+               class="announcement-bar overflow-hidden rounded-md h-10 flex items-center px-3"
+               style="background: linear-gradient(90deg,#1D4736,#165a40,#1D4736);">
+            <div class="announcement-track flex items-center gap-16"
+                 :style="{ animationDuration: scrollDuration + 's' }">
+              <div v-for="ann in announcements" :key="ann.id"
+                   class="text-white text-sm flex gap-2 whitespace-nowrap">
                 <span class="font-semibold">{{ ann.title }}</span>
-                <span class="opacity-70">—</span>
-                <span class="opacity-90">{{ ann.message }}</span>
+                <span>—</span>
+                <span>{{ ann.message }}</span>
               </div>
             </div>
           </div>
-
-          <div
-            v-else
-            class="h-10 flex items-center justify-center rounded-md text-white/60 text-xs sm:text-sm"
-            style="background: linear-gradient(90deg,#1D4736,#165a40,#1D4736);"
-          >
+          <div v-else
+               class="h-10 flex items-center justify-center rounded-md text-white/60 text-sm"
+               style="background: linear-gradient(90deg,#1D4736,#165a40,#1D4736);">
             لا توجد إعلانات حالياً
           </div>
         </div>
 
-        <!-- الإجازات -->
-        <div>
-          <h3 class="font-bold mb-2 text-sm sm:text-base md:text-lg text-gray-800">الإجازات خلال السنة</h3>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-            <div
-              v-for="(count,type) in leaveTypeCounts"
-              :key="type"
-              class="bg-gray-50 hover:bg-gray-100 transition p-2 sm:p-3 rounded-lg border flex justify-between items-center"
-            >
-              <span class="font-semibold text-xs sm:text-sm">{{ type }}</span>
-
-              <div class="relative w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10">
-                <svg class="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 transform -rotate-90" viewBox="0 0 36 36">
-                  <path
-                    d="M18 2.0845a15.9155 15.9155 0 010 31.831a15.9155 15.9155 0 010-31.831"
-                    fill="none"
-                    stroke="#E5E7EB"
-                    stroke-width="3"
-                  />
-                  <path
-                    d="M18 2.0845a15.9155 15.9155 0 010 31.831a15.9155 15.9155 0 010-31.831"
-                    fill="none"
-                    :stroke="getColor(type)"
-                    stroke-width="3"
-                    :stroke-dasharray="`${getLeavePercentage(type)} 100`"
-                  />
-                </svg>
-
-                <span class="absolute inset-0 flex items-center justify-center text-[10px] sm:text-xs md:text-sm font-bold text-primary">
-                  {{ getLeavePercentage(type).toFixed(0) }}%
-                </span>
-              </div>
-            </div>
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="stat-card">
+            <p class="text-gray-500 text-sm">📄 الطلبات</p>
+            <h2 class="text-2xl font-bold">{{ totalRequests }}</h2>
+          </div>
+          <div class="stat-card">
+            <p class="text-gray-500 text-sm">✅ المهام</p>
+            <h2 class="text-2xl font-bold">{{ totalTasks }}</h2>
+          </div>
+          <div class="stat-card">
+            <p class="text-gray-500 text-sm">🏖️ الإجازات</p>
+            <h2 class="text-2xl font-bold">{{ totalLeaves }}</h2>
+          </div>
+          <div class="stat-card">
+            <p class="text-gray-500 text-sm">🔄 التكليفات</p>
+            <h2 class="text-2xl font-bold">{{ delegations.length }}</h2>
           </div>
         </div>
 
-        <!-- الطلبات -->
-        <div>
-          <h3 class="font-bold mb-2 text-sm sm:text-base md:text-lg text-gray-800">طلبات الموظف</h3>
+        <!-- Charts -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
+       
 
-            <div class="request-card flex flex-col items-center p-2 sm:p-3">
-              <div class="text-lg sm:text-xl">🏖</div>
-              <div class="text-xs sm:text-sm font-semibold">طلبات الاستئدان</div>
-              <div class="count">{{ leaveRequests.length }}</div>
-            </div>
-
-            <div class="request-card flex flex-col items-center p-2 sm:p-3">
-              <div class="text-lg sm:text-xl">📝</div>
-              <div class="text-xs sm:text-sm font-semibold">تعديل البيانات</div>
-              <div class="count">{{ dataUpdateRequests.length }}</div>
-            </div>
-
-            <div class="request-card flex flex-col items-center p-2 sm:p-3">
-              <div class="text-lg sm:text-xl">🚪</div>
-              <div class="text-xs sm:text-sm font-semibold">إذن خروج</div>
-              <div class="count">{{ exitPermitRequests.length }}</div>
-            </div>
-
-            <div class="request-card flex flex-col items-center p-2 sm:p-3">
-              <div class="text-lg sm:text-xl">💰</div>
-              <div class="text-xs sm:text-sm font-semibold">شهادة مرتب</div>
-              <div class="count">{{ salaryRequests.length }}</div>
-            </div>
-
+          <!-- Tasks Chart -->
+          <div class="card">
+            <h3 class="mb-3 font-semibold">📊 المهام حسب الحالة</h3>
+            <canvas ref="tasksChart"></canvas>
           </div>
+
+          <!-- Employees Tasks Chart -->
+          <div class="card">
+            <h3 class="mb-3 font-semibold">👤 أكثر الموظفين مهام</h3>
+            <canvas ref="employeesChart"></canvas>
+          </div>
+
+          <!-- Leaves Chart عمودي -->
+          <div class="card md:col-span-2 lg:col-span-1">
+            <h3 class="mb-3 font-semibold">🏖️ الإجازات حسب النوع</h3>
+            <canvas ref="leavesChart"></canvas>
+          </div>
+
         </div>
 
       </div>
     </div>
-
   </div>
 </template>
 
 <script>
 import Sidebar from "../components/Sidebar.vue";
 import Navbar from "../components/Navbar.vue";
-import userImage from "../assets/user.png";
 import api from "../services/api";
-
+import Chart from "chart.js/auto";
+import { nextTick } from "vue";
 export default {
-  name: "DashboardPage",
+  name: "DashboardRealData",
   components: { Sidebar, Navbar },
   data() {
     return {
-      userImg: userImage,
-      user: {},
-      leaveSummary: { new: 0, approved: 0, rejected: 0 },
-      leaveTypeCounts: {},
-      totalLeaves: 0,
       announcements: [],
       scrollDuration: 35,
-      leaveRequests: [],
-      dataUpdateRequests: [],
-      exitPermitRequests: [],
-      salaryRequests: [],
+
+      requestsReport: [],
+      tasksReport: [],
+      tasksByEmployee: [],
+      delegations: [],
+      employeesOnLeave: [],
+
+      totalRequests: 0,
+      totalTasks: 0,
+      totalLeaves: 0
+
+      
     };
   },
   async mounted() {
-    await this.fetchUserData();
     await this.fetchAnnouncements();
-    await this.fetchRequests();
+    await this.loadReports();
+     await nextTick();
+    this.renderCharts();
   },
   methods: {
-    async fetchUserData() {
-      try {
-        const resProfile = await api.get("/Employee/my-profile");
-        this.user = resProfile.data;
-        const resLeaves = await api.get("/leave-requests/my-requests");
-        const requests = resLeaves.data.requests || [];
-        this.leaveSummary.new = requests.filter(r => r.status === "قيد_الانتظار").length;
-        this.leaveSummary.approved = requests.filter(r => r.status === "مقبولة").length;
-        this.leaveSummary.rejected = requests.filter(r => r.status === "مرفوضة").length;
-        const counts = {};
-        requests.forEach(r => {
-          const typeName = r.leaveTypeName?.اسم_الاجازة || r.leaveTypeName || "غير معروف";
-          counts[typeName] = (counts[typeName] || 0) + 1;
-        });
-        this.leaveTypeCounts = counts;
-        this.totalLeaves = requests.length;
-      } catch (err) { console.error(err); }
-    },
     async fetchAnnouncements() {
-      try {
-        const res = await api.get("/Announcements/my-announcements");
-        this.announcements = res.data || [];
-      } catch (err) { console.error(err); }
+      const res = await api.get("/Announcements/my-announcements");
+      this.announcements = res.data || [];
     },
-    async fetchRequests() {
-      try {
-        this.leaveRequests = (await api.get("/leave-requests/my-requests")).data.requests || [];
-        this.dataUpdateRequests = (await api.get("/DataUpdate/my-requests")).data || [];
-        this.exitPermitRequests = (await api.get("/ExitPermit/my-requests")).data || [];
-        this.salaryRequests = (await api.get("/SalaryCertificate/my-requests")).data || [];
-      } catch (err) { console.error(err); }
+    async loadReports() {
+      const [req, task, taskEmp, del, leave] = await Promise.all([
+        api.get("/Reports/requests-report"),
+        api.get("/Reports/tasks-report"),
+        api.get("/Reports/tasks-by-employee"),
+        api.get("/Reports/delegations-report"),
+        api.get("/Reports/employees-on-leave?fromDate=2025-01-01&toDate=2026-12-31")
+      ]);
+
+      this.requestsReport = req.data;
+      this.tasksReport = task.data;
+      this.tasksByEmployee = taskEmp.data;
+      this.delegations = del.data;
+      this.employeesOnLeave = leave.data;
+
+      this.totalRequests = this.requestsReport.reduce((a,b)=>a+b.count,0);
+      this.totalTasks = this.tasksReport.reduce((a,b)=>a+b.count,0);
+      this.totalLeaves = this.employeesOnLeave.length;
     },
-    getLeavePercentage(type) {
-      if (this.totalLeaves === 0) return 0;
-      return ((this.leaveTypeCounts[type] || 0) / this.totalLeaves) * 100;
-    },
-    getColor(type) {
-      const colors = { "سنوية": "#3B82F6", "مرضية": "#F59E0B", "طارئة": "#EF4444" };
-      return colors[type] || "#10B981";
+    renderCharts() {
+    
+
+      // Tasks Chart
+      new Chart(this.$refs.tasksChart, {
+        type: 'bar',
+        data: {
+          labels: this.tasksReport.map(t => t.status),
+          datasets: [{ data: this.tasksReport.map(t => t.count), backgroundColor:'#10B981' }]
+        }
+      });
+
+      // Employees Chart
+      new Chart(this.$refs.employeesChart, {
+        type: 'bar',
+        data: {
+          labels: this.tasksByEmployee.slice(0,5).map(e => e.employee),
+          datasets: [{ data: this.tasksByEmployee.slice(0,5).map(e => e.count), backgroundColor:'#16a34a' }]
+        }
+      });
+
+      // Leaves Chart عمودي
+      const leaveTypes = [...new Set(this.employeesOnLeave.map(e=>e.leaveType))];
+      const leaveCounts = leaveTypes.map(type => this.employeesOnLeave.filter(e=>e.leaveType===type).length);
+      new Chart(this.$refs.leavesChart, {
+        type: 'bar',
+        data: {
+          labels: leaveTypes,
+          datasets: [{
+            label: 'عدد الموظفين',
+            data: leaveCounts,
+            backgroundColor: ['#F87171','#60A5FA','#34D399','#FBBF24','#A78BFA']
+          }]
+        },
+        options: {
+          indexAxis: 'y', // عمودي
+          responsive: true,
+          plugins: { legend: { display: false } }
+        }
+      });
     }
   }
 };
 </script>
 
 <style scoped>
-.announcement-bar { direction: rtl; font-size: 0.75rem; }
-.announcement-track { display: flex; width: max-content; animation: marquee linear infinite; }
-.announcement-bar:hover .announcement-track { animation-play-state: paused; }
-@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.stat-card, .card {
+  background: white;
+  padding: 16px;
+  border-radius: 14px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
 
-.request-card {
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
+.announcement-track {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  transition: all 0.2s;
-  cursor: pointer;
+  animation: marquee linear infinite;
 }
 
-.request-card:hover {
-  background: #f3f4f6;
-  transform: translateY(-2px);
+.announcement-bar:hover .announcement-track {
+  animation-play-state: paused;
 }
 
-.count {
-  font-size: 14px;
-  font-weight: bold;
-  color: #1D4736;
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
 </style>

@@ -1,340 +1,315 @@
 <template>
-  <div class="flex min-h-screen bg-white">
+  <div class="flex min-h-screen bg-gray-100 font-cairo" dir="rtl">
     <!-- Sidebar -->
-    <Sidebar class="fixed top-0 right-0 h-screen w-24 md:w-64 z-50" />
+    <SidebarPage class="fixed top-0 right-0 h-screen w-24 md:w-64 z-50" />
 
+    <!-- Main content -->
     <div class="flex-1 p-6 mr-24 md:mr-64">
       <Navbar />
 
-      <!-- العنوان + زر إضافة -->
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold text-gray-800">الإعلانات</h2>
-        <button @click="openAddModal"
-                class="bg-primary hover:bg-primaryDark text-white px-4 py-2 rounded-lg flex items-center gap-2 transition">
-          ➕ إضافة إعلان
-        </button>
-      </div>
+      <!-- Card Container -->
+      <div class="bg-white rounded-2xl shadow-lg p-6 mt-4">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+          <h2 class="text-xl font-bold text-gray-800">إدارة الإعلانات</h2>
+          <button
+            @click="openAddModal"
+            class="bg-primary hover:bg-green-700 text-white px-4 py-2 rounded-xl shadow transition-all flex items-center gap-2">
+            <span>➕</span> إضافة إعلان جديد
+          </button>
+        </div>
 
-      <!-- البحث -->
-      <div class="bg-white p-4 rounded-xl shadow mb-6">
-        <input v-model="search"
-               placeholder="🔍 بحث بالعنوان أو المحتوى"
-               class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" />
-      </div>
+        <!-- Search Bar -->
+        <div class="mb-6">
+          <input
+            v-model="searchTable"
+            placeholder="بحث بالعنوان أو محتوى الإعلان..."
+            class="input w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none"
+          />
+        </div>
 
-      <!-- جدول الإعلانات -->
-      <div class="bg-white rounded-xl shadow overflow-x-auto">
-       <table class="min-w-full divide-y divide-gray-200 text-right">
+        <!-- Table -->
+        <div class="overflow-x-auto rounded-lg border border-gray-200">
+          <table class="min-w-full text-right divide-y divide-gray-200">
             <thead class="bg-navbar">
-            <tr>
-              <th class="p-3">#</th>
-              <th class="p-3">العنوان</th>
-              <th class="p-3">المحتوى</th>
-              <th class="p-3">موجه لـ</th>
-              <th class="p-3">تاريخ الإنشاء</th>
-              <th class="p-3">الحالة</th>
-              <th class="p-3 text-center">الإجراءات</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="announcement in filteredAnnouncements" :key="announcement.id"
-                class="border-t hover:bg-gray-50 transition">
-              <td class="p-3">{{ announcement.id }}</td>
-              <td class="p-3 font-medium">{{ announcement.title }}</td>
-              <td class="p-3 max-w-xs truncate">{{ announcement.message }}</td>
-              <td class="p-3">
-                <span v-if="announcement.targetAll">جميع الموظفين</span>
-                <span v-else>{{ getDepartmentName(announcement.targetDepartmentId) }}</span>
-              </td>
-              <td class="p-3">{{ formatDate(announcement.createdAt) }}</td>
-              <td class="p-3">
-                <span :class="announcement.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
-                      class="px-3 py-1 rounded-full text-xs font-medium">
-                  {{ announcement.active ? 'نشط' : 'غير نشط' }}
-                </span>
-              </td>
-              <td class="p-3 text-center flex justify-center gap-2">
-                <button @click="toggleStatus(announcement)"
-                        :title="announcement.active ? 'تعطيل' : 'تفعيل'"
-                        class="text-blue-600 hover:text-blue-800">
-                  {{ announcement.active ? '⏸️' : '▶️' }}
-                </button>
-                <button @click="editAnnouncement(announcement)" title="تعديل"
-                        class="text-yellow-600 hover:text-yellow-800">✏️</button>
-                <button @click="confirmDeleteId = announcement.id" title="حذف"
-                        class="text-red-600 hover:text-red-800">🗑️</button>
-              </td>
-            </tr>
-            <tr v-if="(filteredAnnouncements || []).length === 0">
-              <td colspan="7" class="p-6 text-center text-gray-500">لا توجد إعلانات</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- مودال إضافة/تعديل إعلان -->
-      <div v-if="showAddModal || showEditModal"
-           class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4 shadow-lg">
-          <h3 class="text-xl font-bold mb-4 text-gray-800">
-            {{ showEditModal ? 'تعديل إعلان' : 'إضافة إعلان جديد' }}
-          </h3>
-          <form @submit.prevent="saveAnnouncement">
-            <div class="space-y-4">
-              <div>
-                <label class="block text-gray-700 mb-2">العنوان</label>
-                <input v-model="form.title" required class="input w-full" placeholder="أدخل عنوان الإعلان" />
-              </div>
-              <div>
-                <label class="block text-gray-700 mb-2">المحتوى</label>
-                <textarea v-model="form.message" required rows="4" class="input w-full"
-                          placeholder="أدخل محتوى الإعلان"></textarea>
-              </div>
-              <div>
-                <label class="block text-gray-700 mb-2">الموجه لـ</label>
-                <div class="space-y-2">
-                  <label class="flex items-center gap-2">
-                    <input type="radio" v-model="form.targetAll" :value="true" @change="form.targetDepartmentId = null">
-                    <span>جميع الموظفين</span>
-                  </label>
-                  <label class="flex items-center gap-2">
-                    <input type="radio" v-model="form.targetAll" :value="false">
-                    <span>إدارة محددة</span>
-                  </label>
-                  <select v-model="form.targetDepartmentId" :disabled="form.targetAll"
-                          class="input w-full mt-2" :class="{ 'opacity-50': form.targetAll }">
-                    <option value="">اختر الإدارة</option>
-                    <option v-for="dept in departments" :key="dept.id" :value="dept.id">{{ dept.name }}</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label class="flex items-center gap-2">
-                  <input type="checkbox" v-model="form.active" class="rounded">
-                  <span>إعلان نشط</span>
-                </label>
-              </div>
-            </div>
-            <div class="flex justify-end gap-3 mt-6">
-              <button type="button" @click="closeModal"
-                      class="px-4 py-2 text-gray-600 hover:text-gray-800">إلغاء</button>
-              <button type="submit"
-                      class="bg-primary hover:bg-primaryDark text-white px-4 py-2 rounded-lg transition">
-                {{ showEditModal ? 'حفظ التعديلات' : 'إضافة' }}
-              </button>
-            </div>
-          </form>
+              <tr>
+                <th class="p-3 text-sm font-semibold text-gray-600">#</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">العنوان</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">موجه لـ</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">التاريخ</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">الحالة</th>
+                <th class="p-3 text-sm font-semibold text-gray-600 text-center">الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr v-for="ann in filteredAnnouncements" :key="ann.id" class="hover:bg-gray-50 transition">
+                <td class="p-3 text-sm">{{ ann.id }}</td>
+                <td class="p-3 text-sm font-medium">
+                  <div class="font-bold text-gray-800">{{ ann.title }}</div>
+                  <div class="text-xs text-gray-500 truncate max-w-[200px]">{{ ann.message }}</div>
+                </td>
+                <td class="p-3 text-sm">
+                  <span v-if="ann.targetAll" class="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs italic">الجميع</span>
+                  <span v-else class="text-gray-600">{{ getDepartmentName(ann.targetDepartmentId) }}</span>
+                </td>
+                <td class="p-3 text-sm text-gray-500">{{ formatDate(ann.createdAt) }}</td>
+                <td class="p-3 text-sm">
+                  <span :class="ann.active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
+                        class="px-3 py-1 rounded-full text-xs font-bold">
+                    {{ ann.active ? 'نشط' : 'متوقف' }}
+                  </span>
+                </td>
+                <td class="p-3 text-sm flex justify-center gap-3">
+                  <button @click="toggleStatus(ann)" :title="ann.active ? 'تعطيل' : 'تفعيل'" class="hover:scale-120 transition">
+                   {{ ann.active ? '🚫' : '✅' }}
+                  </button>
+                  <button @click="editAnnouncement(ann)" class="text-blue-600 hover:scale-120 transition">✏️</button>
+                  <button @click="askDelete(ann.id)" class="text-red-600 hover:scale-120 transition">🗑️</button>
+                </td>
+              </tr>
+              <tr v-if="!filteredAnnouncements.length">
+                <td colspan="6" class="text-center py-10 text-gray-400 italic">لا توجد إعلانات مسجلة</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
+    </div>
 
-      <!-- مودال تأكيد الحذف -->
-      <div v-if="confirmDeleteId !== null" 
-           class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white p-6 rounded-xl shadow-lg w-full max-w-sm text-center">
-          <p class="mb-4 text-gray-800">هل أنت متأكد أنك تريد حذف هذا الإعلان؟</p>
-          <div class="flex justify-center gap-4">
-            <button @click="confirmDeleteId = null" class="px-4 py-2 rounded border border-gray-300">إلغاء</button>
-            <button @click="deleteAnnouncement(confirmDeleteId)" class="px-4 py-2 bg-red-600 text-white rounded">حذف</button>
+    <!-- Modal إضافة/تعديل -->
+    <div v-if="showModal" class="fixed inset-0 bg-black/50 flex justify-center items-center z-[60] p-4">
+      <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+        <h3 class="font-bold text-xl mb-4 text-gray-800">{{ isEdit ? 'تعديل الإعلان' : 'إضافة إعلان جديد' }}</h3>
+
+        <div class="space-y-4 text-right">
+          <div>
+            <label class="block text-sm font-medium mb-1">عنوان الإعلان</label>
+            <input v-model="form.title" type="text" class="input w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-primary" required />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1">المحتوى</label>
+            <textarea v-model="form.message" rows="3" class="input w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-primary" required></textarea>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-2">توجيه الإعلان</label>
+            <div class="flex gap-4 p-2 bg-gray-50 rounded-lg">
+              <label class="flex items-center gap-2 cursor-pointer text-sm">
+                <input type="radio" :value="true" v-model="form.targetAll" @change="form.targetDepartmentId = null" class="accent-primary" /> الجميع
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer text-sm">
+                <input type="radio" :value="false" v-model="form.targetAll" class="accent-primary" /> إدارة محددة
+              </label>
+            </div>
+          </div>
+
+          <div v-if="!form.targetAll">
+            <label class="block text-sm font-medium mb-1">اختر الإدارة</label>
+            <select v-model="form.targetDepartmentId" class="input w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-primary">
+              <option :value="null">اختر الإدارة المستهدفة</option>
+              <option v-for="dept in departments" :key="dept.id" :value="dept.id">{{ dept.name }}</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-2 py-2">
+            <input type="checkbox" v-model="form.active" id="activeStatus" class="w-4 h-4 accent-primary" />
+            <label for="activeStatus" class="text-sm font-medium cursor-pointer">إعلان نشط (يظهر للموظفين)</label>
           </div>
         </div>
-      </div>
 
-      <!-- توست -->
-      <Toast v-if="toastMessage" 
-             :key="toastKey"
-             :message="toastMessage" 
-             :type="toastType" 
-             :duration="3000" />
+        <div class="flex justify-end gap-3 mt-8">
+          <button @click="closeModal" class="bg-gray-200 px-5 py-2 rounded-lg font-medium hover:bg-gray-300 transition">إلغاء</button>
+          <button @click="saveAnnouncement" class="bg-primary text-white px-8 py-2 rounded-lg font-bold hover:shadow-lg transition">
+            {{ isEdit ? 'تحديث' : 'نشر الإعلان' }}
+          </button>
+        </div>
+      </div>
     </div>
+
+    <!-- Confirm Delete Modal -->
+    <div v-if="confirmDeleteId !== null" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
+      <div class="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-sm text-center">
+        <p class="mb-6 text-gray-700 font-bold">هل أنت متأكد من حذف هذا الإعلان نهائياً؟</p>
+        <div class="flex justify-center gap-4">
+          <button @click="confirmDeleteId = null" class="px-6 py-2 rounded-lg border border-gray-300">تراجع</button>
+          <button @click="deleteAnnouncement(confirmDeleteId)" class="px-6 py-2 bg-red-600 text-white rounded-lg">تأكيد الحذف</button>
+        </div>
+      </div>
+    </div>
+
+    <ToastPage v-if="showToast" :message="toastMessage" :type="toastType" />
   </div>
 </template>
 
 <script>
-import Sidebar from "../components/Sidebar.vue";
-import Navbar from "../components/Navbar.vue";
-import api from "../services/api";
-import Toast from "../components/Toast.vue";
+import { ref, onMounted, computed } from "vue";
+import SidebarPage from "@/components/Sidebar.vue";
+import Navbar from "@/components/Navbar.vue";
+import ToastPage from "@/components/Toast.vue";
+import api from "@/services/api";
 
 export default {
   name: "AnnouncementsList",
-  components: { Sidebar, Navbar, Toast },
-  data() {
-    return {
-      announcements: [],
-      departments: [],
-      search: "",
-      showAddModal: false,
-      showEditModal: false,
-      editingId: null,
-      confirmDeleteId: null,
-      form: {
-        title: "",
-        message: "",
-        targetAll: true,
-        targetDepartmentId: null,
-        active: true
-      },
-      toastMessage: "",
-      toastType: "success",
-      toastKey: 0
+  components: { SidebarPage, Navbar, ToastPage },
+
+  setup() {
+    const announcements = ref([]);
+    const departments = ref([]);
+    const showModal = ref(false);
+    const isEdit = ref(false);
+    const searchTable = ref("");
+    const confirmDeleteId = ref(null);
+
+    const form = ref({
+      id: null,
+      title: "",
+      message: "",
+      targetAll: true,
+      targetDepartmentId: null,
+      active: true,
+      createdAt: null
+    });
+
+    const showToast = ref(false);
+    const toastMessage = ref("");
+    const toastType = ref("success");
+
+    const toast = (msg, type = "success") => {
+      toastMessage.value = msg;
+      toastType.value = type;
+      showToast.value = true;
+      setTimeout(() => (showToast.value = false), 3000);
     };
-  },
-  computed: {
-    filteredAnnouncements() {
-      return (this.announcements || []).filter(ann => {
-        return !this.search || ann.title.includes(this.search) || ann.message.includes(this.search);
-      });
-    }
-  },
-  mounted() {
-    this.fetchDepartments();
-    this.fetchAnnouncements();
-  },
-  methods: {
-    // -------------------------
-    // جلب الإعلانات
-    // -------------------------
-    async fetchAnnouncements(departmentId = null) {
+
+    const fetchData = async () => {
       try {
-        let url = "/Announcements";
-        if (departmentId) url += `?departmentId=${departmentId}`;
-        const { data } = await api.get(url);
-        this.announcements = (data || []).sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
-      } catch(err) { console.error(err); }
-    },
-    // -------------------------
-    // جلب الإدارات
-    // -------------------------
-    async fetchDepartments() {
+        const [annRes, deptRes] = await Promise.all([
+          api.get("/Announcements"),
+          api.get("/Organization/Departments")
+        ]);
+        announcements.value = (annRes.data || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        departments.value = deptRes.data || [];
+      } catch (e) {
+        toast("خطأ في جلب البيانات", "error");
+      }
+    };
+
+    const filteredAnnouncements = computed(() => {
+      const s = searchTable.value.toLowerCase();
+      return announcements.value.filter(a => 
+        (a.title || "").toLowerCase().includes(s) ||
+        (a.message || "").toLowerCase().includes(s)
+      );
+    });
+
+    const getDepartmentName = (id) => {
+      if (!id) return "---";
+      const dept = departments.value.find(d => d.id == id);
+      return dept ? dept.name : "غير معروف";
+    };
+
+    const openAddModal = () => {
+      isEdit.value = false;
+      resetForm();
+      showModal.value = true;
+    };
+
+    const editAnnouncement = (ann) => {
+      isEdit.value = true;
+      form.value = { ...ann };
+      showModal.value = true;
+    };
+
+    const saveAnnouncement = async () => {
+      if (!form.value.title || !form.value.message) {
+        return toast("يرجى كتابة العنوان والمحتوى", "error");
+      }
+      if (!form.value.targetAll && !form.value.targetDepartmentId) {
+        return toast("يرجى اختيار الإدارة المستهدفة", "error");
+      }
+
       try {
-        const { data } = await api.get("/Department");
-        this.departments = data || [];
-      } catch(err){ console.error(err); }
-    },
-    getDepartmentName(id) {
-      if (!id) return "غير محدد";
-      const dept = (this.departments || []).find(d => d.id == id);
-      return dept ? dept.name : "غير محدد";
-    },
-    formatDate(dateStr) {
-      return new Date(dateStr).toLocaleDateString('ar-SA',{year:'numeric',month:'long',day:'numeric'});
-    },
-    // -------------------------
-    // فتح وإغلاق المودال
-    // -------------------------
-    openAddModal() {
-      this.resetForm();
-      this.showAddModal = true;
-    },
-    editAnnouncement(a) {
-      this.form = { ...a };
-      this.editingId = a.id;
-      this.showEditModal = true;
-    },
-    closeModal() { 
-      this.showAddModal = false; 
-      this.showEditModal = false; 
-      this.editingId = null; 
-    },
-    resetForm() { 
-      this.form = { title:"", message:"", targetAll:true, targetDepartmentId:null, active:true }; 
-    },
-    showToast(msg, type="success") { 
-      this.toastMessage = msg; 
-      this.toastType = type; 
-      this.toastKey++; 
-    },
-    // -------------------------
-    // إضافة أو تعديل إعلان
-    // -------------------------
-// -------------------------
-// إضافة أو تعديل إعلان
-// -------------------------
-async saveAnnouncement() {
-  // تحقق من الإدخال
-  if (!this.form.targetAll && !this.form.targetDepartmentId) {
-    this.showToast('اختر الإدارة إذا كان الإعلان لإدارة محددة', 'error');
-    return;
-  }
+        const payload = {
+          title: form.value.title,
+          message: form.value.message,
+          targetAll: form.value.targetAll,
+          targetDepartmentId: form.value.targetAll ? null : form.value.targetDepartmentId,
+          active: form.value.active,
+          createdAt: form.value.createdAt || new Date().toISOString()
+        };
 
-  try {
-    // إعداد payload حسب الباكند
-    const payload = {
-      title: this.form.title,
-      message: this.form.message,
-      targetAll: this.form.targetAll,
-      targetDepartmentId: this.form.targetAll ? null : this.form.targetDepartmentId,
-      active: this.form.active,
-      createdAt: this.form.createdAt || new Date().toISOString()
+        if (isEdit.value) {
+          await api.put(`/Announcements/${form.value.id}`, payload);
+          toast("تم تحديث الإعلان بنجاح");
+        } else {
+          await api.post("/Announcements", payload);
+          toast("تم نشر الإعلان بنجاح");
+        }
+
+        closeModal();
+        fetchData();
+      } catch (err) {
+        toast("فشل في حفظ البيانات", "error");
+      }
     };
 
-    const url = this.showEditModal ? `/Announcements/${this.editingId}` : '/Announcements';
-    const method = this.showEditModal ? 'put' : 'post';
-    const { data } = await api[method](url, payload);
-
-    if (this.showEditModal) {
-      const index = this.announcements.findIndex(a => a.id === this.editingId);
-      if (index !== -1) this.announcements[index] = data;
-      this.showToast('تم تعديل الإعلان بنجاح', 'success');
-    } else {
-      this.announcements.unshift(data);
-      this.showToast('تم إضافة الإعلان بنجاح', 'success');
-    }
-
-    this.closeModal();
-    this.resetForm();
-  } catch (err) {
-    console.error(err);
-    this.showToast('حدث خطأ أثناء الحفظ', 'error');
-  }
-},
-
-// -------------------------
-// تبديل حالة الإعلان
-// -------------------------
-async toggleStatus(a) {
-  try {
-    const payload = {
-      title: a.title,
-      message: a.message,
-      targetAll: a.targetAll,
-      targetDepartmentId: a.targetAll ? null : a.targetDepartmentId,
-      active: !a.active,
-      createdAt: a.createdAt
+    const toggleStatus = async (ann) => {
+      try {
+        const updatedAnn = { ...ann, active: !ann.active };
+        await api.put(`/Announcements/${ann.id}`, updatedAnn);
+        toast(`تم ${updatedAnn.active ? 'تفعيل' : 'تعطيل'} الإعلان`);
+        fetchData();
+      } catch (err) {
+        toast("فشل في تغيير الحالة", "error");
+      }
     };
 
-    const { data } = await api.put(`/Announcements/${a.id}`, payload);
-    const index = this.announcements.findIndex(x => x.id === a.id);
-    if (index !== -1) this.announcements[index] = data;
+    const askDelete = (id) => (confirmDeleteId.value = id);
 
-    this.showToast('تم تغيير حالة الإعلان', 'success');
-  } catch (err) {
-    console.error(err);
-    this.showToast('خطأ في تغيير الحالة', 'error');
-  }
-}
-,
-    // -------------------------
-    // حذف الإعلان
-    // -------------------------
-    async deleteAnnouncement(id) {
+    const deleteAnnouncement = async (id) => {
       try {
         await api.delete(`/Announcements/${id}`);
-        this.announcements = (this.announcements || []).filter(a => a.id !== id);
-        this.showToast('تم حذف الإعلان', 'error'); // يظهر باللون الأحمر
-        this.confirmDeleteId = null;
-      } catch(err) {
-        console.error(err);
-        this.showToast('خطأ أثناء الحذف', 'error');
+        toast("تم حذف الإعلان", "success");
+        confirmDeleteId.value = null;
+        fetchData();
+      } catch (err) {
+        toast("خطأ أثناء الحذف", "error");
       }
-    }
+    };
+
+    const resetForm = () => {
+      form.value = { id: null, title: "", message: "", targetAll: true, targetDepartmentId: null, active: true, createdAt: null };
+    };
+
+    const closeModal = () => {
+      showModal.value = false;
+      resetForm();
+    };
+
+   const formatDate = (dateStr) => {
+  if (!dateStr) return "---";
+  
+
+  return new Date(dateStr).toLocaleDateString('en-GB', {
+    year: 'numeric', 
+    month: '2-digit', 
+    day: '2-digit'
+  });
+};
+
+    onMounted(fetchData);
+
+    return {
+      announcements, departments, form, searchTable, filteredAnnouncements,
+      showModal, isEdit, confirmDeleteId, showToast, toastMessage, toastType,
+      openAddModal, editAnnouncement, saveAnnouncement, toggleStatus,
+      askDelete, deleteAnnouncement, closeModal, formatDate, getDepartmentName
+    };
   }
 };
 </script>
 
-
 <style scoped>
-.input { @apply p-2 border rounded-lg w-full text-right focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent; }
-.fade-enter-active, .fade-leave-active { transition: opacity 0.5s; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
+.input { @apply bg-gray-50; }
 </style>

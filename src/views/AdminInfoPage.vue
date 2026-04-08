@@ -205,28 +205,28 @@ export default {
         { id: 5, name: "إدارة تكنولوجيا المعلومات" }
       ],
       subDepartments: [
-        { id: 1, name: "شعبة التخطيط والمتابعة", departmentId: 1 },
-        { id: 2, name: "شعبة الجودة والمراقبة", departmentId: 1 },
-        { id: 3, name: "شعبة التوظيف", departmentId: 2 },
-        { id: 4, name: "شعبة التدريب والتطوير", departmentId: 2 },
-        { id: 5, name: "شعبة الرواتب والمكافآت", departmentId: 3 },
-        { id: 6, name: "شعبة الحسابات", departmentId: 3 },
-        { id: 7, name: "شعبة الشؤون القانونية", departmentId: 4 },
-        { id: 8, name: "شعبة العقود والاتفاقيات", departmentId: 4 },
-        { id: 9, name: "شعبة البرمجيات", departmentId: 5 },
-        { id: 10, name: "شعبة البنية التحتية", departmentId: 5 }
+        { id: 2, name: "شعبة التخطيط والمتابعة", departmentId: 1 },
+        { id: 3, name: "شعبة الجودة والمراقبة", departmentId: 1 },
+        { id: 4, name: "شعبة التوظيف", departmentId: 2 },
+        { id: 5, name: "شعبة التدريب والتطوير", departmentId: 2 },
+        { id: 6, name: "شعبة الرواتب والمكافآت", departmentId: 3 },
+        { id: 7, name: "شعبة الحسابات", departmentId: 3 },
+        { id: 8, name: "شعبة الشؤون القانونية", departmentId: 4 },
+        { id: 9, name: "شعبة العقود والاتفاقيات", departmentId: 4 },
+        { id: 10, name: "شعبة البرمجيات", departmentId: 5 },
+        { id: 11, name: "شعبة البنية التحتية", departmentId: 5 }
       ],
       sections: [
-        { id: 1, name: "قسم التخطيط والمتابعة", subDepartmentId: 1 },
-        { id: 2, name: "قسم الجودة والمراقبة", subDepartmentId: 2 },
-        { id: 3, name: "قسم التوظيف", subDepartmentId: 3 },
-        { id: 4, name: "قسم التدريب", subDepartmentId: 4 },
-        { id: 5, name: "قسم الرواتب والمكافآت", subDepartmentId: 5 },
-        { id: 6, name: "قسم الحسابات", subDepartmentId: 6 },
-        { id: 7, name: "قسم الشؤون القانونية", subDepartmentId: 7 },
-        { id: 8, name: "قسم العقود والاتفاقيات", subDepartmentId: 8 },
-        { id: 9, name: "قسم البرمجيات", subDepartmentId: 9 },
-        { id: 10, name: "قسم البنية التحتية", subDepartmentId: 10 }
+        { id: 4, name: "قسم التخطيط والمتابعة", subDepartmentId: 1 },
+        { id: 5, name: "قسم الجودة والمراقبة", subDepartmentId: 2 },
+        { id: 6, name: "قسم التوظيف", subDepartmentId: 3 },
+        { id: 7, name: "قسم التدريب", subDepartmentId: 4 },
+        { id: 8, name: "قسم الرواتب والمكافآت", subDepartmentId: 5 },
+        { id: 9, name: "قسم الحسابات", subDepartmentId: 6 },
+        { id: 10, name: "قسم الشؤون القانونية", subDepartmentId: 7 },
+        { id: 11, name: "قسم العقود والاتفاقيات", subDepartmentId: 8 },
+        { id: 12, name: "قسم البرمجيات", subDepartmentId: 9 },
+        { id: 13, name: "قسم البنية التحتية", subDepartmentId: 10 }
       ],
       workLocations: [
         { id: 1, name: "طرابلس" },
@@ -252,7 +252,7 @@ export default {
         { id: 1, name: "الأولى" },
         { id: 2, name: "الثانية" },
         { id: 3, name: "الثالثة" },
-        { id: 4, name: "الرابعة" }
+     
       ]
     };
   },

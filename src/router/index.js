@@ -4,16 +4,16 @@ import Dashboard from '../views/Dashboard.vue'
 import LeavesPage from '../views/LeavesPage.vue'
 import RequestsPage from '../views/Requests.vue'
 import EmployeeQualification from "../views/EmployeeQualification.vue";
-import UpdateInfo from "../views/UpdateInfo.vue";
+
 import PermissionsPage from '../views/PermissionsPage.vue';
 import ManagerLeavesPage from '../views/ManagerLeavesPage.vue';
 import NotificationsPage from '../views/NotificationsPage.vue';
 import ComplaintsPage from "../views/Complaints.vue";
-import TasksPage from "../views/Tasks.vue";
 
-import EvaluationPage from "../views/Evaluation.vue";
+
+
 import KnowledgePage from "../views/Knowledge.vue";
-import DepartmentsManagement from "../views/DepartmentsManagement.vue";
+
 import ManagerComplaints from "../views/ManagerComplaints.vue";
 import AnnouncementsPage from "../views/Announcements.vue";
 import FAQManagement from "../views/FAQManagement.vue";
@@ -29,10 +29,23 @@ import DelegationPage from "../views/DelegationPage.vue";
 import CompanyFormsManager from "../views/UploadCompanyForm.vue"
 import EmployeeCompanyForms from "../views/EmployeeCompanyForms.vue"
 import AuditLogsPage from "../views/AuditLogs.vue";
+import DepartmentsPage from "../views/DepartmentsPage.vue";
+import AssignManagers from "../views/AssignManagers.vue";
 const routes = [
   { path: '/', name: 'LoginPage', component: LoginPage },
   { path: '/dashboard', name: 'Dashboard', component: Dashboard },
-  { path: '/update-info', name: 'UpdateInfo', component: UpdateInfo },
+ {
+  path: "/departments",
+  name: "Departments",
+  component: DepartmentsPage,
+  meta: { role: ['1'] }
+},
+{
+  path: "/assign-managers",
+  name: "AssignManagers",
+  component: AssignManagers,
+  meta: { role: ['1'] }
+},
  {
     path: "/employees/create",
     name: "CreateEmployee",
@@ -147,9 +160,9 @@ const routes = [
   props: true
 },
 
-  { path: "/departments-management", component: DepartmentsManagement, meta: { role: ['1'] } },
+  
 
-  { path: "/manager/complaints", component: ManagerComplaints, meta: { role: ['2','3','4'] } },
+  { path: "/manager/complaints", component: ManagerComplaints, meta: { role: ['2','3','4','5'] } },
 
   { path: "/announcements", component: AnnouncementsPage, meta: { role: ['1','2','3','4'] } },
 
@@ -159,11 +172,11 @@ const routes = [
 
   { path: "/complaints", component: ComplaintsPage, meta: { role: ['6'] } },
 
-  { path: "/tasks", component: TasksPage, meta: { role: ['1','2','3','4','5','6'] } },
+ 
 
 
 
-  { path: "/evaluation", component: EvaluationPage, meta: { role: ['1','2','3','4','5','6'] } },
+ 
 
   { path: "/knowledge", component: KnowledgePage, meta: { role: ['1','2','3','4','5','6'] } },
 

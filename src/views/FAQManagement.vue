@@ -1,93 +1,129 @@
 <template>
-  <div class="flex min-h-screen bg-white" dir="rtl">
-    <Sidebar class="fixed top-0 right-0 h-screen w-24 md:w-64 bg-primary text-white p-4 z-50" />
+  <div class="flex min-h-screen bg-gray-100 font-cairo" dir="rtl">
+    <!-- Sidebar -->
+    <SidebarPage class="fixed top-0 right-0 h-screen w-24 md:w-64 z-50" />
+
+    <!-- المحتوى الرئيسي -->
     <div class="flex-1 p-6 mr-24 md:mr-64">
       <Navbar />
 
-      <!-- جدول الأسئلة الشائعة -->
-      <div class="bg-white rounded-xl shadow-lg p-6 mb-6 max-w-6xl mx-auto">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-2xl font-bold text-right text-primaryDark">إدارة الأسئلة الشائعة</h2>
+      <!-- البطاقة الرئيسية -->
+      <div class="bg-white rounded-2xl shadow-lg p-6 mt-4">
+        
+        <!-- الرأس (العنوان والزر) -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+          <h2 class="text-xl font-bold text-gray-800">إدارة الأسئلة الشائعة</h2>
           <button
             @click="openModalFunc()"
-            class=" bg-primary hover:bg-primaryDark text-white px-6 py-2 rounded-xl font-semibold shadow-md transition"
+            class="bg-primary hover:bg-green-700 text-white px-6 py-2 rounded-xl shadow transition-all font-bold"
           >
-            إضافة سؤال
+            + إضافة سؤال جديد
           </button>
         </div>
 
-     <table class="min-w-full divide-y divide-gray-200 text-right">
+        <!-- الجدول بنمط احترافي -->
+        <div class="overflow-x-auto rounded-lg border border-gray-200">
+          <table class="min-w-full text-right divide-y divide-gray-200">
             <thead class="bg-navbar">
-            <tr class="text-right">
-              <th class="px-3 py-2 font-medium text-gray-700">السؤال</th>
-              <th class="px-3 py-2 font-medium text-gray-700">الإجابة</th>
-              <th class="px-3 py-2 font-medium text-gray-700">التصنيف</th>
-              <th class="px-3 py-2 font-medium text-gray-700">نشط</th>
-              <th class="px-3 py-2 font-medium text-gray-700">إجراءات</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-100">
-            <tr v-for="faq in faqs" :key="faq.id" class="hover:bg-gray-50 transition">
-              <td class="px-3 py-2">{{ faq.question }}</td>
-              <td class="px-3 py-2 text-right">{{ faq.answer }}</td>
-              <td class="px-3 py-2">{{ faq.category }}</td>
-              <td class="px-3 py-2">
-                <span :class="faq.isActive ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'">
-                  {{ faq.isActive ? 'نعم' : 'لا' }}
-                </span>
-              </td>
-             <td class="px-3 py-2 text-right">
-  <div class="inline-flex gap-2">
-    <button @click="viewFAQ(faq)" class="bg-gray-200 px-2 py-1 rounded hover:bg-gray-300 text-xs">عرض</button>
-    <button @click="editFAQ(faq)" class="bg-yellow-400 px-2 py-1 rounded hover:bg-yellow-500 text-xs">تعديل</button>
-    <button @click="deleteFAQ(faq.id)" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 text-xs">حذف</button>
-  </div>
-</td>
+              <tr>
+                <th class="p-4 text-sm font-semibold text-gray-600">السؤال</th>
+                <th class="p-4 text-sm font-semibold text-gray-600">الإجابة</th>
+                <th class="p-4 text-sm font-semibold text-gray-600">التصنيف</th>
+                <th class="p-4 text-sm font-semibold text-gray-600">الحالة</th>
+                <th class="p-4 text-sm font-semibold text-gray-600">إجراءات</th>
+              </tr>
+            </thead>
 
-            </tr>
-            <tr v-if="faqs.length === 0">
-              <td colspan="5" class="text-center text-gray-400 py-4">لا توجد أسئلة حالياً</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr v-for="faq in faqs" :key="faq.id" class="hover:bg-gray-50 transition">
+                <td class="p-4 text-sm font-bold text-gray-700 truncate max-w-xs">{{ faq.question }}</td>
+                <td class="p-4 text-sm text-gray-500 truncate max-w-xs">{{ faq.answer }}</td>
+                <td class="p-4 text-sm">
+                  <span class="bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-xs">
+                    {{ faq.category }}
+                  </span>
+                </td>
+                <td class="p-4 text-sm">
+                  <span :class="faq.isActive ? 'text-green-600' : 'text-red-600'" class="font-bold">
+                    {{ faq.isActive ? 'نشط' : 'غير نشط' }}
+                  </span>
+                </td>
 
-      <!-- Modal الإضافة / التعديل -->
-      <div v-if="openModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-        <div class="bg-white p-6 rounded-xl shadow-lg w-full max-w-lg">
-          <h3 class="font-bold mb-4 text-lg text-right">{{ editingFAQ ? "تعديل السؤال" : "إضافة سؤال جديد" }}</h3>
+                <!-- عمود الإجراءات -->
+                <td class="p-4 text-sm">
+                  <div class="flex gap-3">
+                    <button @click="editFAQ(faq)" title="تعديل" class="text-blue-600 hover:scale-110 transition">✏️</button>
+                    <button @click="deleteFAQ(faq.id)" title="حذف" class="text-red-600 hover:scale-110 transition">🗑️</button>
+                  </div>
+                </td>
+              </tr>
 
-          <div class="space-y-4">
-            <input v-model="faqForm.question" type="text" placeholder="السؤال" class="w-full border p-2 rounded text-right" />
-            <textarea v-model="faqForm.answer" placeholder="الإجابة" class="w-full border p-2 rounded text-right" rows="3"></textarea>
-            <input v-model="faqForm.category" type="text" placeholder="التصنيف" class="w-full border p-2 rounded text-right" />
-            <div class="flex items-center gap-2">
-              <input type="checkbox" v-model="faqForm.isActive" id="activeCheckbox" />
-              <label for="activeCheckbox">نشط</label>
-            </div>
-          </div>
-
-          <div class="mt-6 flex justify-end gap-2">
-            <button @click="saveFAQ" class=" bg-primary hover:bg-primaryDark text-white px-6 py-2 rounded-xl font-semibold shadow-md transition">حفظ</button>
-            <button @click="closeModal" class=" bg-gray-300 hover:bg-gray-400 text-white px-6 py-2 rounded-xl font-semibold shadow-md transition">إلغاء</button>
-          </div>
+              <!-- حالة عدم وجود بيانات -->
+              <tr v-if="faqs.length === 0">
+                <td colspan="5" class="text-center py-10 text-gray-400 italic">
+                  لا توجد أسئلة حالياً
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
-
-      <Toast v-if="toastMessage" :message="toastMessage" :type="toastType" />
     </div>
+
+    <!-- مودال الإضافة والتعديل -->
+    <div v-if="openModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+      <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+        <div class="flex justify-between items-center mb-4 border-b pb-2">
+          <h3 class="font-bold text-xl text-gray-800">
+            {{ editingFAQ ? "تعديل السؤال" : "إضافة سؤال جديد" }}
+          </h3>
+          <button @click="closeModal" class="text-gray-400 hover:text-red-500 transition text-2xl">&times;</button>
+        </div>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-700">السؤال</label>
+            <input v-model="faqForm.question" type="text" class="input w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-700">الإجابة</label>
+            <textarea v-model="faqForm.answer" class="input w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none" rows="3"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-700">التصنيف</label>
+            <input v-model="faqForm.category" type="text" class="input w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none" />
+          </div>
+
+          <div class="flex items-center gap-3 bg-gray-50 p-2 rounded-lg">
+            <input type="checkbox" v-model="faqForm.isActive" id="activeCheckbox" class="w-4 h-4 accent-primary" />
+            <label for="activeCheckbox" class="text-sm font-medium text-gray-700 cursor-pointer">تفعيل السؤال (نشط)</label>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-8">
+          <button @click="closeModal" class="bg-gray-200 px-5 py-2 rounded-lg font-medium hover:bg-gray-300 transition">إلغاء</button>
+          <button @click="saveFAQ" class="bg-primary text-white px-8 py-2 rounded-lg font-bold hover:shadow-lg transition">
+            {{ editingFAQ ? 'تحديث' : 'حفظ' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <Toast v-if="toastMessage" :message="toastMessage" :type="toastType" />
   </div>
 </template>
 
 <script>
-import Sidebar from "@/components/Sidebar.vue";
+import SidebarPage from "@/components/Sidebar.vue";
 import Navbar from "@/components/Navbar.vue";
 import Toast from "@/components/Toast.vue";
 import axios from "axios";
 
 export default {
   name: "FAQManagement",
-  components: { Sidebar, Navbar, Toast },
+  components: { SidebarPage, Navbar, Toast },
   data() {
     return {
       faqs: [],
@@ -106,13 +142,8 @@ export default {
         });
         this.faqs = res.data;
       } catch (err) {
-        console.error(err);
         this.showToast("حدث خطأ في جلب الأسئلة", "error");
       }
-    },
-
-    viewFAQ(faq) {
-      this.showToast(`السؤال: ${faq.question}\nالإجابة: ${faq.answer}`, "info");
     },
 
     openModalFunc() {
@@ -128,49 +159,47 @@ export default {
     },
 
     async saveFAQ() {
-      // التحقق من أن الحقول ممتلئة
       if (!this.faqForm.question || !this.faqForm.answer || !this.faqForm.category) {
-        this.showToast("يرجى تعبئة جميع الحقول قبل الحفظ ❌", "error");
+        this.showToast("يرجى تعبئة جميع الحقول ❌", "error");
         return;
       }
 
       try {
         if (this.editingFAQ) {
-          // تعديل
           const res = await axios.put(
             `http://localhost:5205/api/FAQ/${this.editingFAQ.id}`,
             this.faqForm,
             { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
           );
+          // تحديث القائمة محلياً
           const index = this.faqs.findIndex(f => f.id === this.editingFAQ.id);
-          this.faqs[index] = res.data.data;
-          this.showToast("تم تعديل السؤال بنجاح ✅", "success");
+          this.faqs[index] = res.data.data || res.data; // تعديل حسب بنية الـ API لديك
+          this.showToast("تم تعديل السؤال بنجاح ✅");
         } else {
-          // إضافة السؤال الجديد في البداية
           const res = await axios.post(
             "http://localhost:5205/api/FAQ",
             this.faqForm,
             { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
           );
-          this.faqs.unshift(res.data.data); // أضف في بداية الجدول
-          this.showToast("تم إضافة السؤال بنجاح ✅", "success");
+          this.faqs.unshift(res.data.data || res.data);
+          this.showToast("تم إضافة السؤال بنجاح ✅");
         }
         this.closeModal();
+        this.fetchFAQs(); // لضمان مزامنة البيانات
       } catch (err) {
-        console.error(err);
         this.showToast("حدث خطأ أثناء الحفظ ❌", "error");
       }
     },
 
     async deleteFAQ(id) {
+      if (!confirm("هل أنت متأكد من حذف هذا السؤال؟")) return;
       try {
         await axios.delete(`http://localhost:5205/api/FAQ/${id}`, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
         this.faqs = this.faqs.filter(f => f.id !== id);
-        this.showToast("تم حذف السؤال بنجاح ✅", "success");
+        this.showToast("تم حذف السؤال بنجاح ✅");
       } catch (err) {
-        console.error(err);
         this.showToast("حدث خطأ أثناء الحذف ❌", "error");
       }
     },
@@ -194,9 +223,12 @@ export default {
 };
 </script>
 
-
 <style scoped>
-.bg-background {
-  background-color: #f3f4f6;
+.input { @apply bg-gray-50; }
+/* تحسين شكل النصوص الطويلة في الجدول */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>
