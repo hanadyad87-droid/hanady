@@ -206,11 +206,16 @@ components: { Toast },
   }
 },
 
-    logout() {
-      this.showMenu = false;
-      localStorage.clear();
-      this.$router.push("/");
-    },
+   logout() {
+  const token = localStorage.getItem("token");
+
+  api.post("/User/logout", {}, {
+    headers: { Authorization: `Bearer ${token}` }
+  }).finally(() => {
+    localStorage.clear();
+    this.$router.push("/");
+  });
+},
 
     async loadNotifications() {
       try {

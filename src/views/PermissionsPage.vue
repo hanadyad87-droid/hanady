@@ -1,226 +1,237 @@
 <template>
-  <div class="flex h-screen bg-white" dir="rtl">
-    <Sidebar class="fixed top-0 right-0 h-screen w-24 md:w-64 bg-primary text-white p-4 z-50" />
-    <div class="flex-1 p-6 min-h-screen mr-24 md:mr-64">
+  <div class="flex min-h-screen bg-gray-50 font-cairo" dir="rtl">
+    <SidebarPage class="fixed top-0 right-0 h-screen w-24 md:w-64 bg-primary text-white z-50 shadow-lg" />
+
+    <div class="flex-1 p-6 mr-24 md:mr-64">
       <Navbar />
 
-      <main class="p-6 overflow-auto">
-        <div class="bg-white shadow-xl rounded-2xl p-6 max-w-7xl mx-auto flex flex-col gap-8">
+      <div v-if="loading" class="text-center mt-20 text-primary animate-pulse font-bold">
+        جاري سحب بيانات الصلاحيات من السيرفر...
+      </div>
 
-          <!-- اختيار الموظف -->
-          <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
-            <div>     
-              <label class="text-base font-semibold text-gray-700 mb-2">اختر الموظف</label>
-              <select v-model="selectedEmployeeId" @change="loadUserPermissions"
-                      class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
-                <option :value="null">-- اختر الموظف --</option>
-                <option v-for="e in employees" :key="e.id" :value="e.id">
-                  {{ e.fullName }}
-                </option>
-              </select>
+      <template v-else>
+        <div class="flex justify-between items-center mb-8 mt-4 bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-[#E9F5DB] text-primary rounded-xl flex items-center justify-center text-xl font-bold shadow-sm">
+              {{ currentEmployeeName ? currentEmployeeName.charAt(0) : '?' }}
+            </div>
+            <div>
+              <h1 class="text-xl font-bold text-gray-800">إدارة الاستثناءات والصلاحيات</h1>
+              <p class="text-primary text-xs font-semibold">الموظف: {{ currentEmployeeName }}</p>
             </div>
           </div>
-
-        <!-- جدول الصلاحيات حسب الفئة -->
-<div v-for="(category, index) in categories" :key="index" class="border border-gray-200 rounded-xl p-5 bg-gray-50 shadow-sm">
-  <div class="flex justify-between items-center mb-4">
-    <span class="font-semibold text-lg text-gray-800">{{ category.name }}</span>
-    <label class="flex items-center gap-2 text-sm text-gray-600 font-medium cursor-pointer">
-      <input type="checkbox" v-model="category.selectAll" @change="toggleCategory(category)"
-             class="w-4 h-4 accent-blue-500" />
-      تحديد الكل
-    </label>
-  </div>
-
-  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-    <label v-for="perm in category.permissions" :key="perm.permissionName"
-           class="flex items-center gap-2 text-sm bg-white p-3 rounded-lg shadow hover:shadow-md hover:bg-blue-50 transition cursor-pointer">
-      <input type="checkbox" v-model="perm.hasPermission" class="w-4 h-4 accent-blue-500" />
-      <span>{{ perm.permissionName }}</span>
-      <span v-if="perm.isException" class="text-red-500 text-xs font-semibold">(استثناء)</span>
-    </label>
-  </div>
-</div>
-
-
-          <!-- زر الحفظ -->
-          <div class="flex justify-center mt-6">
-            <button @click="savePermissions"
-              class="bg-primary hover:bg-primaryDark text-white py-3 px-8 rounded-lg transition font-semibold shadow-md hover:shadow-lg">
-              حفظ الصلاحيات
-            </button>
-          </div>
-
-          <!-- Toast -->
-          <Toast v-if="toastMessage" :message="toastMessage" :type="toastType" />
+          <button @click="$router.go(-1)" class="text-gray-400 hover:text-primary transition-colors flex items-center gap-1 text-sm font-semibold">
+            <span>رجوع</span>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            </svg>
+          </button>
         </div>
-      </main>
+
+        <div class="space-y-8">
+          <div v-for="category in categories" :key="category.name" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            
+            <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-50">
+              <h3 class="font-bold text-gray-800 border-r-4 border-primary pr-3">
+                {{ category.name }}
+              </h3>
+              <label class="flex items-center gap-2 text-xs font-bold text-primary cursor-pointer hover:underline">
+                <input 
+                  type="checkbox" 
+                  v-model="category.selectAll" 
+                  @change="toggleCategory(category)" 
+                  class="w-4 h-4 rounded accent-primary" 
+                />
+                تحديد الكل
+              </label>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div 
+                v-for="perm in category.permissions" :key="perm.id" 
+                class="flex items-center justify-between p-4 rounded-xl border transition-all"
+                :class="perm.hasPermission ? 'border-primary/20 bg-primary/[0.02]' : 'border-gray-100 bg-gray-50/30'"
+              >
+                <div class="flex flex-col gap-1">
+                  <span class="text-sm font-bold" :class="perm.hasPermission ? 'text-gray-800' : 'text-gray-400'">
+                    {{ perm.permissionName }}
+                  </span>
+                  
+                  <span v-if="perm.isException" class="text-[10px] text-orange-600 font-bold flex items-center gap-1">
+                    <span class="w-1 h-1 bg-orange-500 rounded-full"></span>
+                    تعديل مخصص
+                  </span>
+                  <span v-else class="text-[10px] text-gray-400 flex items-center gap-1">
+                    <span class="w-1 h-1 bg-gray-300 rounded-full"></span>
+                    موروثة
+                  </span>
+                </div>
+
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    v-model="perm.hasPermission" 
+                    @change="updateSelectAllStatus" 
+                    class="sr-only peer"
+                  >
+                  <div class="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sticky bottom-6 mt-10 flex justify-center">
+          <button 
+            @click="savePermissions" 
+            :disabled="saving"
+            class="flex items-center justify-center gap-3 w-full max-w-md bg-primary hover:bg-green-700 text-white py-4 rounded-2xl font-bold transition-all shadow-xl disabled:bg-gray-300"
+          >
+            <span v-if="saving" class="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
+            <span v-else>حفظ التغييرات النهائية</span>
+            <svg v-if="!saving" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+          </button>
+        </div>
+
+      </template>
+
+      <ToastPage v-if="showToast" :message="toastMessage" :type="toastType" />
     </div>
   </div>
 </template>
 
-<style scoped>
-.bg-gray-50 {
-  background-color: #f9fafb;
-}
-input[type="checkbox"] {
-  accent-color: #2563eb;
-}
-
-/* تحسين البطاقات */
-label:hover {
-  transform: translateY(-2px);
-  transition: transform 0.2s ease;
-}
-
-/* زر الحفظ */
-button:focus {
-  outline: none;
-  ring: 2px solid #2563eb;
-}
-
-/* تحسين المسافات بين الفئات */
-.grid > label {
-  min-height: 50px;
-}
-</style>
-
-
 <script>
 import Navbar from "../components/Navbar.vue";
-import Sidebar from "../components/Sidebar.vue";
-import Toast from "../components/Toast.vue";
+import SidebarPage from "../components/Sidebar.vue";
+import ToastPage from "../components/Toast.vue";
 import api from "../services/api";
 
 export default {
-  name: "PermissionsPage",
-  components: { Navbar, Sidebar, Toast },
+  components: { Navbar, SidebarPage, ToastPage },
+  props: ['publicId'],
+
   data() {
     return {
-      selectedEmployeeId: null,
-      employees: [],
+      selectedPublicId: null,
+      currentEmployeeName: "",
       permissions: [],
       categories: [],
+      loading: true,
+      saving: false,
+      showToast: false,
       toastMessage: "",
       toastType: "success"
     };
   },
-  created() {
-    this.loadEmployees();
-    this.loadPermissions();
+
+  mounted() {
+    this.selectedPublicId = this.publicId;
+    this.loadPermissionsData();
   },
+
   methods: {
-    async loadEmployees() {
+    async loadPermissionsData() {
+      this.loading = true;
       try {
-        const { data } = await api.get("/Employee/all", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`
-          }
+        const [allRes, summaryRes] = await Promise.all([
+          api.get("/Permission/all"),
+          api.get(`/PermissionsManagement/user-summary/${this.selectedPublicId}`)
+        ]);
+
+        const all = allRes.data;
+        const summary = summaryRes.data;
+
+        this.currentEmployeeName = summary.employeeName;
+        const defaults = summary.defaultPermissions.map(n => String(n).trim());
+
+        this.permissions = all.map(p => {
+          const exc = summary.exceptions.find(e =>
+            String(e.permissionName).trim() === String(p.permissionName).trim()
+          );
+
+          let status = exc ? exc.isAllowed : defaults.includes(String(p.permissionName).trim());
+          
+          return {
+            ...p,
+            hasPermission: status,
+            isException: !!exc,
+            originalStatus: status
+          };
         });
-        // نحتفظ بنفس أسماء الخصائص مثل API
-        this.employees = data; // الآن كل عنصر فيه {id, fullName, employeeNumber}
+
+        this.groupIntoCategories();
+        this.updateSelectAllStatus();
+
       } catch (err) {
-        console.error(err);
-        this.showToast("❌ فشل تحميل الموظفين", "error");
+        this.toast("خطأ في تحميل البيانات", "error");
+      } finally {
+        this.loading = false;
       }
     },
 
-    async loadPermissions() {
-      try {
-        const { data } = await api.get("/Permission/all", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`
-          }
-        });
-        this.permissions = data.map(p => ({ ...p, hasPermission: false, isException: false }));
+    groupIntoCategories() {
+      const result = {};
+      this.permissions.forEach(p => {
+        let category = "صلاحيات عامة";
+        if (p.permissionName.includes("Employee") || p.permissionName.includes("Role")) category = "إدارة الموظفين";
+        else if (p.permissionName.includes("Leave") || p.permissionName.includes("Exit")) category = "الإجازات والطلبات";
+        else if (p.permissionName.includes("Education")) category = "المؤهلات العلمية";
 
-        const categoriesMap = {};
-        this.permissions.forEach(p => {
-          const cat = p.category || "عام";
-          if (!categoriesMap[cat]) categoriesMap[cat] = [];
-          categoriesMap[cat].push(p);
-        });
+        if (!result[category]) result[category] = [];
+        result[category].push(p);
+      });
 
-        this.categories = Object.keys(categoriesMap).map(name => ({
-          name,
-          permissions: categoriesMap[name],
-          selectAll: false
-        }));
-
-      } catch (err) {
-        console.error(err);
-        this.showToast("❌ فشل تحميل الصلاحيات", "error");
-      }
+      this.categories = Object.keys(result).map(key => ({
+        name: key,
+        permissions: result[key],
+        selectAll: false
+      }));
     },
 
-    async loadUserPermissions() {
-      if (!this.selectedEmployeeId) return;
-      try {
-        const { data } = await api.get(`/PermissionsManagement/user-summary/${this.selectedEmployeeId}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`
-          }
-        });
-
-        this.permissions.forEach(p => {
-          let has = data.defaultPermissions.includes(p.permissionName);
-          const exception = data.exceptions.find(e => e.permissionName === p.permissionName);
-          if (exception) has = exception.isAllowed;
-          p.hasPermission = has;
-          p.isException = !!exception;
-        });
-
-        this.categories.forEach(cat => {
-          cat.selectAll = cat.permissions.every(p => p.hasPermission);
-        });
-
-      } catch (err) {
-        console.error(err);
-        this.showToast("❌ فشل تحميل صلاحيات الموظف", "error");
-      }
+    updateSelectAllStatus() {
+      this.categories.forEach(c => {
+        c.selectAll = c.permissions.every(p => p.hasPermission);
+      });
     },
 
-    toggleCategory(category) {
-      category.permissions.forEach(p => (p.hasPermission = category.selectAll));
+    toggleCategory(cat) {
+      cat.permissions.forEach(p => {
+        p.hasPermission = cat.selectAll;
+      });
     },
 
     async savePermissions() {
-      if (!this.selectedEmployeeId) {
-        this.showToast("الرجاء اختيار الموظف", "error");
-        return;
-      }
+      const changed = this.permissions.filter(p => p.hasPermission !== p.originalStatus);
+      if (changed.length === 0) return this.toast("لا توجد تغييرات", "info");
 
+      this.saving = true;
       try {
-        const promises = this.permissions.map(p =>
-          api.post("/PermissionsManagement/set-exception", null, {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`
-            },
+        for (const p of changed) {
+          await api.post(`/PermissionsManagement/set-exception`, null, {
             params: {
-              userId: this.selectedEmployeeId,
+              publicId: this.selectedPublicId,
               permissionId: p.id,
               isAllowed: p.hasPermission
             }
-          })
-        );
-
-        await Promise.all(promises);
-        this.showToast("✅ تم حفظ الصلاحيات بنجاح", "success");
-        await this.loadUserPermissions();
-
+          });
+        }
+        this.toast("تم الحفظ بنجاح");
+        await this.loadPermissionsData();
       } catch (err) {
-        console.error(err);
-        this.showToast("❌ فشل الحفظ", "error");
+        this.toast("فشل الحفظ", "error");
+      } finally {
+        this.saving = false;
       }
     },
 
-    showToast(message, type = "success") {
-      this.toastMessage = message;
+    toast(msg, type = "success") {
+      this.toastMessage = msg;
       this.toastType = type;
-      setTimeout(() => (this.toastMessage = ""), 2500);
+      this.showToast = true;
+      setTimeout(() => this.showToast = false, 3000);
     }
   }
 };
 </script>
-
-

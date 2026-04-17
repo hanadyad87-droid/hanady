@@ -23,7 +23,7 @@
             @click="openModal"
             class="bg-primary hover:bg-green-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-primary/20 flex items-center gap-2"
           >
-            <span class="text-lg">+</span> إضافة توجيه جديد
+            <span class="text-lg">+</span> تعديل التوجيهات
           </button>
         </div>
 

@@ -11,7 +11,7 @@
       <div class="bg-white rounded-2xl shadow-lg p-6 mt-4">
         <!-- Header -->
         <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-          <h2 class="text-xl font-bold text-gray-800">إدارة الإعلانات</h2>
+          <h2 class="text-xl font-bold text-gray-800"> الإعلانات</h2>
           <button
             @click="openAddModal"
             class="bg-primary hover:bg-green-700 text-white px-4 py-2 rounded-xl shadow transition-all flex items-center gap-2">

@@ -11,7 +11,7 @@
       <div class="bg-white rounded-2xl shadow-lg p-6 mt-4">
         <!-- Header -->
         <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-          <h2 class="text-xl font-bold text-gray-800">المهام الخاصة بي</h2>
+          <h2 class="text-xl font-bold text-gray-800">مهامي</h2>
 
         </div>
 

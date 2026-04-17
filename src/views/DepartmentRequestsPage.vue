@@ -11,7 +11,7 @@
       <div class="bg-white rounded-2xl shadow-lg p-6 mt-4">
         <!-- Header -->
         <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-          <h2 class="text-xl font-bold text-gray-800">الطلبات المعلقة للإدارة</h2>
+          <h2 class="text-xl font-bold text-gray-800">طلبات الادارة</h2>
         </div>
 
         <!-- Search Table (Optional but matches style) -->

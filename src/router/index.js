@@ -166,7 +166,12 @@ const routes = [
 
   { path: "/announcements", component: AnnouncementsPage, meta: { role: ['1','2','3','4'] } },
 
-  { path: '/permissions', component: PermissionsPage, meta: { role: ['1'] } },
+ {
+   path: '/employees/permissions/:publicId', // أضفنا :id هنا
+    name: 'PermissionsPage',
+    component: PermissionsPage,
+    props: true // هذا يسمح بتمرير id كـ prop للصفحة
+  },
 
   { path: "/notifications", component: NotificationsPage },
 

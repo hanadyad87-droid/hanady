@@ -12,7 +12,7 @@
         <!-- Header -->
         <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
           <div>
-            <h2 class="text-xl font-bold text-gray-800">إجازاتي</h2>
+            <h2 class="text-xl font-bold text-gray-800">الإجازات</h2>
             <p class="text-sm text-gray-500 mt-1">
               رصيد الإجازات المتبقي: 
               <span class="font-bold text-primary">{{ balance }} يوم</span>

@@ -11,7 +11,7 @@
         
         <!-- رأس الصفحة -->
         <div class="mb-8 border-b pb-4">
-          <h2 class="text-2xl font-bold text-gray-800">مركز المعرفة - الأسئلة الشائعة</h2>
+          <h2 class="text-2xl font-bold text-gray-800">الأسئلة الشائعة</h2>
           <p class="text-gray-500 mt-2">كل ما تحتاج لمعرفته حول النظام والإجراءات في مكان واحد.</p>
         </div>
 
