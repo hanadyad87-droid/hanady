@@ -2,10 +2,10 @@
   <div dir="rtl" class="flex min-h-screen bg-gray-100 font-cairo">
 
     <!-- Sidebar -->
-    <Sidebar class="fixed top-0 right-0 h-screen w-24 sm:w-28 md:w-60 z-50" />
+    <Sidebar />
 
     <!-- المحتوى -->
-    <div class="flex-1 mr-24 sm:mr-28 md:mr-60 p-4 sm:p-6">
+    <div class="flex-1 w-full min-w-0 mr-0 lg:mr-60 p-4 sm:p-6">
 
       <!-- Navbar -->
       <Navbar />

@@ -1,8 +1,8 @@
 <template>
   <div class="flex min-h-screen bg-gray-100 font-cairo" dir="rtl">
-    <Sidebar class="fixed top-0 right-0 h-screen w-24 md:w-64 z-50" />
+    <Sidebar />
 
-    <div class="flex-1 p-6 mr-24 md:mr-64">
+    <div class="flex-1 w-full min-w-0 p-4 sm:p-6 mr-0 lg:mr-60">
       <Navbar />
 
       <div class="bg-white p-8 rounded-2xl shadow-lg max-w-5xl mx-auto mt-6 border border-gray-100">
@@ -125,10 +125,10 @@
               </div>
               <div class="flex flex-col animate-fade-in">
                 <label class="label font-bold mb-2">الجهة المنتدب منها</label>
-                <select v-model.number="form.transferFromEntityId" class="input-modern bg-white">
-                  <option :value="null">اختر الجهة...</option>
-                  <option v-for="d in departments" :key="d.id" :value="d.id">{{ d.name }}</option>
-                </select>
+       <select v-model.number="form.transferFromOrganizationId" class="input-modern bg-white">
+  <option :value="null">اختر الجهة...</option>
+  <option v-for="o in organizations" :key="o.id" :value="o.id">{{ o.name }}</option>
+</select>
               </div>
               <div class="flex flex-col animate-fade-in">
                 <label class="label font-bold mb-2">بداية الانتداب</label>
@@ -143,10 +143,10 @@
             <template v-if="form.jobStatus === JobStatus.Secondment">
               <div class="flex flex-col animate-fade-in">
                 <label class="label font-bold mb-2">الجهة المعار إليها</label>
-                <select v-model.number="form.secondmentToEntityId" class="input-modern bg-white">
-                  <option :value="null">اختر الجهة...</option>
-                  <option v-for="d in departments" :key="d.id" :value="d.id">{{ d.name }}</option>
-                </select>
+                <select v-model.number="form.secondmentToOrganizationId" class="input-modern bg-white">
+  <option :value="null">اختر الجهة...</option>
+  <option v-for="o in organizations" :key="o.id" :value="o.id">{{ o.name }}</option>
+</select>
               </div>
               <div class="flex flex-col animate-fade-in">
                 <label class="label font-bold mb-2">بداية الإعارة</label>
@@ -204,7 +204,7 @@ export default {
       transferTypeSelection: [],
 
       toast: { visible: false, message: "", type: "success" },
-
+organizations: [],
       departments: [],
       subDepartments: [],
       sections: [],
@@ -245,10 +245,10 @@ export default {
         contractStartDate: "",
         contractEndDate: "",
         transferType: "",
-        transferFromEntityId: null,
+    transferFromOrganizationId: null,
         transferStartDate: "",
         transferEndDate: "",
-        secondmentToEntityId: null,
+      secondmentToOrganizationId: null,
         secondmentStartDate: "",
         secondmentEndDate: ""
       };
@@ -261,14 +261,17 @@ export default {
 
     async loadLookups() {
       try {
-        const [jt, d, sd, s, w, g] = await Promise.all([
-          api.get("/JobTitle"),
-          api.get("/Organization/Departments"),
-          api.get("/Organization/SubDepartments"),
-          api.get("/Organization/Sections"),
-          api.get("/WorkLocation"),
-          api.get("/JobGrade")
-        ]);
+        const [jt, d, sd, s, w, g, org] = await Promise.all([
+  api.get("/JobTitle"),
+  api.get("/Organization/Departments"),
+  api.get("/Organization/SubDepartments"),
+  api.get("/Organization/Sections"),
+  api.get("/WorkLocation"),
+  api.get("/JobGrade"),
+  api.get("/organizations") // 🔥 الجديد
+]);
+
+this.organizations = org.data;
 
         this.jobTitles = jt.data;
         this.departments = d.data;
@@ -322,19 +325,24 @@ export default {
     async save() {
       const clean = (v) => (v === "" || v === undefined) ? null : v;
       
-      const payload = {
-        employeePublicId: this.employeePublicIdInternal,
-        ...this.form,
-        startWorkDate: clean(this.form.startWorkDate),
-        appointmentDate: clean(this.form.appointmentDate),
-        contractStartDate: clean(this.form.contractStartDate),
-        contractEndDate: clean(this.form.contractEndDate),
-        transferStartDate: clean(this.form.transferStartDate),
-        transferEndDate: clean(this.form.transferEndDate),
-        secondmentStartDate: clean(this.form.secondmentStartDate),
-        secondmentEndDate: clean(this.form.secondmentEndDate),
-        transferType: clean(this.form.transferType)
-      };
+     const payload = {
+  employeePublicId: this.employeePublicIdInternal,
+  ...this.form,
+
+  // تنظيف القيم
+  startWorkDate: clean(this.form.startWorkDate),
+  appointmentDate: this.form.jobStatus === "Appointment" ? clean(this.form.appointmentDate) : null,
+
+  contractStartDate: this.form.jobStatus === "Contract" ? clean(this.form.contractStartDate) : null,
+  contractEndDate: this.form.jobStatus === "Contract" ? clean(this.form.contractEndDate) : null,
+
+  transferStartDate: this.form.jobStatus === "Transfer" ? clean(this.form.transferStartDate) : null,
+  transferEndDate: this.form.jobStatus === "Transfer" ? clean(this.form.transferEndDate) : null,
+  transferType: this.form.jobStatus === "Transfer" ? clean(this.form.transferType) : null,
+
+  secondmentStartDate: this.form.jobStatus === "Secondment" ? clean(this.form.secondmentStartDate) : null,
+  secondmentEndDate: this.form.jobStatus === "Secondment" ? clean(this.form.secondmentEndDate) : null
+};
 
       try {
         this.loading = true;

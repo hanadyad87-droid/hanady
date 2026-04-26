@@ -1,8 +1,8 @@
 <template>
   <div class="flex min-h-screen bg-gray-100 font-cairo" dir="rtl">
-    <SidebarPage class="fixed top-0 right-0 h-screen w-24 md:w-64 z-50" />
+    <SidebarPage />
 
-    <div class="flex-1 p-6 mr-24 md:mr-64">
+    <div class="flex-1 w-full min-w-0 p-4 sm:p-6 mr-0 lg:mr-60">
       <Navbar />
 
       <div class="bg-white rounded-2xl shadow-lg p-6 mt-4">

@@ -1,8 +1,8 @@
 <template>
   <div class="flex min-h-screen bg-gray-50 font-cairo" dir="rtl">
-    <Sidebar class="fixed top-0 right-0 h-screen w-24 md:w-64 bg-primary text-white z-50 shadow-lg" />
+    <Sidebar />
 
-    <div class="flex-1 p-6 mr-24 md:mr-64">
+    <div class="flex-1 w-full min-w-0 p-4 sm:p-6 mr-0 lg:mr-60">
       <Navbar />
 
       <div v-if="loading" class="text-center mt-20 text-primary animate-pulse font-bold">

@@ -50,6 +50,21 @@ body {
   direction: rtl;
   text-align: right;
 }
+
+/* ——— تخطيط عام: يمنع تمدد أفقي غير مقصود على الشاشات الضيقة ——— */
+#app {
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+@layer components {
+  .app-panel {
+    @apply rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-6 shadow-sm;
+  }
+  .app-page-title {
+    @apply text-lg sm:text-xl font-bold text-slate-800;
+  }
+}
 /* يمكن وضعه في App.vue أو ملف CSS عام */
 .highlight {
   animation: highlightRow 3s ease forwards;

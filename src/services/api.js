@@ -1,9 +1,9 @@
 // src/services/api.js
 import axios from "axios";
+import { API_ORIGIN } from "../config";
 
-// هنا حط رابط السيرفر متاعك
 const api = axios.create({
-  baseURL: "http://localhost:5205/api", // عدل حسب الباكند متاعك
+  baseURL: `${API_ORIGIN}/api`,
   headers: {
     "Content-Type": "application/json"
   }

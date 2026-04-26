@@ -1,107 +1,151 @@
 <template>
   <div class="flex min-h-screen bg-gray-100 font-cairo" dir="rtl">
-    <Sidebar class="fixed top-0 right-0 h-screen w-24 md:w-64 z-50" />
+    <Sidebar />
 
-    <div class="flex-1 p-6 mr-24 md:mr-64">
+    <div class="flex-1 w-full min-w-0 p-4 sm:p-6 mr-0 lg:mr-60">
       <Navbar />
 
       <div class="bg-white rounded-2xl shadow-lg p-6 mt-4">
-        
+
         <div class="flex justify-between items-center mb-6">
           <div>
-            <h2 class="text-xl font-bold text-gray-800">  إدارة الاجازات</h2>
-            <p class="text-sm text-gray-500">مراجعة طلبات الموظفين</p>
+            <h2 class="text-xl font-bold text-gray-800">إدارة الإجازات</h2>
+            <p class="text-sm text-gray-500">كل الطلبات</p>
           </div>
         </div>
 
-        <!-- Search -->
         <input
           v-model="searchQuery"
-          placeholder="بحث (اسم الموظف / نوع الإجازة)..."
-          class="w-full mb-4 p-2 border rounded-lg"
+          @input="onSearch"
+          placeholder="بحث..."
+          class="w-full mb-4 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none"
         />
 
-        <!-- Table -->
-        <div class="overflow-x-auto border rounded-lg">
-          <table class="min-w-full text-right">
+        <div class="overflow-x-auto border border-gray-200 rounded-lg">
+          <table class="min-w-full text-right divide-y divide-gray-200">
             <thead class="bg-navbar">
               <tr>
-                <th class="p-3">الموظف</th>
-                <th class="p-3">نوع الإجازة</th>
-                <th class="p-3 text-center">من - إلى</th>
-                <th class="p-3 text-center">الأيام</th>
-                <th class="p-3 text-center">المرفق</th>
-                <th class="p-3 text-center">الحالة</th>
-                <th class="p-3 text-center">إجراءات</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">الموظف</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">نوع الإجازة</th>
+                <th class="p-3 text-sm font-semibold text-gray-600 text-center">من - إلى</th>
+                <th class="p-3 text-sm font-semibold text-gray-600 text-center">الأيام</th>
+                <th class="p-3 text-sm font-semibold text-gray-600 text-center">المرفق</th>
+                <th class="p-3 text-sm font-semibold text-gray-600 text-center">الحالة</th>
+                <th class="p-3 text-sm font-semibold text-gray-600 text-center">بانتظار</th>
+                <th class="p-3 text-sm font-semibold text-gray-600 text-center">إجراءات</th>
               </tr>
             </thead>
 
-            <tbody>
-              <tr v-for="leave in filteredLeaves" :key="leave.id" class="border-t">
-                
-                <td class="p-3">{{ leave.employeeName }}</td>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr v-for="leave in leaves" :key="leave.id" class="hover:bg-gray-50 transition">
 
-                <td class="p-3">{{ leave.leaveType }}</td>
+                <td class="p-3 text-sm font-medium">{{ leave.employeeName }}</td>
+                <td class="p-3 text-sm text-gray-700">{{ leave.leaveType }}</td>
 
-                <td class="p-3 text-center">
+                <td class="p-3 text-sm text-center text-gray-700">
                   {{ formatDate(leave.fromDate) }} ← {{ formatDate(leave.toDate) }}
                 </td>
 
-                <td class="p-3 text-center">{{ leave.totalDays }}</td>
+                <td class="p-3 text-sm text-center font-bold">{{ leave.totalDays }}</td>
 
-                <td class="p-3 text-center">
-                 <a
-  v-if="leave.attachmentPath"
-  :href="`http://localhost:5205${leave.attachmentPath}`"
-  target="_blank"
-  class="text-blue-600"
->
-  عرض المرفق
-</a>
-                  <span v-else>-</span>
+                <td class="p-3 text-sm text-center">
+                  <a
+                    v-if="leave.attachmentPath"
+                    :href="`http://localhost:5205${leave.attachmentPath}`"
+                    target="_blank"
+                    class="text-blue-600 hover:underline"
+                  >
+                    عرض
+                  </a>
+                  <span v-else class="text-gray-400">لا يوجد</span>
                 </td>
 
-                <td class="p-3 text-center">
-                  <span :class="getStatusClass(leave)">
-                    {{ formatStatus(leave) }}
+                <td class="p-3 text-sm text-center">
+                  <span :class="getStatusClass(leave)" class="font-bold">
+                    {{ leave.status }}
                   </span>
                 </td>
 
-                <td class="p-3 text-center flex gap-2 justify-center">
-                  <button @click="approveLeave(leave)" class="text-green-600">✔</button>
-                  <button @click="openRejectModal(leave)" class="text-red-600">✖</button>
+                <td class="p-3 text-sm text-center text-gray-600">
+                  {{ leave.waitingFor || "-" }}
+                </td>
+
+                <td class="p-3 text-sm text-center flex gap-4 justify-center">
+
+                  <template v-if="pendingIds.has(leave.id)">
+                    <button 
+                      @click="approveLeave(leave)" 
+                      class="text-green-600 hover:scale-110 transition-transform" 
+                      title="موافقة"
+                    >
+                      <CheckCircleIcon class="w-6 h-6" />
+                    </button>
+
+                    <button 
+                      @click="openRejectModal(leave)" 
+                      class="text-red-600 hover:scale-110 transition-transform" 
+                      title="رفض"
+                    >
+                      <XCircleIcon class="w-6 h-6" />
+                    </button>
+                  </template>
+
+                  <span v-else class="text-gray-400">-</span>
+
                 </td>
 
               </tr>
 
-              <tr v-if="filteredLeaves.length === 0">
-                <td colspan="7" class="text-center p-6 text-gray-400">
-                  لا توجد بيانات
+              <tr v-if="leaves.length === 0">
+                <td colspan="8" class="text-center py-10 text-gray-400 italic">
+                  لا توجد طلبات إجازة حالياً
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
+
+        <div class="flex justify-between items-center mt-6">
+          <button
+            class="px-4 py-2 border rounded-xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            :disabled="page === 1"
+            @click="changePage(page - 1)"
+          >
+            السابق
+          </button>
+
+          <span class="text-sm font-medium text-gray-600">
+            صفحة {{ page }} من {{ totalPages }}
+          </span>
+
+          <button
+            class="px-4 py-2 border rounded-xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            :disabled="page === totalPages"
+            @click="changePage(page + 1)"
+          >
+            التالي
+          </button>
+        </div>
+
       </div>
     </div>
 
-    <!-- Reject Modal -->
-    <div v-if="showRejectModal" class="fixed inset-0 bg-black/50 flex justify-center items-center">
-      <div class="bg-white p-6 rounded-xl w-full max-w-md">
-        <h3 class="font-bold mb-4">رفض الطلب</h3>
-
-        <p class="mb-2">الموظف: {{ selectedLeave?.employeeName }}</p>
+    <div v-if="showRejectModal" class="fixed inset-0 bg-black/50 flex justify-center items-center z-[60] p-4">
+      <div class="bg-white p-6 rounded-2xl w-full max-w-md shadow-2xl">
+        <h3 class="font-bold text-xl mb-4 text-gray-800 border-b pb-2">رفض الطلب</h3>
 
         <textarea
           v-model="rejectReason"
-          class="w-full border p-2 rounded mb-4"
-          placeholder="سبب الرفض"
+          class="w-full border border-gray-300 p-3 rounded-xl mb-4 focus:ring-2 focus:ring-red-500 outline-none h-32"
+          placeholder="يرجى كتابة سبب الرفض هنا..."
         ></textarea>
 
-        <div class="flex justify-end gap-2">
-          <button @click="closeRejectModal">إلغاء</button>
-          <button @click="submitReject" class="bg-red-600 text-white px-4 py-1 rounded">
-            تأكيد
+        <div class="flex justify-end gap-3">
+          <button @click="closeRejectModal" class="px-5 py-2 text-gray-600 hover:bg-gray-100 rounded-xl transition">
+            إلغاء
+          </button>
+          <button @click="submitReject" class="bg-red-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-red-700 transition">
+            تأكيد الرفض
           </button>
         </div>
       </div>
@@ -111,119 +155,65 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from "vue";
+import { ref, onMounted } from "vue";
+import api from "../services/api";
 import Sidebar from "../components/Sidebar.vue";
 import Navbar from "../components/Navbar.vue";
-import api from "../services/api";
+// استيراد الأيقونات المطلوبة
+import { CheckCircleIcon, XCircleIcon } from '@heroicons/vue/24/outline';
 
 export default {
-  components: {
-    Sidebar,
-    Navbar
-  },
+  // إضافة الأيقونات للمكونات
+  components: { Sidebar, Navbar, CheckCircleIcon, XCircleIcon },
 
   setup() {
-    const pendingLeaves = ref([]);
+    const leaves = ref([]);
+    const pendingIds = ref(new Set());
     const searchQuery = ref("");
-
+    const page = ref(1);
+    const pageSize = 10;
+    const totalPages = ref(1);
+    const totalCount = ref(0);
     const showRejectModal = ref(false);
     const rejectReason = ref("");
     const selectedLeave = ref(null);
 
-    // =========================
-    // FETCH PENDING LEAVES
-    // =========================
-    const fetchPendingLeaves = async () => {
-  try {
-    const res = await api.get("/leave-requests/manager/pending?verbose=true");
-
-    console.log("API RESPONSE:", res.data);
-
-    const data = Array.isArray(res.data) ? res.data : [];
-
-    pendingLeaves.value = data
-      .slice()
-      .sort((a, b) => b.id - a.id) // 🔥 الأحدث أولاً
-      .map(item => {
-        return {
-          id: item.id,
-
-          employeeName: item.employeeName,
-          leaveType: item.leaveType,
-
-          fromDate: item.fromDate,
-          toDate: item.toDate,
-          totalDays: item.totalDays,
-
-          partialApproval: item.partialApproval,
-          finalApproval: item.finalApproval,
-
-          partialNote: item.partialNote,
-          finalNote: item.finalNote,
-
-          rejectionReason: item.rejectionReason,
-          notes: item.notes,
-
-          attachmentPath: item.attachmentPath || null,
-
-          waitingFor: item.waitingFor || "قيد الانتظار",
-
-          needsAttachment: false
-        };
+    const fetchLeaves = async () => {
+      const res = await api.get("/leave-requests/manager/all", {
+        params: { verbose: true, page: page.value, pageSize }
       });
-
-    console.log("MAPPED:", pendingLeaves.value);
-
-  } catch (err) {
-    console.error("ERROR:", err);
-  }
-};
-
-    // =========================
-    // FILTER
-    // =========================
-    const filteredLeaves = computed(() => {
-      return pendingLeaves.value.filter(l =>
-        (l.employeeName || "").toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-        (l.leaveType || "").toLowerCase().includes(searchQuery.value.toLowerCase())
-      );
-    });
-
-    // =========================
-    // APPROVE
-    // =========================
-    const approveLeave = async (leave) => {
-      await api.post(
-        `/leave-requests/${leave.id}/manager-decision`,
-        null,
-        {
-          params: {
-            approve: true,
-            note: "تمت الموافقة"
-          }
-        }
-      );
-
-      fetchPendingLeaves();
+      leaves.value = res.data.data;
+      totalCount.value = res.data.totalCount;
+      totalPages.value = Math.ceil(res.data.totalCount / pageSize);
     };
 
-    // =========================
-    // REJECT
-    // =========================
-    const submitReject = async () => {
-      await api.post(
-        `/leave-requests/${selectedLeave.value.id}/manager-decision`,
-        null,
-        {
-          params: {
-            approve: false,
-            note: rejectReason.value
-          }
-        }
-      );
+    const fetchPending = async () => {
+      const res = await api.get("/leave-requests/manager/pending", {
+        params: { verbose: true }
+      });
+      pendingIds.value = new Set(res.data.map(x => x.id));
+    };
 
+    const changePage = async (newPage) => {
+      page.value = newPage;
+      await fetchLeaves();
+    };
+
+    const onSearch = () => {};
+
+    const approveLeave = async (leave) => {
+      await api.post(`/leave-requests/${leave.id}/manager-decision`, null, {
+        params: { approve: true, note: "تمت الموافقة" }
+      });
+      await refresh();
+    };
+
+    const submitReject = async () => {
+      await api.post(`/leave-requests/${selectedLeave.value.id}/manager-decision`, null, {
+        params: { approve: false, note: rejectReason.value }
+      });
       closeRejectModal();
-      fetchPendingLeaves();
+      await refresh();
     };
 
     const openRejectModal = (leave) => {
@@ -236,41 +226,26 @@ export default {
       rejectReason.value = "";
     };
 
-    // =========================
-    // HELPERS
-    // =========================
+    const refresh = async () => {
+      await fetchLeaves();
+      await fetchPending();
+    };
+
     const formatDate = (d) => d ? d.slice(0, 10) : "";
 
     const getStatusClass = (item) => {
-      if (item.finalApproval === true) return "text-green-600";
-      if (item.finalApproval === false) return "text-red-600";
+      if (item.status?.includes("مقبول")) return "text-green-600";
+      if (item.status?.includes("مرفوض")) return "text-red-600";
       return "text-yellow-600";
     };
 
-    const formatStatus = (item) => {
-      return item.waitingFor || "قيد الانتظار";
-    };
-
-    onMounted(fetchPendingLeaves);
+    onMounted(refresh);
 
     return {
-      pendingLeaves,
-      searchQuery,
-      filteredLeaves,
-
-      showRejectModal,
-      rejectReason,
-      selectedLeave,
-
-      fetchPendingLeaves,
-      approveLeave,
-      submitReject,
-      openRejectModal,
-      closeRejectModal,
-
-      formatDate,
-      getStatusClass,
-      formatStatus
+      leaves, pendingIds, searchQuery, page, totalPages,
+      changePage, onSearch, showRejectModal, rejectReason,
+      selectedLeave, approveLeave, submitReject, openRejectModal,
+      closeRejectModal, formatDate, getStatusClass
     };
   }
 };

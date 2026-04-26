@@ -1,13 +1,13 @@
 <template>
   <div class="flex min-h-screen bg-gray-100 font-cairo" dir="rtl">
-    <SidebarPage class="fixed top-0 right-0 h-screen w-24 md:w-64 z-50" />
+    <SidebarPage />
 
-    <div class="flex-1 p-6 mr-24 md:mr-64">
+    <div class="flex-1 w-full min-w-0 p-4 sm:p-6 mr-0 lg:mr-60">
       <Navbar />
 
       <div class="bg-white rounded-2xl shadow-lg p-6 mt-4">
         <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-          <h2 class="text-xl font-bold text-gray-800">الطلبات  </h2>
+          <h2 class="text-xl font-bold text-gray-800">الطلبات</h2>
           <button
             @click="openCreateModal"
             class="bg-primary hover:bg-green-700 text-white px-4 py-2 rounded-xl shadow transition-all flex items-center gap-2"
@@ -48,30 +48,31 @@
           </table>
         </div>
 
-        <div class="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4 bg-gray-50 p-4 rounded-2xl">
-          <div class="flex gap-2 w-full sm:w-auto">
-            <button 
-              @click="changePage(currentPage - 1)" 
-              :disabled="currentPage === 1" 
-              class="pagination-btn flex-1 sm:flex-none"
-            >
-              السابق
-            </button>
-            <button 
-              @click="changePage(currentPage + 1)" 
-              :disabled="currentPage >= totalPages" 
-              class="pagination-btn flex-1 sm:flex-none"
-            >
-              التالي
-            </button>
-          </div>
-          <div class="text-xs md:text-sm text-gray-600 font-medium">
-            صفحة <span class="text-primary font-bold">{{ currentPage }}</span> من {{ totalPages }} 
-            <span class="mx-2 text-gray-300">|</span> 
-            إجمالي الطلبات: <span class="font-bold">{{ displayedRequests.length }}</span>
-          </div>
+        <div class="flex justify-between items-center mt-6">
+          <button
+            @click="changePage(currentPage - 1)"
+            :disabled="currentPage === 1"
+            class="px-4 py-2 border rounded-xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition text-sm font-medium text-gray-700"
+          >
+            السابق
+          </button>
+
+          <span class="text-sm font-medium text-gray-600">
+            صفحة <span class="text-primary font-bold">{{ currentPage }}</span> من {{ totalPages }}
+          </span>
+
+          <button
+            @click="changePage(currentPage + 1)"
+            :disabled="currentPage >= totalPages"
+            class="px-4 py-2 border rounded-xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition text-sm font-medium text-gray-700"
+          >
+            التالي
+          </button>
         </div>
-      </div> </div> <div v-if="showModal" class="fixed inset-0 bg-black/50 flex justify-center items-center z-[60] p-4">
+      </div>
+    </div>
+
+    <div v-if="showModal" class="fixed inset-0 bg-black/50 flex justify-center items-center z-[60] p-4">
       <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl overflow-y-auto max-h-[90vh]">
         <h3 class="font-bold text-xl mb-4 text-gray-800 border-b pb-2">تقديم طلب جديد</h3>
         <div class="space-y-4">
@@ -167,7 +168,7 @@
           </div>
         </div>
         <div class="mt-8">
-          <button @click="showDetailModal = false" class="w-full bg-gray-100 py-2 rounded-lg font-bold hover:bg-gray-200 transition">إغلاق</button>
+          <button @click="showDetailModal = false" class="w-full bg-gray-100 py-2 rounded-lg font-bold hover:bg-gray-200 transition">إإغلاق</button>
         </div>
       </div>
     </div>
@@ -200,6 +201,14 @@ export default {
     const currentPage = ref(1);
     const itemsPerPage = ref(10);
 
+    const totalPages = computed(() => Math.ceil(displayedRequests.value.length / itemsPerPage.value) || 1);
+    
+    const paginatedRequests = computed(() => {
+      const start = (currentPage.value - 1) * itemsPerPage.value;
+      const end = start + itemsPerPage.value;
+      return displayedRequests.value.slice(start, end);
+    });
+
     const changePage = (newPage) => {
       if (newPage < 1 || newPage > totalPages.value) return;
       currentPage.value = newPage;
@@ -226,14 +235,6 @@ export default {
       equipmentName: "",
       problemDescription: "",
       imageFile: null
-    });
-
-    const totalPages = computed(() => Math.ceil(displayedRequests.value.length / itemsPerPage.value) || 1);
-    
-    const paginatedRequests = computed(() => {
-      const start = (currentPage.value - 1) * itemsPerPage.value;
-      const end = start + itemsPerPage.value;
-      return displayedRequests.value.slice(start, end);
     });
 
     const showToast = (msg, type = 'success') => {
@@ -366,7 +367,4 @@ export default {
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
 .font-cairo { font-family: 'Cairo', sans-serif; }
 .input { @apply bg-gray-50 transition-all border border-gray-300 focus:border-primary outline-none; }
-.pagination-btn {
-  @apply px-4 py-2 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-primary hover:text-white disabled:opacity-40 transition-all text-sm font-bold shadow-sm;
-}
 </style>

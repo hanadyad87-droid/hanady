@@ -1,9 +1,9 @@
 <template>
   <div class="flex min-h-screen bg-gray-100 font-cairo" dir="rtl">
-    <SidebarPage class="fixed top-0 right-0 h-screen w-24 md:w-64 z-50"/>
+    <SidebarPage />
 
-    <div class="flex-1 p-6 mr-24 md:mr-64">
-      <Navbar/>
+    <div class="flex-1 w-full min-w-0 p-4 sm:p-6 mr-0 lg:mr-60">
+      <Navbar />
 
       <div class="bg-white rounded-2xl shadow-lg p-6 mt-4">
         
@@ -14,7 +14,7 @@
           </div>
           <router-link
             to="/employees/add"
-            class="bg-primary  hover:bg-green-700 text-white px-6 py-2 rounded-xl shadow transition-all flex items-center gap-2"
+            class="bg-primary hover:bg-green-700 text-white px-6 py-2 rounded-xl shadow transition-all flex items-center gap-2"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -77,24 +77,24 @@
                 <td class="p-4 text-sm">
                   <div class="flex items-center gap-4 justify-center">
                     <router-link 
-  :to="`/employees/${emp.publicId}`" 
-  class="p-2 text-primary hover:bg-[#E9F5DB] rounded-lg transition-all duration-300 hover:scale-110 flex items-center justify-center"
-  title="عرض وتعديل الملف الشامل"
->
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5">
-    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-  </svg>
-</router-link>
+                      :to="`/employees/${emp.publicId}`" 
+                      class="p-2 text-primary hover:bg-[#E9F5DB] rounded-lg transition-all duration-300 hover:scale-110 flex items-center justify-center"
+                      title="عرض وتعديل الملف الشامل"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                      </svg>
+                    </router-link>
 
-<router-link 
-  :to="`/employees/permissions/${emp.publicId}`" 
-  class="p-2 text-primary hover:bg-[#E9F5DB] rounded-lg transition-all duration-300 hover:scale-110 flex items-center justify-center"
-  title="إدارة الصلاحيات والاستثناءات"
->
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5">
-    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21.75 8.25Z" />
-  </svg>
-</router-link>
+                    <router-link 
+                      :to="`/employees/permissions/${emp.publicId}`" 
+                      class="p-2 text-primary hover:bg-[#E9F5DB] rounded-lg transition-all duration-300 hover:scale-110 flex items-center justify-center"
+                      title="إدارة الصلاحيات والاستثناءات"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21.75 8.25Z" />
+                      </svg>
+                    </router-link>
                   </div>
                 </td>
               </tr>
@@ -113,46 +113,26 @@
           </table>
         </div>
 
-        <div v-if="filteredEmployees.length > itemsPerPage" class="flex flex-col md:flex-row justify-between items-center mt-6 gap-4 px-2">
-          <div class="text-sm text-gray-500 order-2 md:order-1">
-            عرض <span class="font-bold text-gray-700">{{ startIndex + 1 }}</span> إلى 
-            <span class="font-bold text-gray-700">{{ Math.min(endIndex, filteredEmployees.length) }}</span> 
-            من أصل <span class="font-bold text-gray-700">{{ filteredEmployees.length }}</span> موظف
-          </div>
-          
-          <div class="flex items-center gap-2 order-1 md:order-2">
-            <button 
-              @click="currentPage--" 
-              :disabled="currentPage === 1"
-              class="p-2 border rounded-lg hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-              </svg>
-            </button>
-            
-            <div class="flex gap-1">
-              <button 
-                v-for="page in totalPages" 
-                :key="page"
-                @click="currentPage = page"
-                :class="currentPage === page ? 'bg-primary text-white border-primary shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50 border-gray-200'"
-                class="w-10 h-10 border rounded-lg text-sm font-bold transition-all"
-              >
-                {{ page }}
-              </button>
-            </div>
+        <div class="flex justify-between items-center mt-6">
+          <button
+            @click="changePage(currentPage - 1)"
+            :disabled="currentPage === 1"
+            class="px-4 py-2 border rounded-xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition text-sm font-medium text-gray-700"
+          >
+            السابق
+          </button>
 
-            <button 
-              @click="currentPage++" 
-              :disabled="currentPage === totalPages"
-              class="p-2 border rounded-lg hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-              </svg>
-            </button>
-          </div>
+          <span class="text-sm font-medium text-gray-600">
+            صفحة <span class="text-primary font-bold">{{ currentPage }}</span> من {{ totalPages }}
+          </span>
+
+          <button
+            @click="changePage(currentPage + 1)"
+            :disabled="currentPage >= totalPages"
+            class="px-4 py-2 border rounded-xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition text-sm font-medium text-gray-700"
+          >
+            التالي
+          </button>
         </div>
 
       </div>
@@ -179,7 +159,6 @@ export default {
   },
 
   computed: {
-    // تصفية الموظفين بناءً على البحث
     filteredEmployees() {
       const s = this.search.toLowerCase();
       return this.employees.filter(emp => {
@@ -192,21 +171,19 @@ export default {
       });
     },
 
-    // حساب إجمالي الصفحات
     totalPages() {
       const pages = Math.ceil(this.filteredEmployees.length / this.itemsPerPage);
       return pages > 0 ? pages : 1;
     },
 
-    // نقاط الاستقطاع للباجينيشن
     startIndex() {
       return (this.currentPage - 1) * this.itemsPerPage;
     },
+    
     endIndex() {
       return this.startIndex + this.itemsPerPage;
     },
 
-    // الموظفون المعروضون في الصفحة الحالية
     paginatedEmployees() {
       return this.filteredEmployees.slice(this.startIndex, this.endIndex);
     }
@@ -217,6 +194,12 @@ export default {
   },
 
   methods: {
+    changePage(newPage) {
+      if (newPage < 1 || newPage > this.totalPages) return;
+      this.currentPage = newPage;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+
     async fetchEmployees() {
       try {
         const [empRes, adminRes] = await Promise.all([
@@ -230,16 +213,16 @@ export default {
         this.employees = adminData
           .map(adm => {
             const emp = employeesData.find(e => e.id === adm.id);
-           return {
-  id: adm.id,
-  fullName: adm.fullName,
-  EmployeeNumber: emp ? emp.employeeNumber : "غير محدد",
-  department: adm.department || "غير محدد",
-  jobTitle: adm.jobTitle || "-",
-  workLocation: adm.workLocation || "-",
-  employmentStatus: adm.employmentStatus || "غير محدد",
-  publicId: adm.employeePublicId, 
-};
+            return {
+              id: adm.id,
+              fullName: adm.fullName,
+              EmployeeNumber: emp ? emp.employeeNumber : "غير محدد",
+              department: adm.department || "غير محدد",
+              jobTitle: adm.jobTitle || "-",
+              workLocation: adm.workLocation || "-",
+              employmentStatus: adm.employmentStatus || "غير محدد",
+              publicId: adm.employeePublicId, 
+            };
           })
           .sort((a, b) => b.id - a.id);
 
@@ -258,7 +241,7 @@ export default {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #c8e0ad;
+  background: #f1f1f1;
 }
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;

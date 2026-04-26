@@ -1,32 +1,27 @@
 <template>
   <div class="flex min-h-screen bg-gray-100 font-cairo" dir="rtl">
-    <!-- Sidebar -->
-    <SidebarPage class="fixed top-0 right-0 h-screen w-24 md:w-64 z-50"/>
+    <SidebarPage />
 
-    <!-- Main content -->
-    <div class="flex-1 p-6 mr-24 md:mr-64">
-      <Navbar/>
+    <div class="flex-1 w-full min-w-0 p-4 sm:p-6 mr-0 lg:mr-60">
+      <Navbar />
 
-      <!-- Card -->
       <div class="bg-white rounded-2xl shadow-lg p-6 mt-4">
-        <!-- Header -->
         <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
           <h2 class="text-xl font-bold text-gray-800">المؤهل العلمي</h2>
           <button
             @click="openAddModal"
-            class="bg-primary hover:bg-green-700 text-white px-4 py-2 rounded-xl shadow transition-all">
+            class="bg-primary hover:bg-green-700 text-white px-4 py-2 rounded-xl shadow transition-all"
+          >
             + إضافة مؤهل
           </button>
         </div>
 
-        <!-- Search Table -->
         <input
           v-model="searchTable"
           placeholder="بحث في الجدول (اسم الموظف، المؤهل، المؤسسة)..."
           class="input w-full mb-4 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none"
         />
 
-        <!-- Table -->
         <div class="overflow-x-auto rounded-lg border border-gray-200">
           <table class="min-w-full text-right divide-y divide-gray-200">
             <thead class="bg-navbar">
@@ -40,7 +35,7 @@
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-for="edu in filteredEducations" :key="edu.id || edu.Id" class="hover:bg-gray-50 transition">
+              <tr v-for="edu in paginatedEducations" :key="edu.id || edu.Id" class="hover:bg-gray-50 transition">
                 <td class="p-3 text-sm">{{ edu.employee || edu.Employee }}</td>
                 <td class="p-3 text-sm">
                   {{ edu.qualification || edu.Qualification }}
@@ -60,22 +55,42 @@
                   <button @click="askDelete(edu.id || edu.Id)" class="text-red-600 hover:scale-110 transition">🗑️</button>
                 </td>
               </tr>
-              <tr v-if="!filteredEducations.length">
+              <tr v-if="!paginatedEducations.length">
                 <td colspan="6" class="text-center py-10 text-gray-400 italic">لا توجد بيانات متاحة</td>
               </tr>
             </tbody>
           </table>
         </div>
+
+        <div class="flex justify-between items-center mt-6">
+          <button
+            @click="changePage(currentPage - 1)"
+            :disabled="currentPage === 1"
+            class="px-4 py-2 border rounded-xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition text-sm font-medium text-gray-700"
+          >
+            السابق
+          </button>
+
+          <span class="text-sm font-medium text-gray-600">
+            صفحة <span class="text-primary font-bold">{{ currentPage }}</span> من {{ totalPages }}
+          </span>
+
+          <button
+            @click="changePage(currentPage + 1)"
+            :disabled="currentPage >= totalPages"
+            class="px-4 py-2 border rounded-xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition text-sm font-medium text-gray-700"
+          >
+            التالي
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Modal إضافة/تعديل -->
     <div v-if="showModal" class="fixed inset-0 bg-black/50 flex justify-center items-center z-[60] p-4">
       <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
         <h3 class="font-bold text-xl mb-4 text-gray-800">{{ isEdit ? 'تعديل المؤهل العلمي' : 'إضافة مؤهل جديد' }}</h3>
 
         <div class="space-y-4">
-          <!-- Employee -->
           <div class="relative">
             <label class="block text-sm font-medium mb-1">الموظف</label>
             <div class="flex gap-2">
@@ -97,7 +112,6 @@
             </ul>
           </div>
 
-          <!-- Qualification -->
           <div>
             <label class="block text-sm font-medium mb-1">المؤهل الدراسي</label>
             <select v-model="form.qualificationId" class="input w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-primary">
@@ -106,7 +120,6 @@
             </select>
           </div>
 
-          <!-- Type -->
           <div>
             <label class="block text-sm font-medium mb-1">نوع التخصص</label>
             <div class="flex gap-6 p-2 bg-gray-50 rounded-lg">
@@ -119,19 +132,11 @@
             </div>
           </div>
 
-          <!-- Institution -->
           <div>
-  <label class="block text-sm font-medium mb-1">المؤسسة / الجامعة</label>
-  <input 
-    v-model="form.institution" 
-    type="text"
-    name="institution"
-    class="input w-full p-2 border rounded-lg"
-    required
-  />
-</div>
+            <label class="block text-sm font-medium mb-1">المؤسسة / الجامعة</label>
+            <input v-model="form.institution" type="text" class="input w-full p-2 border rounded-lg" required />
+          </div>
 
-          <!-- File -->
           <div>
             <label class="block text-sm font-medium mb-1">إرفاق الشهادة (اختياري)</label>
             <input type="file" @change="e => form.file = e.target.files[0]" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-primary file:text-white cursor-pointer"/>
@@ -147,7 +152,6 @@
       </div>
     </div>
 
-    <!-- Confirm Delete -->
     <div v-if="confirmDeleteId !== null" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
       <div class="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-sm text-center">
         <p class="mb-6 text-gray-700 font-bold">هل أنت متأكد من الحذف؟</p>
@@ -163,7 +167,7 @@
 </template>
 
 <script>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import SidebarPage from "@/components/Sidebar.vue";
 import Navbar from "@/components/Navbar.vue";
 import ToastPage from "@/components/Toast.vue";
@@ -181,6 +185,10 @@ export default {
     const search = ref("");
     const searchTable = ref("");
     const confirmDeleteId = ref(null);
+
+    // Pagination State
+    const currentPage = ref(1);
+    const itemsPerPage = ref(10);
 
     const form = ref({
       id: null,
@@ -217,13 +225,37 @@ export default {
       }
     };
 
+    // 1. تصفية البيانات أولاً بناءً على محرك البحث
     const filteredEducations = computed(() => {
       const s = searchTable.value.toLowerCase();
       return educations.value.filter(e => 
         (e.employee || e.Employee || "").toLowerCase().includes(s) ||
         (e.qualification || e.Qualification || "").toLowerCase().includes(s) ||
         (e.institution || e.Institution || "").toLowerCase().includes(s)
-      );
+      ).sort((a, b) => (b.id || 0) - (a.id || 0));
+    });
+
+    // 2. حساب إجمالي الصفحات بناءً على النتائج المفلترة
+    const totalPages = computed(() => 
+      Math.ceil(filteredEducations.value.length / itemsPerPage.value) || 1
+    );
+
+    // 3. استخراج بيانات الصفحة الحالية فقط
+    const paginatedEducations = computed(() => {
+      const start = (currentPage.value - 1) * itemsPerPage.value;
+      const end = start + itemsPerPage.value;
+      return filteredEducations.value.slice(start, end);
+    });
+
+    const changePage = (newPage) => {
+      if (newPage < 1 || newPage > totalPages.value) return;
+      currentPage.value = newPage;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    // تصفير الصفحة عند البحث
+    watch(searchTable, () => {
+      currentPage.value = 1;
     });
 
     const filteredEmployees = computed(() =>
@@ -265,52 +297,47 @@ export default {
       showModal.value = true;
     };
 
-const saveEducation = async () => {
-  if (!form.value.employeeId || !form.value.qualificationId || !form.value.institution) {
-    return toast("يرجى ملء كافة الحقول الإجبارية", "error");
-  }
+    const saveEducation = async () => {
+      if (!form.value.employeeId || !form.value.qualificationId || !form.value.institution) {
+        return toast("يرجى ملء كافة الحقول الإجبارية", "error");
+      }
 
-  try {
-    const formData = new FormData();
+      try {
+        const formData = new FormData();
+        formData.append("employeeId", Number(form.value.employeeId));
+        formData.append("qualificationId", Number(form.value.qualificationId));
+        formData.append("type", form.value.type);
+        formData.append("institution", form.value.institution.trim());
 
-    formData.append("employeeId", Number(form.value.employeeId));
-    formData.append("qualificationId", Number(form.value.qualificationId));
-    formData.append("type", form.value.type);
-    formData.append("institution", form.value.institution.trim());
+        if (form.value.file && form.value.file instanceof File) {
+          formData.append("file", form.value.file);
+        }
 
-    if (form.value.file && form.value.file instanceof File) {
-      formData.append("file", form.value.file);
-    }
+        if (isEdit.value) {
+          await api.put(`/EmployeeEducation/${form.value.id}`, formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+        } else {
+          await api.post("/EmployeeEducation", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+        }
 
-    console.log("إرسال البيانات النهائية...");
+        toast("تم حفظ البيانات بنجاح!");
+        closeModal();
+        fetchData();
+      } catch (err) {
+        const errors = err.response?.data?.errors;
+        if (errors) {
+          const firstErrorKey = Object.keys(errors)[0];
+          const firstErrorMessage = errors[firstErrorKey][0];
+          toast(`${firstErrorKey}: ${firstErrorMessage}`, "error");
+        } else {
+          toast("خطأ في الاتصال بالسيرفر", "error");
+        }
+      }
+    };
 
-    // تمت إزالة "const response =" من هنا لحل مشكلة ESLint
-    if (isEdit.value) {
-      await api.put(`/EmployeeEducation/${form.value.id}`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-    } else {
-      await api.post("/EmployeeEducation", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-    }
-
-    toast("تم حفظ البيانات بنجاح!");
-    closeModal();
-    fetchData();
-  } catch (err) {
-    console.error("تفاصيل الخطأ كاملة:", err.response?.data);
-    
-    const errors = err.response?.data?.errors;
-    if (errors) {
-      const firstErrorKey = Object.keys(errors)[0];
-      const firstErrorMessage = errors[firstErrorKey][0];
-      toast(`${firstErrorKey}: ${firstErrorMessage}`, "error");
-    } else {
-      toast("خطأ 400: السيرفر رفض الطلب", "error");
-    }
-  }
-};
     const askDelete = (id) => (confirmDeleteId.value = id);
 
     const deleteEducation = async (id) => {
@@ -340,15 +367,18 @@ const saveEducation = async () => {
 
     return {
       educations, qualifications, employees, form, search, searchTable,
-      filteredEducations, filteredEmployees, showModal, isEdit, confirmDeleteId,
+      filteredEmployees, showModal, isEdit, confirmDeleteId,
       selectEmployee, resetEmployeeSelection, openAddModal, editEducation, 
       saveEducation, askDelete, deleteEducation, closeModal, formatDate,
-      showToast, toastMessage, toastType
+      showToast, toastMessage, toastType,
+      currentPage, totalPages, paginatedEducations, changePage
     };
   }
 };
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+.font-cairo { font-family: 'Cairo', sans-serif; }
 .input { @apply bg-gray-50; }
 </style>

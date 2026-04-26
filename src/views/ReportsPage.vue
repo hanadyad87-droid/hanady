@@ -2,10 +2,10 @@
   <div class="flex min-h-screen bg-gray-100" dir="rtl">
 
     <!-- Sidebar -->
-    <Sidebar class="fixed top-0 right-0 h-screen w-20 md:w-64 bg-primary text-white z-50" />
+    <Sidebar />
 
     <!-- Main Content -->
-    <div class="flex-1 p-4 md:p-6 mr-20 md:mr-64">
+    <div class="flex-1 w-full min-w-0 p-4 md:p-6 mr-0 lg:mr-60">
       <Navbar />
 
       <div class="max-w-7xl mx-auto">

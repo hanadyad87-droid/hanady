@@ -1,27 +1,21 @@
 <template>
   <div class="flex min-h-screen bg-gray-100 font-cairo" dir="rtl">
-    <!-- Sidebar -->
-    <Sidebar class="fixed top-0 right-0 h-screen w-24 md:w-64 z-50" />
+    <Sidebar />
 
-    <!-- Main content -->
-    <div class="flex-1 p-6 mr-24 md:mr-64">
+    <div class="flex-1 w-full min-w-0 p-4 sm:p-6 mr-0 lg:mr-60">
       <Navbar />
 
-      <!-- Card -->
       <div class="bg-white rounded-2xl shadow-lg p-6 mt-4">
-        <!-- Header -->
         <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
           <h2 class="text-xl font-bold text-gray-800">طلبات الادارة</h2>
         </div>
 
-        <!-- Search Table (Optional but matches style) -->
         <input
           v-model="searchTable"
           placeholder="بحث في الطلبات (اسم الموظف، نوع الطلب)..."
           class="input w-full mb-4 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none"
         />
 
-        <!-- Table -->
         <div class="overflow-x-auto rounded-lg border border-gray-200">
           <table class="min-w-full text-right divide-y divide-gray-200">
             <thead class="bg-navbar">
@@ -34,7 +28,7 @@
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
               <tr 
-                v-for="req in filteredRequests" 
+                v-for="req in paginatedRequests" 
                 :key="req.id + '-' + req.type" 
                 class="hover:bg-gray-50 transition"
               >
@@ -46,17 +40,12 @@
                   </span>
                 </td>
                 <td class="p-3 text-sm flex gap-4 justify-center">
-                  <!-- أيقونة عرض التفاصيل -->
                   <button @click="openDetails(req)" class="text-blue-600 hover:scale-110 transition" title="عرض التفاصيل">
                     <EyeIcon class="w-6 h-6" />
                   </button>
-
-                  <!-- أيقونة الموافقة -->
                   <button @click="takeDecision(req, true)" class="text-green-600 hover:scale-110 transition" title="موافقة">
                     <CheckCircleIcon class="w-6 h-6" />
                   </button>
-
-                  <!-- أيقونة الرفض -->
                   <button @click="takeDecision(req, false)" class="text-red-600 hover:scale-110 transition" title="رفض">
                     <XCircleIcon class="w-6 h-6" />
                   </button>
@@ -68,10 +57,31 @@
             </tbody>
           </table>
         </div>
+
+        <div v-if="filteredRequests.length > itemsPerPage" class="flex justify-between items-center mt-6 flex-wrap gap-4">
+          <button 
+            @click="currentPage--" 
+            :disabled="currentPage === 1"
+            class="px-4 py-2 bg-white border rounded-lg text-sm font-bold disabled:opacity-50 hover:bg-gray-50 transition shadow-sm"
+          >
+            السابق
+          </button>
+          
+          <span class="text-sm text-gray-600 font-bold">
+            الصفحة {{ currentPage }} من {{ totalPages }}
+          </span>
+
+          <button 
+            @click="currentPage++" 
+            :disabled="currentPage === totalPages"
+            class="px-4 py-2 bg-white border rounded-lg text-sm font-bold disabled:opacity-50 hover:bg-gray-50 transition shadow-sm"
+          >
+            التالي
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Details Modal (Modified to match Qualification style) -->
     <div v-if="selectedRequest" class="fixed inset-0 bg-black/50 flex justify-center items-center z-[60] p-4">
       <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl relative">
         <button @click="selectedRequest = null" class="absolute top-4 left-4 text-gray-400 hover:text-red-600 text-xl font-bold">
@@ -83,7 +93,6 @@
         </h3>
 
         <div class="space-y-4 text-sm text-gray-700">
-          <!-- إذن خروج -->
           <template v-if="selectedRequest.type === 'ExitPermit'">
             <div class="bg-gray-50 p-3 rounded-lg border">
               <p class="mb-2"><strong>نوع الإذن:</strong> {{ selectedRequest.permitType }}</p>
@@ -93,7 +102,6 @@
             </div>
           </template>
 
-          <!-- تعديل بيانات -->
           <template v-else-if="selectedRequest.type === 'DataUpdate'">
             <div class="bg-gray-50 p-3 rounded-lg border">
               <p class="mb-2"><strong>نوع التعديل:</strong> {{ selectedRequest.updateType }}</p>
@@ -102,7 +110,6 @@
             </div>
           </template>
 
-          <!-- صيانة -->
           <template v-else-if="selectedRequest.type === 'Maintenance'">
             <div class="bg-gray-50 p-3 rounded-lg border">
               <p class="mb-2"><strong>الجهاز:</strong> {{ selectedRequest.equipmentName }}</p>
@@ -113,7 +120,6 @@
             </div>
           </template>
 
-          <!-- شهادة راتب -->
           <template v-else-if="selectedRequest.type === 'SalaryCertificate'">
              <div class="bg-gray-50 p-3 rounded-lg border">
                <p><strong>الغرض:</strong> {{ selectedRequest.purpose }}</p>
@@ -129,13 +135,12 @@
       </div>
     </div>
 
-    <!-- Toast Notification -->
     <ToastPage v-if="showToast" :message="toastMessage" :type="toastType" />
   </div>
 </template>
 
 <script>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import Sidebar from "@/components/Sidebar.vue";
 import Navbar from "@/components/Navbar.vue";
 import ToastPage from "@/components/Toast.vue";
@@ -154,9 +159,12 @@ export default {
     const toastMessage = ref("");
     const toastType = ref("success");
 
-    // Axios Config
+    const currentPage = ref(1);
+    const itemsPerPage = ref(10);
+
     axios.defaults.baseURL = "http://localhost:5205";
     const baseURL = axios.defaults.baseURL;
+
     const token = localStorage.getItem("token");
     if (token) axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
@@ -170,6 +178,7 @@ export default {
     const fetchPendingRequests = async () => {
       try {
         const requests = [];
+
         const endpoints = [
           { url: "/api/ExitPermit/pending-for-manager", name: "إذن خروج", type: "ExitPermit" },
           { url: "/api/ExitPermit/hr-view", name: "إذن خروج", type: "ExitPermit" },
@@ -181,12 +190,23 @@ export default {
         for (const endpoint of endpoints) {
           try {
             const res = await axios.get(endpoint.url);
-            requests.push(...res.data.map(r => ({ ...r, typeName: endpoint.name, type: endpoint.type })));
+
+            requests.push(
+              ...res.data.map(r => ({
+                ...r,
+                typeName: endpoint.name,
+                type: endpoint.type
+              }))
+            );
+
           } catch (err) {
-            if (err.response?.status !== 403) console.error(`Error fetching ${endpoint.name}`, err);
+            if (err.response?.status !== 403) console.error(err);
           }
         }
-        displayedRequests.value = requests;
+
+        // 🔥 أهم تعديل: ترتيب من الأحدث للأقدم
+        displayedRequests.value = requests.sort((a, b) => b.id - a.id);
+
       } catch (err) {
         triggerToast("تعذر تحميل الطلبات", "error");
       }
@@ -194,50 +214,94 @@ export default {
 
     const filteredRequests = computed(() => {
       const s = searchTable.value.toLowerCase();
-      return displayedRequests.value.filter(r => 
+
+      return displayedRequests.value.filter(r =>
         (r.employee?.fullName || "").toLowerCase().includes(s) ||
         (r.typeName || "").toLowerCase().includes(s)
       );
     });
 
+    const totalPages = computed(() =>
+      Math.ceil(filteredRequests.value.length / itemsPerPage.value) || 1
+    );
+
+    const paginatedRequests = computed(() => {
+      const start = (currentPage.value - 1) * itemsPerPage.value;
+      return filteredRequests.value.slice(start, start + itemsPerPage.value);
+    });
+
+    watch(searchTable, () => {
+      currentPage.value = 1;
+    });
+
     const statusClass = (status) => {
-      const successStates = ["مقبول", "جاهزة", "تمت_الموافقة", "تمت-الموافقة", "تم_الإصلاح"];
-      if (successStates.includes(status)) return "text-green-600";
+      const success = ["مقبول", "جاهزة", "تمت_الموافقة", "تم_الإصلاح"];
+      if (success.includes(status)) return "text-green-600";
       if (status === "مرفوض") return "text-red-600";
       return "text-yellow-600";
     };
 
+    // 🔥 أهم تعديل: ما نحذفوش الطلب بعد القرار
     const takeDecision = async (req, approve) => {
       try {
         let url = "";
+
         switch (req.type) {
-          case "ExitPermit": url = `/api/ExitPermit/manager-decision/${req.id}?approve=${approve}`; break;
-          case "DataUpdate": url = `/api/DataUpdate/decision/${req.id}?approve=${approve}`; break;
-          case "SalaryCertificate": url = `/api/SalaryCertificate/decision/${req.id}?isReady=${approve}`; break;
-          case "Maintenance": url = `/api/Maintenance/decision/${req.id}?fixedStatus=${approve}`; break;
+          case "ExitPermit":
+            url = `/api/ExitPermit/manager-decision/${req.id}?approve=${approve}`;
+            break;
+
+          case "DataUpdate":
+            url = `/api/DataUpdate/decision/${req.id}?approve=${approve}`;
+            break;
+
+          case "SalaryCertificate":
+            url = `/api/SalaryCertificate/decision/${req.id}?isReady=${approve}`;
+            break;
+
+          case "Maintenance":
+            url = `/api/Maintenance/decision/${req.id}?fixedStatus=${approve}`;
+            break;
         }
 
         await axios.post(url);
+
+        // 🔥 بدل الحذف → نحدّث الحالة فقط
+        const target = displayedRequests.value.find(r => r.id === req.id && r.type === req.type);
+        if (target) {
+          target.status = approve ? "مقبول" : "مرفوض";
+        }
+
         triggerToast("تم تنفيذ القرار بنجاح");
-        displayedRequests.value = displayedRequests.value.filter(r => !(r.id === req.id && r.type === req.type));
+
       } catch (err) {
         triggerToast("فشل في تنفيذ القرار", "error");
       }
     };
 
-    const openDetails = (req) => { selectedRequest.value = req; };
+    const openDetails = (req) => {
+      selectedRequest.value = req;
+    };
 
     onMounted(fetchPendingRequests);
 
     return {
-      displayedRequests, filteredRequests, searchTable,
-      statusClass, takeDecision, showToast, toastMessage, toastType,
-      selectedRequest, openDetails, baseURL
+      displayedRequests,
+      filteredRequests,
+      searchTable,
+      statusClass,
+      takeDecision,
+      showToast,
+      toastMessage,
+      toastType,
+      selectedRequest,
+      openDetails,
+      baseURL,
+      currentPage,
+      totalPages,
+      paginatedRequests,
+      itemsPerPage
     };
   }
 };
 </script>
-
-<style scoped>
-.input { @apply bg-gray-50; }
-</style>
