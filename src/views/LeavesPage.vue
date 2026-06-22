@@ -12,7 +12,7 @@
           <div>
             <h2 class="text-xl font-bold text-gray-800">الإجازات</h2>
             <p class="text-sm text-gray-500 mt-1">
-              رصيد الإجازات:
+            رصيد الاجازات بعد الخصم :
               <span class="font-bold text-green-600">{{ balance }} يوم</span>
             </p>
           </div>
@@ -31,10 +31,11 @@
 
             <thead class="bg-navbar">
               <tr>
-                <th class="p-3">النوع</th>
-                <th class="p-3">من</th>
-                <th class="p-3">إلى</th>
-                <th class="p-3">الحالة</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">النوع</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">من</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">إلى</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">الحالة</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">المخزون بعد الخصم</th>
                 
               </tr>
             </thead>
@@ -51,6 +52,9 @@
                   </span>
                 </td>
 
+                <td class="p-3 font-bold text-gray-700">
+                  {{ l.balanceAfterDeduction ?? "-" }}
+                </td>
                 
               </tr>
 
@@ -91,6 +95,63 @@
 
       </div>
     </div>
+
+    <!-- Add Leave Modal -->
+    <div v-if="showAddModal" class="fixed inset-0 bg-black/50 flex justify-center items-center z-[60] p-4">
+      <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl relative">
+        <button @click="closeAddModal" class="absolute top-4 left-4 text-gray-400 hover:text-red-600 text-xl font-bold">
+          &times;
+        </button>
+        <h3 class="font-bold text-xl mb-4 text-gray-800 border-b pb-2">طلب إجازة</h3>
+
+        <div class="space-y-3">
+          <div>
+            <label class="block text-sm font-medium mb-1">نوع الإجازة</label>
+            <select v-model="form.leaveTypeId" class="input w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-primary">
+              <option :value="null">اختر...</option>
+              <option v-for="t in leaveTypes" :key="t.id" :value="t.id">
+                {{ t.اسم_الاجازة }}
+              </option>
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-sm font-medium mb-1">من</label>
+              <input v-model="form.fromDate" type="date" class="input w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-primary" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">إلى</label>
+              <input v-model="form.toDate" type="date" class="input w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-primary" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1">ملاحظات (اختياري)</label>
+            <textarea v-model="form.notes" rows="2" class="input w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-primary" />
+          </div>
+
+         <div v-if="requiresAttachment">
+  <label class="block text-sm font-medium mb-1">
+    المرفق مطلوب لهذا النوع من الإجازات
+  </label>
+
+  <input
+    type="file"
+    @change="onFileChange"
+    class="w-full text-xs text-gray-500 file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-primary file:text-white"
+  />
+</div>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-6">
+          <button @click="closeAddModal" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition">إلغاء</button>
+          <button @click="submitLeave" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-green-700 transition font-bold">إرسال</button>
+        </div>
+      </div>
+    </div>
+
+    <Toast v-if="toastMessage" :message="toastMessage" :type="toastType" />
   </div>
 </template>
 
@@ -98,14 +159,26 @@
 import Sidebar from "../components/Sidebar.vue";
 import Navbar from "../components/Navbar.vue";
 import api from "../services/api";
+import Toast from "../components/Toast.vue";
 
 export default {
-  components: { Sidebar, Navbar },
+  components: { Sidebar, Navbar, Toast },
 
   data() {
     return {
       previousLeaves: [],
       balance: 0,
+      leaveTypes: [],
+      showAddModal: false,
+      form: {
+        leaveTypeId: null,
+        fromDate: "",
+        toDate: "",
+        notes: "",
+        attachment: null,
+      },
+      toastMessage: "",
+      toastType: "success",
 
       currentPage: 1,
       pageSize: 5,
@@ -120,11 +193,21 @@ export default {
     paginatedLeaves() {
       const start = (this.currentPage - 1) * this.pageSize;
       return this.previousLeaves.slice(start, start + this.pageSize);
-    }
+    },
+    selectedLeaveType() {
+    return this.leaveTypes.find(
+      x => x.id === this.form.leaveTypeId
+    );
+  },
+
+  requiresAttachment() {
+    return this.selectedLeaveType?.تحتاج_نموذج === true;
+  }
   },
 
   async mounted() {
     await this.fetchPreviousLeaves();
+    await this.fetchLeaveTypes();
   },
 
   methods: {
@@ -135,10 +218,100 @@ export default {
     async fetchPreviousLeaves() {
       const res = await api.get("/leave-requests/my-requests");
 
-      this.previousLeaves = res.data.requests || [];
+      const raw = res.data.requests || [];
       this.balance = res.data.balance || 0;
 
+      // حساب "المخزون بعد الخصم" للطلبات المقبولة والمخصومة من الرصيد
+      // نشتغل من الأحدث للأقدم: الرصيد الحالي = بعد آخر خصم.
+      let running = this.balance;
+      const computed = raw.map((x) => ({
+        ...x,
+        balanceAfterDeduction: null,
+      }));
+
+      for (const item of computed) {
+        const isApproved = item.isFinalApproved === true || (item.status || "").includes("مقبولة");
+        if (isApproved && item.deductsBalance && Number.isFinite(item.totalDays)) {
+          item.balanceAfterDeduction = running;
+          running += item.totalDays;
+        }
+      }
+
+      this.previousLeaves = computed;
       this.currentPage = 1; // reset pagination
+    },
+
+    async fetchLeaveTypes() {
+      try {
+        const res = await api.get("/LeaveType");
+        this.leaveTypes = res.data || [];
+      } catch {
+        // ignore
+      }
+    },
+
+    showToast(msg, type = "success") {
+      this.toastMessage = msg;
+      this.toastType = type;
+      setTimeout(() => (this.toastMessage = ""), 3000);
+    },
+
+    openAddModal() {
+      this.form = { leaveTypeId: null, fromDate: "", toDate: "", notes: "", attachment: null };
+      this.showAddModal = true;
+    },
+
+    closeAddModal() {
+      this.showAddModal = false;
+    },
+
+    onFileChange(e) {
+      this.form.attachment = e.target.files?.[0] || null;
+    },
+
+    async submitLeave() {
+      const lt = this.leaveTypes.find((x) => x.id === this.form.leaveTypeId);
+      if (!this.form.leaveTypeId) return this.showToast("اختر نوع الإجازة", "error");
+      if (!this.form.fromDate || !this.form.toDate) return this.showToast("حدد المدة", "error");
+
+      const from = new Date(this.form.fromDate);
+      const to = new Date(this.form.toDate);
+      if (to < from) return this.showToast("التاريخ غير صحيح", "error");
+
+      // تحذير مبكر فقط (الحساب النهائي في الباكند)
+      const approxDays = Math.floor((to - from) / (24 * 60 * 60 * 1000)) + 1;
+      if (lt?.مخصومة_من_الرصيد && approxDays > this.balance) {
+        return this.showToast("طلب الإجازة أكبر من الرصيد المتبقي", "warning");
+      }
+if (this.requiresAttachment && !this.form.attachment) {
+  return this.showToast(
+    "يجب إرفاق النموذج لهذا النوع من الإجازات",
+    "error"
+  );
+}
+      try {
+        const data = new FormData();
+        data.append("LeaveTypeId", String(this.form.leaveTypeId));
+        data.append("FromDate", this.form.fromDate);
+        data.append("ToDate", this.form.toDate);
+        if (this.form.notes) data.append("Notes", this.form.notes);
+        if (this.form.attachment) data.append("Attachment", this.form.attachment);
+
+        await api.post("/leave-requests/create", data, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+
+        this.showToast("تم إرسال طلب الإجازة");
+        this.closeAddModal();
+        await this.fetchPreviousLeaves();
+      } catch (err) {
+        const msg = err?.response?.data || "فشل إرسال الطلب";
+        if (typeof msg === "string" && msg.includes("الرصيد غير كافي")) {
+          this.showToast("طلب الإجازة أكبر من الرصيد المتبقي", "error");
+        } else {
+          this.showToast(typeof msg === "string" ? msg : "فشل إرسال الطلب", "error");
+        }
+      }
     },
 
     // =========================
@@ -164,9 +337,7 @@ export default {
     // =========================
     // MODAL (لو تحتاجه لاحقاً)
     // =========================
-    openAddModal() {
-      console.log("open modal");
-    }
+    // openAddModal موجود فوق بالفعل
   }
 };
 </script>

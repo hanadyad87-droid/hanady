@@ -1,13 +1,17 @@
 <template>
   <div id="app">
+    <GlobalSpinner />
     <!-- هذا المكان للـ router -->
     <router-view></router-view>
   </div>
 </template>
 
 <script>
+import GlobalSpinner from "@/components/GlobalSpinner.vue";
+
 export default {
-  name: 'App'
+  name: 'App',
+  components: { GlobalSpinner }
 }
 </script>
 
@@ -15,6 +19,6 @@ export default {
 /* أسلوب عام للمشروع */
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
+  font-family: "Cairo", sans-serif;
 }
 </style>

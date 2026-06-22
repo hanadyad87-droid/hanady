@@ -156,10 +156,10 @@
 
 <script>
 import { ref, onMounted, computed } from "vue";
-import axios from "axios";
 import SidebarPage from "@/components/Sidebar.vue";
 import Navbar from "@/components/Navbar.vue";
 import ToastPage from "@/components/Toast.vue";
+import api from "@/services/api";
 import { EyeIcon, ChatBubbleLeftRightIcon } from "@heroicons/vue/24/outline";
 
 export default {
@@ -178,9 +178,6 @@ export default {
     const toastMessage = ref("");
     const toastType = ref("success");
 
-    axios.defaults.baseURL = "http://localhost:5205/api";
-    axios.defaults.headers.common["Authorization"] = `Bearer ${localStorage.getItem("token")}`;
-
     const triggerToast = (msg, type = "success") => {
       toastMessage.value = msg;
       toastType.value = type;
@@ -190,7 +187,7 @@ export default {
 
     const fetchTasks = async () => {
       try {
-        const res = await axios.get("/Task/my-tasks");
+        const res = await api.get("/Task/my-tasks");
         tasks.value = res.data.reverse().map(t => ({
           ...t,
           status: t.status === 'New' ? 'جديدة' : t.status === 'InProgress' ? 'قيد التنفيذ' : 'مكتملة',
@@ -213,7 +210,7 @@ export default {
     const updateStatus = async (task) => {
       try {
         const backendStatus = task.status === 'جديدة' ? 'New' : task.status === 'قيد التنفيذ' ? 'InProgress' : 'Completed';
-        await axios.put(`/Task/update-status/${task.id}?status=${backendStatus}`);
+        await api.put(`/Task/update-status/${task.id}?status=${backendStatus}`);
         triggerToast("تم تحديث الحالة بنجاح");
       } catch {
         triggerToast("فشل تحديث الحالة", "error");
@@ -231,7 +228,7 @@ export default {
       modalType.value = "comments";
       showModal.value = true;
       try {
-        const res = await axios.get(`/Task/${task.id}/comments`);
+        const res = await api.get(`/Task/${task.id}/comments`);
         comments.value = res.data;
       } catch {
         triggerToast("فشل تحميل التعليقات", "error");
@@ -244,10 +241,12 @@ export default {
         const data = new FormData();
         data.append("Comment", newComment.value);
         if (attachment.value) data.append("Attachment", attachment.value);
-        await axios.post(`/Task/${selectedTask.value.id}/comment`, data);
+        await api.post(`/Task/${selectedTask.value.id}/comment`, data, {
+          headers: { "Content-Type": "multipart/form-data" }
+        });
         newComment.value = "";
         attachment.value = null;
-        const res = await axios.get(`/Task/${selectedTask.value.id}/comments`);
+        const res = await api.get(`/Task/${selectedTask.value.id}/comments`);
         comments.value = res.data;
         triggerToast("تمت إضافة التعليق");
       } catch {

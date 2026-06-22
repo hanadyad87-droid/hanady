@@ -72,6 +72,8 @@ export default {
   }
 
   try {
+    localStorage.clear();
+
     const res = await api.post("/User/login", {
       username: this.username,
       password: this.password

@@ -210,20 +210,22 @@ export default {
       setTimeout(() => (showToast.value = false), 3000);
     };
 
-    const fetchData = async () => {
-      try {
-        const [edu, emp, qual] = await Promise.all([
-          api.get("/EmployeeEducation/all"),
-          api.get("/Employee/all"),
-          api.get("/EmployeeEducation/qualifications")
-        ]);
-        educations.value = edu.data;
-        employees.value = emp.data;
-        qualifications.value = qual.data;
-      } catch (e) {
-        toast("خطأ في تحميل البيانات", "error");
-      }
-    };
+   const fetchData = async () => {
+  try {
+    const [edu, emp, qual] = await Promise.all([
+      api.get("/EmployeeEducation/all"),
+      api.get("/Employee/all"),
+      api.get("/EmployeeEducation/qualifications")
+    ]);
+
+    educations.value = edu.data;
+    employees.value = emp.data.employees || [];
+    qualifications.value = qual.data;
+
+  } catch (e) {
+    toast("خطأ في تحميل البيانات", "error");
+  }
+};
 
     // 1. تصفية البيانات أولاً بناءً على محرك البحث
     const filteredEducations = computed(() => {

@@ -136,6 +136,10 @@ import Toast from "../components/Toast.vue";
 import { notificationStore } from "../stores/notificationStore";
 import { ensureNotificationHubConnected, stopNotificationHub } from "../services/notificationHub";
 
+let cachedProfile = null;
+let notificationsBootstrapped = false;
+let cachedToken = null;
+
 export default {
   name: "NavbarPage",
   components: {
@@ -223,6 +227,10 @@ export default {
         .post("/User/logout", {})
         .finally(async () => {
           await stopNotificationHub();
+          cachedProfile = null;
+          notificationsBootstrapped = false;
+          cachedToken = null;
+          notificationStore.setFromApi([]);
           localStorage.clear();
           this.$router.push("/");
         });
@@ -233,8 +241,15 @@ export default {
         const token = localStorage.getItem("token");
         if (!token) return;
 
+        if (cachedToken && cachedToken !== token) {
+          notificationStore.setFromApi([]);
+          notificationsBootstrapped = false;
+        }
+
         const res = await api.get("/Notifications");
         notificationStore.setFromApi(res.data || []);
+        notificationsBootstrapped = true;
+        cachedToken = token;
       } catch (err) {
         console.error("خطأ في جلب الإشعارات:", err);
       }
@@ -245,9 +260,17 @@ export default {
         const token = localStorage.getItem("token");
         if (!token) return;
 
+        if (cachedProfile && cachedToken === token) {
+          this.userName = cachedProfile.fullName || "الموظف";
+          this.userProfile = cachedProfile;
+          return;
+        }
+
         const res = await api.get("/Employee/my-profile");
         this.userName = res.data.fullName;
         this.userProfile = res.data;
+        cachedProfile = res.data;
+        cachedToken = token;
       } catch (err) {
         console.error("خطأ في جلب بيانات البروفايل:", err);
         this.userName = "الموظف";
@@ -270,11 +293,18 @@ export default {
   },
 
   async mounted() {
-    await this.loadUserProfile();
-    await this.loadNotifications();
-    await ensureNotificationHubConnected();
+    const token = localStorage.getItem("token");
+    if (cachedToken && token && cachedToken !== token) {
+      cachedProfile = null;
+      notificationsBootstrapped = false;
+      notificationStore.setFromApi([]);
+    }
 
-    this.pollTimerId = setInterval(this.loadNotifications, 120000);
+    await this.loadUserProfile();
+    if (!notificationsBootstrapped) {
+      await this.loadNotifications();
+    }
+    await ensureNotificationHubConnected();
     document.addEventListener("click", this.closeDropdownOnClickOutside);
   },
 

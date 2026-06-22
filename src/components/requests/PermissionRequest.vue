@@ -39,7 +39,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import api from "@/services/api";
 import Toast from '../Toast.vue';
 
 export default {
@@ -63,8 +63,9 @@ export default {
   methods: {
     async fetchRequests() {
       try {
-        const res = await axios.get("/api/ExitPermit/my-requests");
-        this.requests = res.data.map(r => ({
+        const res = await api.get("/ExitPermit/my-requests");
+        const list = res.data?.Data || res.data?.data || res.data || [];
+        this.requests = (list || []).map(r => ({
           id: r.id,
           date: r.permitDate,
           time: r.permitTime,
@@ -84,14 +85,22 @@ export default {
       }
 
       try {
-        const payload = {
-          permitType: this.leaveType,
-          permitDate: this.date,
-          permitTime: this.time,
-          reason: this.note
-        };
+        // الـ API يتوقع FromTime/ToTime. هنا نخليها ساعة واحدة افتراضياً.
+        const [h, m] = String(this.time).split(":").map(Number);
+        const fromTime = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+        const toTime = `${String((h + 1) % 24).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 
-        const res = await axios.post("/api/ExitPermit/create", payload);
+        const data = new FormData();
+        // ExitPermitController يحول PermitType من رقم/نص — نخليها نص
+        data.append("PermitType", this.leaveType);
+        data.append("PermitDate", this.date);
+        data.append("FromTime", fromTime);
+        data.append("ToTime", toTime);
+        data.append("Reason", this.note || "—");
+
+        const res = await api.post("/ExitPermit/create", data, {
+          headers: { "Content-Type": "multipart/form-data" }
+        });
 
         this.toastMessage = res.data?.Message || "تم إرسال الطلب بنجاح ✅";
         this.toastType = "success";

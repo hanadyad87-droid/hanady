@@ -36,9 +36,27 @@
                   </span>
                 </td>
                 <td class="p-3 text-sm text-center">
-                  <button @click="openDetails(req)" class="text-blue-600 hover:scale-110 transition inline-block">
-                    <EyeIcon class="w-5 h-5" />
+                  <div class="flex justify-center gap-2">
+                   <button @click="openDetails(req)">
+                    <EyeIcon class="w-5 h-5 text-blue-600" />
                   </button>
+
+                  <!-- ✅ مصادقة -->
+                  <button
+                    v-if="req.status === 'في_انتظار_المصادقة' && req.type !== 'ExitPermit'"
+                    @click="verifyRequest(req, true)"
+                  >
+                    <CheckCircleIcon class="w-5 h-5 text-green-600" />
+                  </button>
+
+                  <!-- ❌ رفض المصادقة -->
+                  <button
+                    v-if="req.status === 'في_انتظار_المصادقة' && req.type !== 'ExitPermit'"
+                    @click="verifyRequest(req, false)"
+                  >
+                    <XCircleIcon class="w-5 h-5 text-red-600" />
+                  </button>
+                  </div>
                 </td>
               </tr>
               <tr v-if="!paginatedRequests.length">
@@ -117,7 +135,21 @@
             </div>
             <div class="grid grid-cols-2 gap-2">
               <input v-model="form.permitDate" type="date" :class="['input w-full p-2 rounded-lg text-xs', errors.permitDate ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300']" @change="errors.permitDate = false" />
-              <input v-model="form.permitTime" type="time" :class="['input w-full p-2 rounded-lg text-xs', errors.permitTime ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300']" @change="errors.permitTime = false" />
+             <div class="grid grid-cols-2 gap-2">
+  <input 
+    v-model="form.fromTime" 
+    type="time"
+    :class="['input w-full p-2 rounded-lg text-xs', errors.fromTime ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300']"
+    @change="errors.fromTime = false"
+  />
+
+  <input 
+    v-model="form.toTime" 
+    type="time"
+    :class="['input w-full p-2 rounded-lg text-xs', errors.toTime ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300']"
+    @change="errors.toTime = false"
+  />
+</div>
             </div>
             <textarea v-model="form.reason" :class="['input w-full p-2 rounded-lg bg-white', errors.reason ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300']" placeholder="السبب... (إجباري)" @input="errors.reason = false"></textarea>
           </div>
@@ -179,187 +211,271 @@
 
 <script>
 import { ref, onMounted, computed } from "vue";
-import axios from "axios";
+import api from "@/services/api";
 import SidebarPage from "../components/Sidebar.vue";
 import Navbar from "../components/Navbar.vue";
 import Toast from "../components/Toast.vue";
-import { EyeIcon } from '@heroicons/vue/24/outline';
+import { EyeIcon, CheckCircleIcon, XCircleIcon } from "@heroicons/vue/24/outline";
 
 export default {
-  name: "EmployeeRequestsPage",
-  components: { SidebarPage, Navbar, EyeIcon, Toast },
-  setup() {
-    const showModal = ref(false);
-    const showDetailModal = ref(false);
-    const detailRequest = ref(null);
-    const selectedRequestType = ref("");
-    const displayedRequests = ref([]);
-    const toastMessage = ref('');
-    const toastType = ref('success');
+   name: "EmployeeRequestsPage",
+  components: {
+    SidebarPage,
+    Navbar,
+    Toast,
+    EyeIcon,
+    CheckCircleIcon,
+    XCircleIcon,
+  },
 
-    // Pagination State
+  setup() {
+    const displayedRequests = ref([]);
+    const toastMessage = ref("");
+    const toastType = ref("success");
+
     const currentPage = ref(1);
     const itemsPerPage = ref(10);
-
-    const totalPages = computed(() => Math.ceil(displayedRequests.value.length / itemsPerPage.value) || 1);
-    
+const showModal = ref(false);
+const selectedRequestType = ref("");
+const form = ref({});
+const errors = ref({});
     const paginatedRequests = computed(() => {
       const start = (currentPage.value - 1) * itemsPerPage.value;
-      const end = start + itemsPerPage.value;
-      return displayedRequests.value.slice(start, end);
+      return displayedRequests.value.slice(start, start + itemsPerPage.value);
     });
-
-    const changePage = (newPage) => {
-      if (newPage < 1 || newPage > totalPages.value) return;
-      currentPage.value = newPage;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    const errors = ref({
-      reason: false,
-      permitDate: false,
-      permitTime: false,
-      purpose: false,
-      problemDescription: false,
-      newValue: false
-    });
-
-    const form = ref({
-      updateType: "الاسم_الكامل",
-      newValue: "",
-      reason: "",
-      purpose: "",
-      permitType: "خروج_شخصي",
-      permitDate: "",
-      permitTime: "",
-      equipmentName: "",
-      problemDescription: "",
-      imageFile: null
-    });
-
-    const showToast = (msg, type = 'success') => {
+const totalPages = computed(() => {
+  return Math.ceil(displayedRequests.value.length / itemsPerPage.value);
+});
+    const showToast = (msg, type = "success") => {
       toastMessage.value = msg;
       toastType.value = type;
-      setTimeout(() => toastMessage.value = '', 3000);
+      setTimeout(() => (toastMessage.value = ""), 3000);
+    };
+const changePage = (newPage) => {
+  if (newPage < 1 || newPage > totalPages.value) return;
+  currentPage.value = newPage;
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth",
+  });
+};
+const submitRequest = async () => {
+  try {
+    if (selectedRequestType.value === "update") {
+      const formData = new FormData();
+
+      formData.append("updateType", form.value.updateType || "");
+      formData.append("newValue", form.value.newValue || "");
+      formData.append("reason", form.value.reason || "");
+
+     await api.post(
+  "/DataUpdate/submit",
+  formData,
+  {
+    headers: {
+      "Content-Type": "multipart/form-data"
+    }
+  }
+);
+    }
+
+    else if (selectedRequestType.value === "salaryCertificate") {
+      await api.post("/SalaryCertificate/submit", {
+        purpose: form.value.purpose || ""
+      });
+    }
+
+    else if (selectedRequestType.value === "permission") {
+      const formData = new FormData();
+
+      formData.append("permitType", form.value.permitType || "");
+      formData.append("permitDate", form.value.permitDate || "");
+      formData.append("fromTime", form.value.fromTime || "");
+      formData.append("toTime", form.value.toTime || "");
+      formData.append("reason", form.value.reason || "");
+
+    await api.post(
+  "/ExitPermit/create",
+  formData,
+  {
+    headers: {
+      "Content-Type": "multipart/form-data"
+    }
+  }
+);
+    }
+
+    else if (selectedRequestType.value === "maintenance") {
+      const formData = new FormData();
+
+      formData.append("equipmentName", form.value.equipmentName || "");
+      formData.append("problemDescription", form.value.problemDescription || "");
+
+      if (form.value.imageFile) {
+        formData.append("imageFile", form.value.imageFile);
+      }
+
+      await api.post(
+  "/Maintenance/submit",
+  formData,
+  {
+    headers: {
+      "Content-Type": "multipart/form-data"
+    }
+  }
+);
+    }
+
+    showToast("تم إرسال الطلب بنجاح");
+
+    showModal.value = false;
+
+    selectedRequestType.value = "";
+    form.value = {};
+
+    await fetchAllRequests();
+
+  } catch (err) {
+  console.log(err);
+  console.log(err.response?.data);
+  alert(JSON.stringify(err.response?.data));
+}
+};
+    // ✅ جلب البيانات مع type مهم جداً
+    const fetchAllRequests = async () => {
+  try {
+    const results = await Promise.allSettled([
+      api.get("/DataUpdate/my-requests"),
+      api.get("/SalaryCertificate/my-requests"),
+      api.get("/ExitPermit/my-requests"),
+      api.get("/Maintenance/my-requests"),
+    ]);
+
+    // ✅ دالة توحد شكل البيانات
+    const extract = (res) => {
+      if (!res || res.status !== "fulfilled") return [];
+      const data = res.value?.data;
+
+      if (Array.isArray(data)) return data;
+      if (Array.isArray(data?.data)) return data.data;
+      if (Array.isArray(data?.Data)) return data.Data; // ExitPermit pagination response
+      if (Array.isArray(data?.requests)) return data.requests; // safety (leave-like shape)
+
+      return [];
     };
 
-    const resetForm = () => {
-      form.value = {
-        updateType: "الاسم_الكامل", newValue: "", reason: "", purpose: "",
-        permitType: "خروج_شخصي", permitDate: "", permitTime: "",
-        equipmentName: "", problemDescription: "", imageFile: null
-      };
-      Object.keys(errors.value).forEach(k => errors.value[k] = false);
-    };
+    const updates = extract(results[0]);
+    const salaries = extract(results[1]);
+    const permits = extract(results[2]);
+    const maintenance = extract(results[3]);
 
-    const openCreateModal = () => {
-      selectedRequestType.value = "";
-      resetForm();
-      showModal.value = true;
+    displayedRequests.value = [
+      ...updates.map(r => ({
+        ...r,
+        typeName: "تعديل بيانات",
+        type: "DataUpdate",
+      })),
+
+      ...salaries.map(r => ({
+        ...r,
+        typeName: "شهادة راتب",
+        type: "SalaryCertificate",
+      })),
+
+      ...permits.map(r => ({
+        ...r,
+        typeName: "إذن خروج",
+        type: "ExitPermit",
+      })),
+
+      ...maintenance.map(r => ({
+        ...r,
+        typeName: "طلب صيانة",
+        type: "Maintenance",
+      })),
+    ].sort((a, b) => (b.id || 0) - (a.id || 0));
+
+  } catch (err) {
+    console.log(err);
+    showToast("خطأ في تحميل البيانات", "error");
+  }
+};
+
+    // ✅ أهم تعديل هنا
+    const verifyRequest = async (req, isVerified) => {
+      try {
+        let url = "";
+
+        switch (req.type) {
+          case "DataUpdate":
+            url = `/DataUpdate/verify/${req.id}?isVerified=${isVerified}`;
+            break;
+
+          case "SalaryCertificate":
+            url = `/SalaryCertificate/verify/${req.id}?isVerified=${isVerified}`;
+            break;
+
+          case "Maintenance":
+            url = `/Maintenance/verify/${req.id}?isVerified=${isVerified}`;
+            break;
+
+          default:
+            return;
+        }
+
+        await api.post(url);
+
+        req.status = isVerified
+          ? "تمت_العملية"
+          : "قيد_التنفيذ";
+
+        showToast("تمت العملية بنجاح");
+      } catch (err) {
+        showToast("فشل في المصادقة", "error");
+      }
     };
 
     const statusBadgeClass = (status) => {
-      const success = ['مقبول', 'جاهزة', 'تمت_الموافقة', 'تم_الإصلاح'];
-      if (success.includes(status)) return 'bg-green-100 text-green-700';
-      if (status === 'مرفوض') return 'bg-red-100 text-red-700';
-      return 'bg-yellow-100 text-yellow-700';
+      if (status === "تمت_العملية") return "text-green-600";
+      if (status === "مرفوض") return "text-red-600";
+      if (status === "في_انتظار_المصادقة") return "text-blue-600";
+      return "text-gray-600";
     };
+const onFileChange = (e) => {
+  form.value.imageFile = e.target.files[0];
+};
+    const formatDate = (d) => (d ? d.split("T")[0] : "---");
 
-    const formatDate = (d) => d ? d.split("T")[0] : "---";
+    const openDetails = () => {};
 
-    const fetchAllRequests = async () => {
-      try {
-        axios.defaults.baseURL = "http://localhost:5205/api";
-        axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem('token')}`;
-
-        const [updates, salaries, permits, maintenance] = await Promise.all([
-          axios.get("/DataUpdate/my-requests"),
-          axios.get("/SalaryCertificate/my-requests"),
-          axios.get("/ExitPermit/my-requests"),
-          axios.get("/Maintenance/my-requests")
-        ]);
-
-        displayedRequests.value = [
-          ...updates.data.map(r => ({ ...r, typeName: "تعديل بيانات" })),
-          ...salaries.data.map(r => ({ ...r, typeName: "شهادة راتب" })),
-          ...permits.data.map(r => ({ ...r, typeName: "إذن خروج" })),
-          ...maintenance.data.map(r => ({ ...r, typeName: "طلب صيانة" }))
-        ].sort((a, b) => (b.id || 0) - (a.id || 0));
-
-        currentPage.value = 1;
-      } catch (err) {
-        showToast('تعذر تحميل البيانات', 'error');
-      }
-    };
-
-    const submitRequest = async () => {
-      if (!selectedRequestType.value) return showToast('اختر نوع الطلب', 'error');
-      try {
-        let url = "";
-        let payload = null;
-        let isFormData = true;
-
-        if (selectedRequestType.value === 'salaryCertificate') {
-          if (!form.value.purpose?.trim()) { errors.value.purpose = true; return showToast('يرجى تحديد الجهة الموجه إليها', 'error'); }
-          url = "/SalaryCertificate/submit";
-          payload = { purpose: form.value.purpose };
-          isFormData = false;
-        } else if (selectedRequestType.value === 'update') {
-          if (!form.value.newValue?.trim()) errors.value.newValue = true;
-          if (!form.value.reason?.trim()) errors.value.reason = true;
-          if (errors.value.reason || errors.value.newValue) return showToast('اكمل البيانات المطلوبة', 'error');
-          url = "/DataUpdate/submit";
-          payload = new FormData();
-          payload.append("UpdateType", form.value.updateType);
-          payload.append("NewValue", form.value.newValue);
-          payload.append("Reason", form.value.reason);
-        } else if (selectedRequestType.value === 'permission') {
-          if (!form.value.reason?.trim()) errors.value.reason = true;
-          if (!form.value.permitDate) errors.value.permitDate = true;
-          if (!form.value.permitTime) errors.value.permitTime = true;
-          if (errors.value.reason || errors.value.permitDate || errors.value.permitTime) return showToast('اكمل البيانات المطلوبة', 'error');
-          url = "/ExitPermit/create";
-          payload = new FormData();
-          payload.append("PermitType", form.value.permitType);
-          payload.append("PermitDate", form.value.permitDate);
-          payload.append("PermitTime", form.value.permitTime);
-          payload.append("Reason", form.value.reason);
-        } else if (selectedRequestType.value === 'maintenance') {
-          if (!form.value.problemDescription?.trim()) { errors.value.problemDescription = true; return showToast('يرجى كتابة وصف للمشكلة', 'error'); }
-          url = "/Maintenance/submit";
-          payload = new FormData();
-          payload.append("EquipmentName", form.value.equipmentName);
-          payload.append("ProblemDescription", form.value.problemDescription);
-          if (form.value.imageFile) payload.append("ImageFile", form.value.imageFile);
-        }
-
-        const config = isFormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : {};
-        await axios.post(url, payload, config);
-        showToast('تم إرسال الطلب بنجاح');
-        showModal.value = false;
-        fetchAllRequests();
-        resetForm();
-      } catch (err) {
-        showToast(err.response?.data?.message || 'فشل في إرسال الطلب', 'error');
-      }
-    };
-
-    const openDetails = (req) => {
-      detailRequest.value = req;
-      showDetailModal.value = true;
-    };
-
-    const onFileChange = (e) => form.value.imageFile = e.target.files[0];
+  const openCreateModal = () => {
+  showModal.value = true;
+};
 
     onMounted(fetchAllRequests);
 
-    return {
-      showModal, showDetailModal, detailRequest, selectedRequestType, displayedRequests, 
-      form, submitRequest, onFileChange, openDetails, formatDate, statusBadgeClass,
-      toastMessage, toastType, errors, openCreateModal,
-      currentPage, itemsPerPage, totalPages, paginatedRequests, changePage
-    };
-  }
+   return {
+  paginatedRequests,
+  verifyRequest,
+  formatDate,
+  statusBadgeClass,
+  openDetails,
+  openCreateModal,
+  toastMessage,
+  toastType,
+  showModal,
+  selectedRequestType,
+  form,
+  errors,
+  currentPage,
+  totalPages,
+  changePage,
+
+  submitRequest,
+  onFileChange,
+};
+  },
 };
 </script>
 

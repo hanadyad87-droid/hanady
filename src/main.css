@@ -64,6 +64,12 @@ body {
   .app-page-title {
     @apply text-lg sm:text-xl font-bold text-slate-800;
   }
+  .app-pagination-btn {
+    @apply px-4 py-2 border border-slate-300 rounded-xl text-sm font-medium transition hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .app-pagination-text {
+    @apply text-sm font-medium text-slate-600;
+  }
 }
 /* يمكن وضعه في App.vue أو ملف CSS عام */
 .highlight {

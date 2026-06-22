@@ -85,6 +85,11 @@ export default {
           notificationStore.markReadLocal(notification.id);
         }
 
+        if (notification.route) {
+          this.$router.push(notification.route);
+          return;
+        }
+
         const text = `${notification.title} ${notification.message}`;
 
         if (text.includes("مهمتك") || text.includes("تكليف")) {
@@ -109,6 +114,10 @@ export default {
           }
           this.$router.push("/leaves");
           return;
+        }
+
+        if (text.includes("إعلان")) {
+          this.$router.push({ path: "/announcements" });
         }
       } catch (err) {
         console.error("خطأ أثناء التفاعل مع الإشعار", err);

@@ -90,7 +90,7 @@
       </div>
     </div>
 
-    <div v-if="showModal" class="fixed inset-0 bg-black/50 flex justify-center items-center z-[60] p-4">
+    <div v-if="showModal" class="fixed inset-0 bg-black/50 flex justify-center items-center z-[60] p-4 backdrop-blur-sm">
       <div class="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl">
         <div class="flex justify-between items-center mb-4">
           <h3 class="font-bold text-xl text-gray-800">إرسال شكوى جديدة</h3>
@@ -128,7 +128,7 @@
           <div>
             <label class="block text-sm font-medium mb-1">إرفاق مستند</label>
             <div class="flex items-center justify-center w-full">
-              <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition">
+              <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-100 transition">
                 <div class="flex flex-col items-center justify-center pt-5 pb-6">
                   <CloudArrowUpIcon class="w-8 h-8 text-gray-400 mb-2" />
                   <p class="text-xs text-gray-500">انقر لرفع ملف</p>
@@ -149,7 +149,62 @@
       </div>
     </div>
 
-    <div v-if="confirmDeleteId !== null" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
+    <div v-if="showDetailModal" class="fixed inset-0 bg-black/50 flex justify-center items-center z-[60] p-4 backdrop-blur-sm">
+      <div class="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl space-y-4">
+        <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+          <h3 class="font-bold text-xl text-gray-800 flex items-center gap-2">
+            <EyeIcon class="w-6 h-6 text-blue-600" />
+            تفاصيل الشكوى
+          </h3>
+          <button @click="showDetailModal = false" class="text-gray-400 hover:text-gray-600">
+            <XMarkIcon class="w-6 h-6" />
+          </button>
+        </div>
+
+        <div v-if="selectedComplaint" class="space-y-4 text-sm text-gray-700">
+          <div>
+            <label class="block text-xs font-bold text-gray-400 mb-1">محتوى الشكوى:</label>
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 whitespace-pre-line text-gray-800 leading-relaxed max-h-[200px] overflow-y-auto">
+              {{ selectedComplaint.content }}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4 border-t border-b border-gray-50 py-3">
+            <div>
+              <span class="font-bold text-gray-500">القسم المستهدف:</span>
+              <span class="block text-gray-800 font-medium mt-0.5">{{ selectedComplaint.departmentName || "كل الأقسام (عام)" }}</span>
+            </div>
+            <div>
+              <span class="font-bold text-gray-500">تاريخ الإرسال:</span>
+              <span class="block text-gray-800 font-mono mt-0.5">{{ formatDate(selectedComplaint.createdAt) }}</span>
+            </div>
+          </div>
+
+          <div class="flex justify-between items-center">
+            <div>
+              <span class="font-bold text-gray-500">حالة الشكوى:</span>
+              <span :class="['status-badge block mt-1', statusClass(selectedComplaint.status)]">
+                {{ selectedComplaint.status }}
+              </span>
+            </div>
+            <div v-if="selectedComplaint.attachmentUrl">
+              <span class="font-bold text-gray-500 block mb-1">المرفقات:</span>
+              <a :href="selectedComplaint.attachmentUrl" target="_blank" class="inline-flex items-center gap-1 text-blue-600 hover:underline font-semibold">
+                📎 عرض المستند المرفق
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end pt-4 border-t border-gray-100">
+          <button @click="showDetailModal = false" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-6 py-2 rounded-xl font-bold transition">
+            إغلاق
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="confirmDeleteId !== null" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] backdrop-blur-sm">
       <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm text-center">
         <div class="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
           <ExclamationTriangleIcon class="w-10 h-10 text-red-600" />
@@ -174,7 +229,6 @@ import Navbar from "@/components/Navbar.vue";
 import ToastPage from "@/components/Toast.vue";
 import api from "@/services/api";
 
-// استيراد الأيقونات من Heroicons
 import { 
   PlusIcon, 
   MagnifyingGlassIcon, 
@@ -198,7 +252,6 @@ export default {
     CloudArrowUpIcon, PaperAirplaneIcon, ShieldCheckIcon,
     ExclamationTriangleIcon
   },
-
   setup() {
     const complaints = ref([]);
     const departments = ref([]);

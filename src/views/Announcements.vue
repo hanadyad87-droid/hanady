@@ -108,7 +108,108 @@
         </div>
       </div>
     </div>
+<!-- Modal Add/Edit -->
+<div
+  v-if="showModal"
+  class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+>
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6">
+    <h3 class="text-xl font-bold mb-6">
+      {{ isEdit ? "تعديل الإعلان" : "إضافة إعلان جديد" }}
+    </h3>
 
+    <div class="space-y-4">
+
+      <div>
+        <label class="block mb-1 text-sm font-medium">
+          عنوان الإعلان
+        </label>
+        <input
+          v-model="form.title"
+          type="text"
+          class="w-full border rounded-lg p-3"
+        />
+      </div>
+
+      <div>
+        <label class="block mb-1 text-sm font-medium">
+          محتوى الإعلان
+        </label>
+        <textarea
+          v-model="form.message"
+          rows="4"
+          class="w-full border rounded-lg p-3"
+        ></textarea>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <input
+          type="checkbox"
+          v-model="form.targetAll"
+        />
+        <label>إرسال لجميع الموظفين</label>
+      </div>
+
+      <div v-if="!form.targetAll">
+        <label class="block mb-1 text-sm font-medium">
+          القسم
+        </label>
+
+        <select
+          v-model="form.targetDepartmentId"
+          class="w-full border rounded-lg p-3"
+        >
+          <option :value="null">اختر القسم</option>
+
+          <option
+            v-for="dept in departments"
+            :key="dept.id"
+            :value="dept.id"
+          >
+            {{ dept.name }}
+          </option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block mb-1 text-sm font-medium">
+          تاريخ انتهاء الإعلان
+        </label>
+
+        <input
+          type="datetime-local"
+          v-model="form.expiryDate"
+          class="w-full border rounded-lg p-3"
+        />
+      </div>
+
+      <div class="flex items-center gap-2">
+        <input
+          type="checkbox"
+          v-model="form.active"
+        />
+        <label>نشط</label>
+      </div>
+
+    </div>
+
+    <div class="flex justify-end gap-3 mt-6">
+      <button
+        @click="closeModal"
+        class="px-5 py-2 rounded-lg bg-gray-200"
+      >
+        إلغاء
+      </button>
+
+      <button
+        @click="saveAnnouncement"
+        class="px-5 py-2 rounded-lg bg-primary text-white"
+      >
+        {{ isEdit ? "تحديث" : "حفظ" }}
+      </button>
+    </div>
+  </div>
+</div>
     <ToastPage v-if="showToast" :message="toastMessage" :type="toastType" />
   </div>
 </template>
@@ -136,15 +237,15 @@ export default {
     const currentPage = ref(1);
     const pageSize = 7; // عدد العناصر في كل صفحة
 
-    const form = ref({
-      id: null,
-      title: "",
-      message: "",
-      targetAll: true,
-      targetDepartmentId: null,
-      active: true,
-      createdAt: null
-    });
+   const form = ref({
+  id: null,
+  title: "",
+  message: "",
+  targetAll: true,
+  targetDepartmentId: null,
+  expiryDate: "",
+  active: true
+});
 
     const showToast = ref(false);
     const toastMessage = ref("");
@@ -219,14 +320,16 @@ export default {
         return toast("يرجى كتابة العنوان والمحتوى", "error");
       }
       try {
-        const payload = {
-          title: form.value.title,
-          message: form.value.message,
-          targetAll: form.value.targetAll,
-          targetDepartmentId: form.value.targetAll ? null : form.value.targetDepartmentId,
-          active: form.value.active,
-          createdAt: form.value.createdAt || new Date().toISOString()
-        };
+       const payload = {
+  title: form.value.title,
+  message: form.value.message,
+  targetAll: form.value.targetAll,
+ targetDepartmentId: form.value.targetAll
+  ? null
+  : Number(form.value.targetDepartmentId),
+  expiryDate: form.value.expiryDate,
+  active: form.value.active
+};
 
         if (isEdit.value) {
           await api.put(`/Announcements/${form.value.id}`, payload);

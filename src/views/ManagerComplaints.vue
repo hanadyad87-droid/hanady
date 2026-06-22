@@ -36,7 +36,12 @@
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-for="c in filteredComplaints" :key="c.id" class="hover:bg-gray-50 transition">
+              <tr
+                v-for="c in filteredComplaints"
+                :key="c.id"
+                class="hover:bg-gray-50 transition"
+                :class="{ highlight: Number(highlightedComplaintId) === Number(c.id) }"
+              >
                 <td class="p-3 text-sm font-medium">{{ c.employeeName }}</td>
                 <td class="p-3 text-sm text-gray-600">{{ c.departmentName }}</td>
                 <td class="p-3 text-sm truncate max-w-[200px]" :title="c.content">{{ c.content }}</td>
@@ -147,7 +152,8 @@ import { ref, onMounted, computed } from "vue";
 import SidebarPage from "@/components/Sidebar.vue";
 import Navbar from "@/components/Navbar.vue";
 import ToastPage from "@/components/Toast.vue";
-import axios from "axios";
+import api from "@/services/api";
+import { API_ORIGIN } from "@/config";
 import { 
   PencilSquareIcon, 
   EyeIcon, 
@@ -166,6 +172,7 @@ export default {
     const showDetailModal = ref(false);
     const selectedComplaint = ref(null);
     const selectedUpdate = ref(null);
+    const highlightedComplaintId = ref(null);
     
     const updateForm = ref({
       status: "0",
@@ -185,10 +192,10 @@ export default {
 
     const fetchComplaints = async () => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL || "http://localhost:5205"}/api/complaints/all`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-        });
+        const res = await api.get("/complaints/all");
         complaints.value = res.data;
+        const params = new URLSearchParams(window.location.search);
+        highlightedComplaintId.value = params.get("complaintId");
       } catch (err) {
         toast("حدث خطأ في جلب البيانات", "error");
       }
@@ -210,7 +217,7 @@ export default {
 
     const attachmentUrl = (path) => {
       if (!path) return "#";
-      return `${import.meta.env.VITE_API_URL || "http://localhost:5205"}${path}`;
+      return `${API_ORIGIN}${path}`;
     };
 
     const statusText = (status) => {
@@ -261,14 +268,10 @@ export default {
 
     const saveStatus = async () => {
       try {
-        await axios.post(
-          `${import.meta.env.VITE_API_URL || "http://localhost:5205"}/api/complaints/${selectedUpdate.value.id}/manager-decision`,
-          { 
-            status: parseInt(updateForm.value.status), 
-            notes: updateForm.value.notes 
-          },
-          { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
-        );
+        await api.post(`/complaints/${selectedUpdate.value.id}/manager-decision`, {
+          status: parseInt(updateForm.value.status, 10),
+          notes: updateForm.value.notes,
+        });
 
         toast("تم تحديث حالة الشكوى بنجاح");
         closeUpdateModal();
@@ -282,6 +285,7 @@ export default {
 
     return {
       complaints, searchTable, filteredComplaints,
+      highlightedComplaintId,
       showDetailModal, selectedComplaint, selectedUpdate,
       updateForm, showToast, toastMessage, toastType,
       formatDate, attachmentUrl, statusText, statusClass,

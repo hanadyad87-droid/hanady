@@ -94,8 +94,8 @@
       </div>
     </div>
 
-    <div v-if="showUploadModal" class="fixed inset-0 bg-black/50 flex justify-center items-center z-[60] p-4">
-      <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+    <div v-if="showUploadModal"  class="fixed inset-0 bg-black/50 flex justify-center items-center z-[60] p-4 backdrop-blur-sm">
+      <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl relative border-t-8 border-navbar">
         <h3 class="font-bold text-xl mb-6 text-gray-800 border-b pb-2 text-right text-primary">رفع نموذج جديد</h3>
         
         <div class="space-y-4">

@@ -1,110 +1,110 @@
 <template>
-  <div class="flex min-h-screen bg-white font-cairo" dir="rtl">
+  <div class="flex min-h-screen bg-gray-100 font-cairo" dir="rtl">
 
-    <!-- Sidebar -->
     <SidebarPage />
 
-    <!-- المحتوى -->
     <div class="flex-1 w-full min-w-0 p-4 sm:p-6 mr-0 lg:mr-60">
 
       <Navbar/>
 
-      <div class="card p-6 bg-white rounded-xl shadow-lg mt-4">
+      <div class="bg-white rounded-2xl shadow-lg p-6 mt-4">
 
-        <h3 class="text-xl font-bold text-bg-primary mb-4 text-right">
-          التكليفات الخاصة بي
-        </h3>
-
-        <!-- زر إنشاء تكليف -->
-        <div class="flex justify-end mb-4">
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+          <div>
+            <h2 class="text-xl font-bold text-gray-800">التكليفات الخاصة بي</h2>
+            <p class="text-sm text-gray-500 mt-1">متابعة وإدارة المهام والتكليفات المسندة للموظفين</p>
+          </div>
           <button
             @click="showAssignModal=true"
-            class="bg-primary hover:bg-green-700 text-white px-4 py-2 rounded-xl font-semibold shadow-md">
+            class="bg-primary hover:bg-green-700 text-white px-6 py-2.5 rounded-xl font-bold shadow transition-all flex items-center gap-2">
             تعيين تكليف جديد
           </button>
         </div>
 
-        <!-- جدول التكليفات -->
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
           <table class="min-w-full divide-y divide-gray-200 text-right">
             <thead class="bg-navbar">
               <tr>
-                <th class="px-4 py-2 text-sm">الموظف</th>
-                <th class="px-4 py-2 text-sm">المهمة</th>
-                <th class="px-4 py-2 text-sm">البداية</th>
-                <th class="px-4 py-2 text-sm">النهاية</th>
-                <th class="px-4 py-2 text-sm">الحالة</th>
-                <th class="px-4 py-2 text-sm">قرار المدير</th>
-                <th class="px-4 py-2 text-sm">الإجراءات</th>
+                <th class="p-4 text-sm font-bold text-gray-700">الموظف</th>
+                <th class="p-4 text-sm font-bold text-gray-700">المهمة</th>
+                <th class="p-4 text-sm font-bold text-gray-700 text-center">البداية</th>
+                <th class="p-4 text-sm font-bold text-gray-700 text-center">النهاية</th>
+                <th class="p-4 text-sm font-bold text-gray-700 text-center">الحالة</th>
+                <th class="p-4 text-sm font-bold text-gray-700 text-center">قرار المدير</th>
+                <th class="p-4 text-sm font-bold text-gray-700 text-center">الإجراءات</th>
               </tr>
             </thead>
 
-            <tbody class="divide-y divide-gray-200">
-              <tr v-for="task in tasks" :key="task.id" class="hover:bg-gray-50">
-                <td class="px-4 py-2">{{task.employee}}</td>
-                <td class="px-4 py-2">{{task.title}}</td>
-              <td class="px-4 py-2">{{ formatDate(task.startDate) }}</td>
-<td class="px-4 py-2">{{ formatDate(task.endDate) }}</td>
+            <tbody class="bg-white divide-y divide-gray-100">
+              <tr v-for="task in tasks" :key="task.id" class="hover:bg-gray-50 transition-colors text-sm">
+                <td class="p-4 font-semibold text-gray-800">{{task.employee}}</td>
+                <td class="p-4 text-gray-600">{{task.title}}</td>
+                <td class="p-4 text-center">
+                  <span class="bg-green-50 text-green-700 px-2 py-1 rounded border border-green-100 font-mono text-xs">
+                    {{ formatDate(task.startDate) }}
+                  </span>
+                </td>
+                <td class="p-4 text-center">
+                  <span class="bg-red-50 text-red-700 px-2 py-1 rounded border border-red-100 font-mono text-xs">
+                    {{ formatDate(task.endDate) }}
+                  </span>
+                </td>
 
-               <td class="px-4 py-2"
-    :class="{
-      'text-red-600': task.status === 'Rejected' || task.status === 'Cancelled',
-      'text-orange-500': task.status === 'Pending' || task.status === 'InProgress',
-      'text-green-600': task.status === 'Completed' || task.status === 'Approved'
-    }">
-  {{ statusArabic(task.status) }}
-   
-</td>
-<td class="px-4 py-2"
-    :class="{
-      'text-green-600': task.managerDecision === 'Approved',
-      'text-red-600': task.managerDecision === 'Rejected',
-      'text-gray-500': task.managerDecision === 'Pending'
-    }">
+                <td class="p-4 text-center font-medium"
+                    :class="{
+                      'text-red-600': task.status === 'Rejected' || task.status === 'Cancelled',
+                      'text-orange-500': task.status === 'Pending' || task.status === 'InProgress',
+                      'text-green-600': task.status === 'Completed' || task.status === 'Approved'
+                    }">
+                  {{ statusArabic(task.status) }}
+                </td>
 
-  {{
-    task.managerDecision === 'Approved'
-      ? 'موافق'
-      : task.managerDecision === 'Rejected'
-      ? 'مرفوض'
-      : task.managerDecision === 'Pending'
-      ? 'لم يقرر'
-      : 'لم يقرر'
-  }}
+                <td class="p-4 text-center font-medium"
+                    :class="{
+                      'text-green-600': task.managerDecision === 'Approved',
+                      'text-red-600': task.managerDecision === 'Rejected',
+                      'text-gray-500': task.managerDecision === 'Pending'
+                    }">
+                  {{
+                    task.managerDecision === 'Approved'
+                      ? 'موافق'
+                      : task.managerDecision === 'Rejected'
+                      ? 'مرفوض'
+                      : 'لم يقرر'
+                  }}
+                </td>
 
-</td>
+                <td class="p-4 text-center">
+                  <div class="flex items-center justify-center gap-1">
+                    <button
+                      @click="openDetails(task)"
+                      class="p-1.5 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-all"
+                      title="التفاصيل">
+                      <EyeIcon class="w-5 h-5"/>
+                    </button>
 
-              <td class="px-4 py-2 flex gap-2 items-center">
+                    <button
+                      @click="openComments(task)"
+                      class="p-1.5 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all"
+                      title="التعليقات">
+                      <ChatBubbleLeftRightIcon class="w-5 h-5"/>
+                    </button>
 
-<!-- عرض التفاصيل -->
-<button
-  @click="openDetails(task)"
-  class="text-gray-600 hover:text-gray-900">
-  <EyeIcon class="w-6 h-6"/>
-</button>
+                    <button
+                      @click="managerDecision('Approved',task)"
+                      class="p-1.5 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-lg transition-all"
+                      title="موافق">
+                      <CheckCircleIcon class="w-5 h-5"/>
+                    </button>
 
-<!-- التعليقات -->
-<button
-  @click="openComments(task)"
-  class="text-gray-600 hover:text-gray-900">
-  <ChatBubbleLeftRightIcon class="w-6 h-6"/>
-</button>
-
-<!-- قبول -->
-<button
-  @click="managerDecision('Approved',task)"
-  class="text-green-600 hover:text-green-800">
-  <CheckCircleIcon class="w-6 h-6"/>
-</button>
-
-<!-- رفض -->
-<button
-  @click="managerDecision('Rejected',task)"
-  class="text-red-600 hover:text-red-800">
-  <XCircleIcon class="w-6 h-6"/>
-</button>
-
-</td>
+                    <button
+                      @click="managerDecision('Rejected',task)"
+                      class="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-all"
+                      title="مرفوض">
+                      <XCircleIcon class="w-5 h-5"/>
+                    </button>
+                  </div>
+                </td>
               </tr>
             </tbody>
 
@@ -115,157 +115,160 @@
 
     </div>
 
-    <!-- ================= Modal إنشاء تكليف ================= -->
-    <!-- ================= Modal إنشاء تكليف ================= -->
-<div v-if="showAssignModal"
-     class="fixed inset-0 bg-black/40 flex items-start justify-center z-50 p-2 pt-6 overflow-y-auto">
+    <div v-if="showAssignModal"
+         class="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4 backdrop-blur-sm">
 
-  <div class="bg-white p-4 rounded-lg w-full max-w-lg shadow-lg space-y-3 
-              max-h-[85vh] overflow-y-auto">
+      <div class="bg-white p-6 rounded-2xl w-full max-w-md shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto animate-fade-in">
 
-    <h2 class="text-base font-bold text-green-900 flex justify-between items-center">
-      <span>تعيين تكليف جديد</span>
-      <button @click="showAssignModal=false" class="text-gray-600 hover:text-gray-900 font-bold text-lg">&times;</button>
-    </h2>
+        <h3 class="font-bold text-xl text-gray-800 flex justify-between items-center border-b border-gray-100 pb-3">
+          <span>تعيين تكليف جديد</span>
+          <button @click="showAssignModal=false" class="text-gray-400 hover:text-gray-600 font-bold text-2xl">&times;</button>
+        </h3>
 
-    <div class="flex flex-col">
-      <label class="text-xs mb-1">الموظف</label>
-      <select v-model="form.employeeId" class="input text-sm">
-        <option v-for="emp in employees" :key="emp.id" :value="emp.id">
-          {{emp.fullName}}
-        </option>
-      </select>
-    </div>
+        <div class="space-y-4">
+          <div class="flex flex-col">
+            <label class="text-sm font-bold text-gray-600 mb-1">الموظف</label>
+            <select v-model="form.employeeId" class="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-primary bg-gray-50 text-sm">
+              <option v-for="emp in employees" :key="emp.id" :value="emp.id">
+                {{emp.fullName}}
+              </option>
+            </select>
+          </div>
 
-    <div>
-      <label class="text-xs">عنوان المهمة</label>
-      <input v-model="form.title" type="text" class="input text-sm"/>
-    </div>
+          <div>
+            <label class="text-sm font-bold text-gray-600 mb-1">عنوان المهمة</label>
+            <input v-model="form.title" type="text" class="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-primary bg-gray-50 text-sm"/>
+          </div>
 
-    <div>
-      <label class="text-xs">الوصف</label>
-      <textarea v-model="form.description" rows="2" class="input text-sm"></textarea>
-    </div>
+          <div>
+            <label class="text-sm font-bold text-gray-600 mb-1">الوصف</label>
+            <textarea v-model="form.description" rows="2" class="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-primary bg-gray-50 text-sm resize-none"></textarea>
+          </div>
 
-   <div class="flex gap-2">
-  <div class="flex-1">
-    <label class="text-xs">تاريخ البداية</label>
-    <input v-model="form.startDate" type="date" class="input text-sm"/>
-  </div>
-  <div class="flex-1">
-    <label class="text-xs">تاريخ النهاية</label>
-    <input v-model="form.endDate" type="date" class="input text-sm"/>
-  </div>
-</div>
+          <div class="flex gap-3">
+            <div class="flex-1">
+              <label class="text-sm font-bold text-gray-600 mb-1">تاريخ البداية</label>
+              <input v-model="form.startDate" type="date" class="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-primary bg-gray-50 text-sm"/>
+            </div>
+            <div class="flex-1">
+              <label class="text-sm font-bold text-gray-600 mb-1">تاريخ النهاية</label>
+              <input v-model="form.endDate" type="date" class="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-primary bg-gray-50 text-sm"/>
+            </div>
+          </div>
 
-    <div>
-      <label class="text-xs">مرفق</label>
-      <input type="file" @change="onFileChange" class="input text-sm"/>
-    </div>
-
-    <div class="flex justify-end gap-1">
-      <button @click="assignTask" class="bg-primary text-white px-3 py-1.5 rounded-lg text-sm">
-        إرسال
-      </button>
-      <button @click="showAssignModal=false" class="bg-gray-300 px-3 py-1.5 rounded-lg text-sm">
-        إلغاء
-      </button>
-    </div>
-
-  </div>
-</div>
-
-    <!-- ================= Modal تفاصيل المهمة ================= -->
-    <div v-if="showDetailModal"
-         class="fixed inset-0 bg-black/40 flex items-start justify-center z-50 p-4 pt-10">
-
-      <div class="bg-white p-6 rounded-xl w-full max-w-lg shadow-lg space-y-4">
-
-        <h2 class="text-lg font-bold text-green-900 flex justify-between items-center">
-          <span>تفاصيل المهمة</span>
-          <button @click="showDetailModal=false" class="text-gray-600 hover:text-gray-900 font-bold text-xl">&times;</button>
-        </h2>
-
-        <div v-if="detailTask">
-          <p><strong>الموظف:</strong> {{detailTask.employee}}</p>
-          <p><strong>المهمة:</strong> {{detailTask.title}}</p>
-   <p><strong>البداية:</strong> {{ formatDate(detailTask.startDate) }}</p>
-<p><strong>النهاية:</strong> {{ formatDate(detailTask.endDate) }}</p>
-          <p><strong>الحالة:</strong> {{ statusArabic(detailTask.status) }}</p>
+          <div>
+            <label class="text-sm font-bold text-gray-600 mb-1">مرفق</label>
+            <input type="file" @change="onFileChange" class="w-full p-2 border rounded-xl outline-none focus:ring-2 focus:ring-primary bg-gray-50 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
+          </div>
         </div>
 
-      
+        <div class="flex justify-end gap-3 mt-6 border-t border-gray-100 pt-3">
+          <button @click="showAssignModal=false" class="flex-1 bg-gray-100 px-5 py-2.5 rounded-xl font-bold text-gray-500 hover:bg-gray-200 transition text-sm">
+            إلغاء
+          </button>
+          <button @click="assignTask" class="flex-1 bg-primary text-white px-5 py-2.5 rounded-xl font-bold hover:shadow-lg transition text-sm">
+            إرسال
+          </button>
+        </div>
 
       </div>
     </div>
 
-    <!-- ================= Modal التعليقات ================= -->
+    <div v-if="showDetailModal"
+         class="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4 backdrop-blur-sm">
+
+      <div class="bg-white p-6 rounded-2xl w-full max-w-md shadow-2xl animate-fade-in space-y-4">
+
+        <h3 class="font-bold text-xl text-gray-800 flex justify-between items-center border-b border-gray-100 pb-3">
+          <span>تفاصيل المهمة</span>
+          <button @click="showDetailModal=false" class="text-gray-400 hover:text-gray-600 font-bold text-2xl">&times;</button>
+        </h3>
+
+        <div v-if="detailTask" class="space-y-3 text-sm pt-2">
+          <div class="flex justify-between py-1 border-b border-gray-50"><span class="font-bold text-gray-600">الموظف:</span> <span class="text-gray-800 font-semibold">{{detailTask.employee}}</span></div>
+          <div class="flex justify-between py-1 border-b border-gray-50"><span class="font-bold text-gray-600">المهمة:</span> <span class="text-gray-800">{{detailTask.title}}</span></div>
+          <div class="flex justify-between py-1 border-b border-gray-50">
+            <span class="font-bold text-gray-600">البداية:</span> 
+            <span class="font-mono bg-green-50 text-green-700 px-1.5 py-0.5 rounded text-xs border border-green-100">{{ formatDate(detailTask.startDate) }}</span>
+          </div>
+          <div class="flex justify-between py-1 border-b border-gray-50">
+            <span class="font-bold text-gray-600">النهاية:</span> 
+            <span class="font-mono bg-red-50 text-red-700 px-1.5 py-0.5 rounded text-xs border border-red-100">{{ formatDate(detailTask.endDate) }}</span>
+          </div>
+          <div class="flex justify-between py-1">
+            <span class="font-bold text-gray-600">الحالة:</span> 
+            <span class="font-bold" :class="{'text-green-600': detailTask.status === 'Completed' || detailTask.status === 'Approved','text-orange-500': detailTask.status === 'Pending' || detailTask.status === 'InProgress'}">{{ statusArabic(detailTask.status) }}</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
     <div v-if="showCommentModal"
-         class="fixed inset-0 bg-black/40 flex items-start justify-center z-50 p-4 pt-10">
+         class="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4 backdrop-blur-sm">
 
-      <div class="bg-white p-6 rounded-xl w-full max-w-md shadow-lg space-y-4 max-h-[85vh] overflow-y-auto">
+      <div class="bg-white p-6 rounded-2xl w-full max-w-md shadow-2xl animate-fade-in space-y-4 max-h-[85vh] flex flex-col">
 
-        <h2 class="text-lg font-bold text-green-900 flex justify-between items-center">
+        <h3 class="font-bold text-xl text-gray-800 flex justify-between items-center border-b border-gray-100 pb-3">
           <span>التعليقات</span>
-          <button @click="showCommentModal=false" class="text-gray-600 hover:text-gray-900 font-bold text-xl">&times;</button>
-        </h2>
+          <button @click="showCommentModal=false" class="text-gray-400 hover:text-gray-600 font-bold text-2xl">&times;</button>
+        </h3>
 
-   <ul>
-  <li v-for="c in comments" :key="c.id" class="mb-2">
-    <!-- اسم المستخدم فوق الصندوق -->
-    <div class="text-sm font-semibold text-gray-700 mb-1">
-      {{ c.userName || 'مجهول' }}
-    </div>
+        <div class="flex-1 overflow-y-auto space-y-3 pr-1 py-2 border-b border-gray-50">
+          <ul>
+            <li v-for="c in comments" :key="c.id" class="mb-3">
+              <div class="text-xs font-bold text-gray-500 mr-1 mb-1">
+                {{ c.userName || 'مجهول' }}
+              </div>
 
-    <!-- صندوق التعليق -->
-    <div 
-      class="bg-gray-100 p-2 rounded-lg break-words text-sm"
-      style="max-height: 3rem; overflow-y: auto; white-space: pre-line;"
-    >
-      {{ c.comment }}
-    </div>
+              <div 
+                class="bg-gray-50 border border-gray-100 p-3 rounded-xl break-words text-sm text-gray-700 shadow-sm whitespace-pre-line"
+                style="max-height: 5rem; overflow-y: auto;"
+              >
+                {{ c.comment }}
+              </div>
 
-    <!-- رابط المرفق إذا موجود -->
-    <a v-if="c.attachmentUrl" :href="c.attachmentUrl" target="_blank" 
-       class="text-blue-500 underline ml-1 text-sm mt-1 inline-block">
-      مرفق
-    </a>
-  </li>
-</ul>
+              <a v-if="c.attachmentUrl" :href="c.attachmentUrl" target="_blank" 
+                 class="text-xs text-blue-600 hover:underline mr-2 inline-flex items-center gap-1 mt-1">
+                📎 عرض المرفق
+              </a>
+            </li>
+          </ul>
+        </div>
 
-<!-- إضافة تعليق جديد -->
-<div class="mt-2 flex flex-col gap-2">
-  <textarea
-    v-model="newComment"
-    placeholder="اكتب تعليقك هنا..."
-    class="input w-full resize-none overflow-hidden min-h-[60px]"
-    rows="2"
-    @input="autoResize($event)"
-  ></textarea>
-  
-  <div class="flex gap-2">
-    <input type="file" @change="onCommentFileChange" class="h-10"/>
-    <button @click="sendComment" class="bg-primary text-white px-4 py-2 rounded-xl">
-      إرسال
-    </button>
-  </div>
-</div>
+        <div class="space-y-3 pt-2">
+          <textarea
+            v-model="newComment"
+            placeholder="اكتب تعليقك هنا..."
+            class="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-primary bg-gray-50 text-sm resize-none overflow-hidden min-h-[60px]"
+            rows="2"
+            @input="autoResize($event)"
+          ></textarea>
+          
+          <div class="flex items-center justify-between gap-2">
+            <input type="file" @change="onCommentFileChange" class="text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200" />
+            <button @click="sendComment" class="bg-primary text-white px-5 py-2 rounded-xl text-sm font-bold shadow hover:bg-green-700 transition">
+              إرسال
+            </button>
+          </div>
+        </div>
 
       </div>
     </div>
-<ToastPage
-  v-if="showToast"
-  :message="toastMessage"
-  :type="toastType"
-/>
+
+    <ToastPage
+      v-if="showToast"
+      :message="toastMessage"
+      :type="toastType"
+    />
   </div>
 </template>
 
 <script>
-import axios from "axios"
 import { ref, onMounted } from "vue"
 import SidebarPage from "../components/Sidebar.vue"
 import Navbar from "../components/Navbar.vue"
+import api from "@/services/api";
 import { 
 EyeIcon, 
 ChatBubbleLeftRightIcon,
@@ -273,9 +276,9 @@ CheckCircleIcon,
 XCircleIcon
 } from "@heroicons/vue/24/outline"
 import ToastPage from "@/components/Toast.vue";
+
 export default {
-  components: { SidebarPage, Navbar, EyeIcon, ChatBubbleLeftRightIcon ,  ToastPage,CheckCircleIcon,
-XCircleIcon},
+  components: { SidebarPage, Navbar, EyeIcon, ChatBubbleLeftRightIcon ,  ToastPage, CheckCircleIcon, XCircleIcon },
 
   setup() {
 
@@ -301,11 +304,8 @@ const showToast = ref(false)
       attachment: null
     })
 
-    axios.defaults.baseURL = "http://localhost:5205/api"
-    axios.defaults.headers.common["Authorization"] = `Bearer ${localStorage.getItem("token")}`
-
     const fetchTasks = async () => {
-      const res = await axios.get("/Task/manager-tasks")
+      const res = await api.get("/Task/manager-tasks")
       tasks.value = res.data
       .reverse()
     }
@@ -314,7 +314,7 @@ const autoResize = (e) => {
   e.target.style.height = e.target.scrollHeight + 'px';
 }
     const fetchEmployees = async () => {
-      const res = await axios.get("/Task/section-employees")
+      const res = await api.get("/Task/section-employees")
       employees.value = res.data
     }
 const triggerToast = (msg, type="success") => {
@@ -338,7 +338,9 @@ const triggerToast = (msg, type="success") => {
     if (form.value.attachment)
       data.append("Attachment", form.value.attachment)
 
-    await axios.post("/Task/assign", data)
+    await api.post("/Task/assign", data, {
+      headers: { "Content-Type": "multipart/form-data" }
+    })
 
     showAssignModal.value = false
     fetchTasks()
@@ -357,7 +359,7 @@ const formatDate = (dateStr) => {
 
   try {
 
-    await axios.put(`/Task/manager-decision/${task.id}?decision=${decision}`)
+    await api.put(`/Task/manager-decision/${task.id}?decision=${decision}`)
 
     fetchTasks()
 
@@ -376,7 +378,7 @@ const formatDate = (dateStr) => {
 
     const fetchComments = async (taskId) => {
       try {
-        const res = await axios.get(`/Task/${taskId}/comments`)
+        const res = await api.get(`/Task/${taskId}/comments`)
         comments.value = res.data.map(c => ({
           id: c.id,
           userName: c.userName || c.employeeName || c.managerName || "مجهول",
@@ -406,11 +408,11 @@ const formatDate = (dateStr) => {
     const sendComment = async () => {
       if (!newComment.value && !commentAttachment.value) return
       const data = new FormData()
-      data.append("comment", newComment.value)
-      if (commentAttachment.value) data.append("attachment", commentAttachment.value)
+      data.append("Comment", newComment.value)
+      if (commentAttachment.value) data.append("Attachment", commentAttachment.value)
 
       try {
-        await axios.post(`/Task/${detailTask.value.id}/comment`, data, {
+        await api.post(`/Task/${detailTask.value.id}/comment`, data, {
           headers: { "Content-Type": "multipart/form-data" }
         })
         newComment.value = ""

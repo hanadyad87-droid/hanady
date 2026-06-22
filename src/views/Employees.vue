@@ -207,25 +207,26 @@ export default {
           api.get("/EmployeeAdministrative/all-with-admin")
         ]);
 
-        const employeesData = empRes.data;
-        const adminData = adminRes.data;
+     const employeesData = empRes.data.employees;
+const adminData = Array.isArray(adminRes.data)
+  ? adminRes.data
+  : adminRes.data.data || adminRes.data;
 
-        this.employees = adminData
-          .map(adm => {
-            const emp = employeesData.find(e => e.id === adm.id);
-            return {
-              id: adm.id,
-              fullName: adm.fullName,
-              EmployeeNumber: emp ? emp.employeeNumber : "غير محدد",
-              department: adm.department || "غير محدد",
-              jobTitle: adm.jobTitle || "-",
-              workLocation: adm.workLocation || "-",
-              employmentStatus: adm.employmentStatus || "غير محدد",
-              publicId: adm.employeePublicId, 
-            };
-          })
-          .sort((a, b) => b.id - a.id);
-
+this.employees = adminData
+  .map(adm => {
+    const emp = employeesData.find(e => e.id === adm.id);
+    return {
+      id: adm.id,
+      fullName: adm.fullName,
+      EmployeeNumber: emp ? emp.employeeNumber : "غير محدد",
+      department: adm.department || "غير محدد",
+      jobTitle: adm.jobTitle || "-",
+      workLocation: adm.workLocation || "-",
+      employmentStatus: adm.employmentStatus || "غير محدد",
+      publicId: adm.employeePublicId, 
+    };
+  })
+  .sort((a, b) => b.id - a.id);
       } catch (err) {
         console.error("خطأ في جلب الموظفين:", err);
       }

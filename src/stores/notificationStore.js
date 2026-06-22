@@ -1,10 +1,16 @@
 import { reactive } from "vue";
 
 function normalize(n) {
+  const rawMessage = n.message ?? "";
+  const routeMatch = rawMessage.match(/\[\[route:(.+?)\]\]/);
+  const route = routeMatch ? routeMatch[1]?.trim() : null;
+  const cleanMessage = rawMessage.replace(/\s*\[\[route:.+?\]\]\s*/g, " ").trim();
+
   return {
     id: n.id,
     title: n.title ?? "",
-    message: n.message ?? "",
+    message: cleanMessage,
+    route,
     createdAt: n.createdAt,
     isRead: Boolean(n.isRead),
   };

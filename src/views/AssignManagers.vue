@@ -198,7 +198,7 @@ export default {
           api.get("/Organization/AllEntitiesByDate")
         ]);
 
-        employees.value = empRes.data;
+       employees.value = empRes.data.employees || [];
         allEntities.value = entitiesRes.data;
 
         refreshTable();
